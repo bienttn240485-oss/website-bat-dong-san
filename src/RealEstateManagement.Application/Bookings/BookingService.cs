@@ -264,7 +264,7 @@ public sealed class BookingService(
         var quote = CalculatePrice(field, command.BookingDate, command.StartMinute, command.EndMinute);
         if (quote is null)
         {
-            return BookingCommandResult.Failure(["Chưa cấu hình giá phù hợp cho khung giá» đã chá»n."]);
+            return BookingCommandResult.Failure(["Chưa cấu hình giá phù hợp cho khung giờ đã chọn."]);
         }
 
         var bookingId = Guid.NewGuid();
@@ -414,23 +414,23 @@ public sealed class BookingService(
                 booking.Complete(now);
                 break;
             case BookingStatus.Cancelled:
-                booking.Cancel(now, "Hủy bởi nhân viên vận hÃ nh");
+                booking.Cancel(now, "Hủy bởi nhân viên vận hành");
                 break;
             case BookingStatus.NoShow:
                 if (!CanMarkNoShow(booking))
                 {
-                    return BookingCommandResult.Failure(["Chỉ có thể ghi nhận khách không đến sau giá» bắt đầu vÃ  thá»i gian chá» theo chính sách."]);
+                    return BookingCommandResult.Failure(["Chỉ có thể ghi nhận khách không đến sau giờ bắt đầu và thời gian chờ theo chính sách."]);
                 }
 
                 booking.MarkNoShow(now);
                 break;
             default:
-                return BookingCommandResult.Failure(["Trạng thái nÃ y chưa được hỗ trợ trong lát hiện tại."]);
+                return BookingCommandResult.Failure(["Trạng thái này chưa được hỗ trợ trong lát hiện tại."]);
         }
 
         if (booking.Status == previousStatus)
         {
-            return BookingCommandResult.Failure(["Không thể chuyển booking sang trạng thái đã chá»n."]);
+            return BookingCommandResult.Failure(["Không thể chuyển booking sang trạng thái đã chọn."]);
         }
 
         await store.SaveChangesAsync(cancellationToken);
@@ -441,7 +441,7 @@ public sealed class BookingService(
     {
         if (command.Amount <= 0)
         {
-            return BookingCommandResult.Failure(["Số tiá»n ghi nhận phải lớn hơn 0."]);
+            return BookingCommandResult.Failure(["Số tiền ghi nhận phải lớn hơn 0."]);
         }
 
         var booking = await store.GetBookingForPaymentAsync(command.BookingId, cancellationToken);
@@ -508,12 +508,12 @@ public sealed class BookingService(
 
         if (booking.Status is not (BookingStatus.PendingPayment or BookingStatus.Confirmed))
         {
-            return BookingCommandResult.Failure(["Booking nÃ y không còn đủ Ä‘iá»u kiện hủy trực tuyến."]);
+            return BookingCommandResult.Failure(["Booking này không còn đủ điều kiện hủy trực tuyến."]);
         }
 
         if (!HasEnoughTimeBeforeStart(booking))
         {
-            return BookingCommandResult.Failure(["Booking đã gần giá» sử dụng nên không thể hủy trực tuyến. Vui lòng liên hệ nhân viên sân."]);
+            return BookingCommandResult.Failure(["Booking đã gần giờ sử dụng nên không thể hủy trực tuyến. Vui lòng liên hệ nhân viên sân."]);
         }
 
         var now = clock.UtcNow;
@@ -558,7 +558,7 @@ public sealed class BookingService(
             var service = catalog.FirstOrDefault(service => service.Id == item.ServiceId);
             if (service is null)
             {
-                errors.Add("Dịch vụ đã chá»n không còn khả dụng.");
+                errors.Add("Dịch vụ đã chọn không còn khả dụng.");
                 continue;
             }
 
@@ -603,7 +603,7 @@ public sealed class BookingService(
         var now = clock.UtcNow;
         if (!promotion.IsActive || promotion.StartsAtUtc > now || promotion.EndsAtUtc < now)
         {
-            errors.Add("Mã khuyến mãi chưa đến thá»i gian áp dụng hoặc đã hết hạn.");
+            errors.Add("Mã khuyến mãi chưa đến thời gian áp dụng hoặc đã hết hạn.");
         }
 
         if (eligibleAmount < promotion.MinimumOrderAmount)
@@ -613,17 +613,17 @@ public sealed class BookingService(
 
         if (promotion.ApplicableFieldId is not null && promotion.ApplicableFieldId.Value != command.FieldId)
         {
-            errors.Add("Mã khuyến mãi không áp dụng cho sân đã chá»n.");
+            errors.Add("Mã khuyến mãi không áp dụng cho sân đã chọn.");
         }
 
         if (promotion.ApplicableStartMinute is not null && command.StartMinute < promotion.ApplicableStartMinute.Value)
         {
-            errors.Add("Mã khuyến mãi không áp dụng cho khung giá» đã chá»n.");
+            errors.Add("Mã khuyến mãi không áp dụng cho khung giờ đã chọn.");
         }
 
         if (promotion.ApplicableEndMinute is not null && command.EndMinute > promotion.ApplicableEndMinute.Value)
         {
-            errors.Add("Mã khuyến mãi không áp dụng cho khung giá» đã chá»n.");
+            errors.Add("Mã khuyến mãi không áp dụng cho khung giờ đã chọn.");
         }
 
         if (promotion.TotalUsageLimit is not null)
@@ -640,7 +640,7 @@ public sealed class BookingService(
             var phoneUsages = await store.CountPromotionUsagesAsync(promotion.Id, NormalizePhone(command.CustomerPhone), cancellationToken);
             if (phoneUsages >= promotion.PerPhoneUsageLimit.Value)
             {
-                errors.Add("Số điện thoại nÃ y đã dùng hết lượt của mã khuyến mãi.");
+                errors.Add("Số điện thoại này đã dùng hết lượt của mã khuyến mãi.");
             }
         }
 
@@ -686,43 +686,43 @@ public sealed class BookingService(
 
         if (!IsValidInterval(startMinute, endMinute))
         {
-            errors.Add("Khung giá» đặt sân không hợp lệ.");
+            errors.Add("Khung giờ đặt sân không hợp lệ.");
             return errors;
         }
 
         if (endMinute - startMinute < field.MinimumBookingMinutes)
         {
-            errors.Add($"Thá»i lượng đặt sân tối thiểu lÃ  {field.MinimumBookingMinutes} phút.");
+            errors.Add($"Thời lượng đặt sân tối thiểu là {field.MinimumBookingMinutes} phút.");
         }
 
         if (startMinute % field.SlotStepMinutes != 0 || endMinute % field.SlotStepMinutes != 0)
         {
-            errors.Add($"Khung giá» cần theo bước {field.SlotStepMinutes} phút.");
+            errors.Add($"Khung giờ cần theo bước {field.SlotStepMinutes} phút.");
         }
 
         if (!allowPast && StartsInPast(bookingDate, startMinute))
         {
-            errors.Add("Không thể đặt sân cho thá»i điểm đã qua.");
+            errors.Add("Không thể đặt sân cho thời điểm đã qua.");
         }
 
         var operatingHour = field.OperatingHours.FirstOrDefault(hour => hour.DayOfWeek == (int)bookingDate.DayOfWeek);
         if (operatingHour is null || operatingHour.IsClosed || operatingHour.OpenMinute is null || operatingHour.CloseMinute is null)
         {
-            errors.Add("Sân đóng cửa vÃ o ngÃ y đã chá»n.");
+            errors.Add("Sân đóng cửa vào ngày đã chọn.");
         }
         else if (startMinute < operatingHour.OpenMinute.Value || endMinute > operatingHour.CloseMinute.Value)
         {
-            errors.Add("Khung giá» nằm ngoÃ i giá» hoạt động của sân.");
+            errors.Add("Khung giờ nằm ngoài giờ hoạt động của sân.");
         }
 
         if (field.Blocks.Any(block => block.BlockDate == bookingDate && startMinute < block.EndMinute && endMinute > block.StartMinute))
         {
-            errors.Add("Khung giá» nÃ y đang được khóa để bảo trì hoặc sự kiện nội bộ.");
+            errors.Add("Khung giờ này đang được khóa để bảo trì hoặc sự kiện nội bộ.");
         }
 
         if (bookings.Any(booking => booking.BlocksAvailability(clock.UtcNow) && booking.Overlaps(bookingDate, startMinute, endMinute)))
         {
-            errors.Add("Khung giá» nÃ y đã có booking khác.");
+            errors.Add("Khung giờ này đã có booking khác.");
         }
 
         return errors;
@@ -798,7 +798,7 @@ public sealed class BookingService(
         Required(command.UnitName, "Vui lòng nhập đơn vị tính.", errors);
         if (command.UnitPrice < 0)
         {
-            errors.Add("ÄÆ¡n giá dịch vụ không được âm.");
+            errors.Add("Đơn giá dịch vụ không được âm.");
         }
 
         if (command.IsQuantityTracked && command.AvailableQuantity is < 0)
@@ -830,12 +830,12 @@ public sealed class BookingService(
 
         if (command.MinimumOrderAmount < 0 || command.MaximumDiscountAmount is < 0)
         {
-            errors.Add("Giá trị đơn tối thiểu vÃ  mức giảm tối đa không được âm.");
+            errors.Add("Giá trị đơn tối thiểu và mức giảm tối đa không được âm.");
         }
 
         if (command.EndsAtUtc <= command.StartsAtUtc)
         {
-            errors.Add("Thá»i gian kết thúc phải sau thá»i gian bắt đầu.");
+            errors.Add("Thời gian kết thúc phải sau thời gian bắt đầu.");
         }
 
         if (command.TotalUsageLimit is < 0 || command.PerPhoneUsageLimit is < 0)
@@ -962,4 +962,3 @@ public sealed class BookingService(
 
     private sealed record PromotionResult(PromoCode? Promotion, long DiscountAmount, IReadOnlyList<string> Errors);
 }
-

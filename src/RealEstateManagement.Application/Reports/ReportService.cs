@@ -104,8 +104,8 @@ public sealed class ReportService(IReportStore store, ISystemClock clock) : IRep
         var metrics = new[]
         {
             new SummaryMetricDto("Lịch hôm nay", operationalBookings.Length.ToString(CultureInfo.InvariantCulture), $"{upcoming.Length} lượt sắp bắt đầu", "info"),
-            new SummaryMetricDto("Äang sử dụng", operationalBookings.Count(booking => booking.Status == BookingStatus.InProgress).ToString(CultureInfo.InvariantCulture), "Theo trạng thái vận hÃ nh", "active"),
-            new SummaryMetricDto("Chá» xử lý", pending.Length.ToString(CultureInfo.InvariantCulture), "Chá» thanh toán hoặc xác nhận", "warning"),
+            new SummaryMetricDto("Đang sử dụng", operationalBookings.Count(booking => booking.Status == BookingStatus.InProgress).ToString(CultureInfo.InvariantCulture), "Theo trạng thái vận hành", "active"),
+            new SummaryMetricDto("Chờ xử lý", pending.Length.ToString(CultureInfo.InvariantCulture), "Chờ thanh toán hoặc xác nhận", "warning"),
             new SummaryMetricDto("Khách còn nợ", paymentsDue.Length.ToString(CultureInfo.InvariantCulture), "Cần nhắc khi khách đến sân", "danger")
         };
 
@@ -157,7 +157,7 @@ public sealed class ReportService(IReportStore store, ISystemClock clock) : IRep
         var range = NormalizeRange(fromDate, toDate);
         var bookings = await store.ListBookingsAsync(range.FromDate, range.EndExclusive, cancellationToken);
         var builder = new StringBuilder();
-        builder.AppendLine("NgÃ y,Mã đặt sân,Sân,Khách,Trạng thái,Thanh toÃ¡n,Tiá»n sân,Dịch vụ,Khuyến mãi,Tổng tiá»n,ÄÃ£ thu,HoÃ n trả,Còn thu");
+        builder.AppendLine("Ngày,Mã đặt sân,Sân,Khách,Trạng thái,Thanh toán,Tiền sân,Dịch vụ,Khuyến mãi,Tổng tiền,Đã thu,Hoàn trả,Còn thu");
         foreach (var booking in bookings.OrderBy(booking => booking.BookingDate).ThenBy(booking => booking.StartMinute))
         {
             builder.AppendLine(string.Join(',', [

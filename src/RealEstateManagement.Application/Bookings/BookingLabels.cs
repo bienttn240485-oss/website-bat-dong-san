@@ -7,14 +7,14 @@ public static class BookingLabels
     public static string Status(BookingStatus status)
         => status switch
         {
-            BookingStatus.PendingPayment => "Chá» thanh toán",
-            BookingStatus.Confirmed => "ÄÃ£ xác nhận",
+            BookingStatus.PendingPayment => "Chờ thanh toán",
+            BookingStatus.Confirmed => "Đã xác nhận",
             BookingStatus.CheckedIn => "Khách đã đến",
-            BookingStatus.InProgress => "Äang sử dụng",
-            BookingStatus.Completed => "ÄÃ£ hoÃ n thÃ nh",
-            BookingStatus.Cancelled => "ÄÃ£ hủy",
+            BookingStatus.InProgress => "Đang sử dụng",
+            BookingStatus.Completed => "Đã hoàn thành",
+            BookingStatus.Cancelled => "Đã hủy",
             BookingStatus.NoShow => "Khách không đến",
-            BookingStatus.Expired => "ÄÃ£ hết hạn",
+            BookingStatus.Expired => "Đã hết hạn",
             _ => "Không rõ"
         };
 
@@ -22,11 +22,11 @@ public static class BookingLabels
         => status switch
         {
             Domain.Bookings.PaymentStatus.Unpaid => "Chưa thanh toán",
-            Domain.Bookings.PaymentStatus.PartiallyPaid => "ÄÃ£ thanh toán một phần",
-            Domain.Bookings.PaymentStatus.Paid => "ÄÃ£ thanh toán đủ",
-            Domain.Bookings.PaymentStatus.RefundPending => "Äang chá» hoÃ n tiá»n",
-            Domain.Bookings.PaymentStatus.PartiallyRefunded => "ÄÃ£ hoÃ n tiá»n một phần",
-            Domain.Bookings.PaymentStatus.Refunded => "ÄÃ£ hoÃ n tiá»n",
+            Domain.Bookings.PaymentStatus.PartiallyPaid => "Đã thanh toán một phần",
+            Domain.Bookings.PaymentStatus.Paid => "Đã thanh toán đủ",
+            Domain.Bookings.PaymentStatus.RefundPending => "Đang chờ hoàn tiền",
+            Domain.Bookings.PaymentStatus.PartiallyRefunded => "Đã hoàn tiền một phần",
+            Domain.Bookings.PaymentStatus.Refunded => "Đã hoàn tiền",
             Domain.Bookings.PaymentStatus.Failed => "Thanh toán thất bại",
             _ => "Không rõ"
         };
@@ -62,15 +62,15 @@ public static class BookingLabels
     public static string PaymentRecordType(PaymentRecordType type)
         => type switch
         {
-            Domain.Bookings.PaymentRecordType.Payment => "Thu tiá»n",
-            Domain.Bookings.PaymentRecordType.Refund => "HoÃ n tiá»n",
+            Domain.Bookings.PaymentRecordType.Payment => "Thu tiền",
+            Domain.Bookings.PaymentRecordType.Refund => "Hoàn tiền",
             _ => "Không rõ"
         };
 
     public static string PaymentMethod(PaymentMethod method)
         => method switch
         {
-            Domain.Bookings.PaymentMethod.Cash => "Tiá»n mặt",
+            Domain.Bookings.PaymentMethod.Cash => "Tiền mặt",
             Domain.Bookings.PaymentMethod.BankTransfer => "Chuyển khoản",
             Domain.Bookings.PaymentMethod.Online => "Trực tuyến",
             Domain.Bookings.PaymentMethod.Other => "Khác",
@@ -80,10 +80,10 @@ public static class BookingLabels
     public static string PaymentRecordStatus(PaymentRecordStatus status)
         => status switch
         {
-            Domain.Bookings.PaymentRecordStatus.Pending => "Chá» xử lý",
-            Domain.Bookings.PaymentRecordStatus.Succeeded => "ÄÃ£ ghi nhận",
+            Domain.Bookings.PaymentRecordStatus.Pending => "Chờ xử lý",
+            Domain.Bookings.PaymentRecordStatus.Succeeded => "Đã ghi nhận",
             Domain.Bookings.PaymentRecordStatus.Failed => "Thất bại",
-            Domain.Bookings.PaymentRecordStatus.Cancelled => "ÄÃ£ hủy",
+            Domain.Bookings.PaymentRecordStatus.Cancelled => "Đã hủy",
             _ => "Không rõ"
         };
 
@@ -91,8 +91,7 @@ public static class BookingLabels
         => type switch
         {
             Domain.Bookings.PromoDiscountType.Percentage => "Giảm theo phần trăm",
-            Domain.Bookings.PromoDiscountType.FixedAmount => "Giảm số tiá»n cố định",
+            Domain.Bookings.PromoDiscountType.FixedAmount => "Giảm số tiền cố định",
             _ => "Không rõ"
         };
 }
-

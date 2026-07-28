@@ -48,7 +48,7 @@ public sealed class BookingServiceTests
         var result = await service.CreateBookingAsync(ValidGuestCommand() with { StartMinute = 1110, EndMinute = 1170 });
 
         Assert.False(result.Succeeded);
-        Assert.Contains("Khung giá» nÃ y đã có booking khác.", result.Errors);
+        Assert.Contains("Khung giờ này đã có booking khác.", result.Errors);
     }
 
     [Fact]
@@ -62,7 +62,7 @@ public sealed class BookingServiceTests
         var result = await service.CreateBookingAsync(ValidGuestCommand());
 
         Assert.False(result.Succeeded);
-        Assert.Contains("Khung giá» nÃ y đang được khóa để bảo trì hoặc sự kiện nội bộ.", result.Errors);
+        Assert.Contains("Khung giờ này đang được khóa để bảo trì hoặc sự kiện nội bộ.", result.Errors);
     }
 
     [Fact]
@@ -127,7 +127,7 @@ public sealed class BookingServiceTests
         store.Bookings.Add(booking);
         var service = new BookingService(store, new ImmediateBookingWriteLock(), new FixedClock());
 
-        var result = await service.RecordPaymentAsync(new BookingPaymentCommand(booking.Id, PaymentRecordType.Payment, PaymentMethod.BankTransfer, 100000, "CK001", "Khách đặt cá»c", null));
+        var result = await service.RecordPaymentAsync(new BookingPaymentCommand(booking.Id, PaymentRecordType.Payment, PaymentMethod.BankTransfer, 100000, "CK001", "Khách đặt cọc", null));
 
         Assert.True(result.Succeeded);
         Assert.Equal(BookingStatus.Confirmed, booking.Status);
@@ -145,11 +145,11 @@ public sealed class BookingServiceTests
         store.Bookings.Add(booking);
         var service = new BookingService(store, new ImmediateBookingWriteLock(), new FixedClock());
 
-        var result = await service.CancelPublicBookingAsync(new PublicBookingCancellationCommand(booking.BookingCode, booking.CustomerPhone, "Äá»™i đổi lịch"));
+        var result = await service.CancelPublicBookingAsync(new PublicBookingCancellationCommand(booking.BookingCode, booking.CustomerPhone, "Đổi lịch"));
 
         Assert.True(result.Succeeded);
         Assert.Equal(BookingStatus.Cancelled, booking.Status);
-        Assert.Equal("Äá»™i đổi lịch", booking.CancellationReason);
+        Assert.Equal("Đổi lịch", booking.CancellationReason);
     }
 
     [Fact]
@@ -180,7 +180,7 @@ public sealed class BookingServiceTests
         var result = await service.ChangeStatusAsync(booking.Id, BookingStatus.InProgress);
 
         Assert.False(result.Succeeded);
-        Assert.Contains("Không thể chuyển booking sang trạng thái đã chá»n.", result.Errors);
+        Assert.Contains("Không thể chuyển booking sang trạng thái đã chọn.", result.Errors);
         Assert.Equal(BookingStatus.Completed, booking.Status);
     }
 
@@ -196,7 +196,7 @@ public sealed class BookingServiceTests
         var result = await service.ChangeStatusAsync(booking.Id, BookingStatus.NoShow);
 
         Assert.False(result.Succeeded);
-        Assert.Contains("Chỉ có thể ghi nhận khách không đến sau giá» bắt đầu vÃ  thá»i gian chá» theo chính sách.", result.Errors);
+        Assert.Contains("Chỉ có thể ghi nhận khách không đến sau giờ bắt đầu và thời gian chờ theo chính sách.", result.Errors);
     }
 
     [Fact]
@@ -226,7 +226,7 @@ public sealed class BookingServiceTests
 
         var scheduleEvent = Assert.Single(events);
         Assert.Contains("Trần Quốc Huy", scheduleEvent.Title);
-        Assert.Equal("ÄÃ£ xác nhận · Chưa thanh toán", scheduleEvent.Description);
+        Assert.Equal("Đã xác nhận · Chưa thanh toán", scheduleEvent.Description);
         Assert.False(scheduleEvent.IsBackground);
     }
 
@@ -264,7 +264,7 @@ public sealed class BookingServiceTests
             CustomerName: "Nguyễn Minh Tuấn",
             CustomerPhone: "0901 234 567",
             CustomerEmail: "tuan@example.local",
-            Note: "Äá»™i đến sớm 10 phút",
+            Note: "Đội đến sớm 10 phút",
             Source: BookingSource.GuestWeb,
             CreatedByUserId: null);
 
@@ -272,11 +272,11 @@ public sealed class BookingServiceTests
     {
         var now = new FixedClock().UtcNow;
         var fieldId = Guid.NewGuid();
-        var field = new Field(fieldId, "F5A", "Sân 5A", "san-5a", "Sân 5 ngÆ°á»i", 10, "Sân cá» nhân tạo.", "12 Ä‘Æ°á»ng D5", null, 60, 30, FieldStatus.Active, now);
+        var field = new Field(fieldId, "F5A", "Sân 5A", "san-5a", "Sân 5 người", 10, "Sân cỏ nhân tạo.", "12 đường D5", null, 60, 30, FieldStatus.Active, now);
         field.ReplaceOperatingHours(Enumerable.Range(0, 7).Select(day => new FieldOperatingHour(Guid.NewGuid(), fieldId, day, false, 360, 1380)));
         field.ReplaceImages([new FieldImage(Guid.NewGuid(), fieldId, "/images/fields/san-5a.svg", "Ảnh Sân 5A", 1, true, now)]);
         field.ReplacePricingRules([
-            new PricingRule(Guid.NewGuid(), fieldId, "Giá ban ngÃ y", PricingRuleType.Weekday, null, null, new DateOnly(2026, 1, 1), null, 360, 1080, 200000, 10, true, now),
+            new PricingRule(Guid.NewGuid(), fieldId, "Giá ban ngày", PricingRuleType.Weekday, null, null, new DateOnly(2026, 1, 1), null, 360, 1080, 200000, 10, true, now),
             new PricingRule(Guid.NewGuid(), fieldId, "Giá buổi tối", PricingRuleType.Weekday, null, null, new DateOnly(2026, 1, 1), null, 1080, 1380, 250000, 20, true, now),
             new PricingRule(Guid.NewGuid(), fieldId, "Giá cuối tuần", PricingRuleType.Weekend, null, null, new DateOnly(2026, 1, 1), null, 360, 1380, 300000, 30, true, now)
         ]);
@@ -476,4 +476,3 @@ public sealed class BookingServiceTests
                 booking.CreatedAtUtc);
     }
 }
-

@@ -19,7 +19,7 @@ public sealed class ReportServiceTests
         var dashboard = await service.GetOwnerDashboardAsync(CancellationToken.None);
 
         Assert.Contains(dashboard.Metrics, metric => metric.Label == "Doanh thu tháng" && metric.Value == "400.000 ₫");
-        Assert.Contains(dashboard.Metrics, metric => metric.Label == "Hủy vÃ  không đến" && metric.Value is "66,7%" or "66.7%");
+        Assert.Contains(dashboard.Metrics, metric => metric.Label == "Hủy và không đến" && metric.Value is "66,7%" or "66.7%");
     }
 
     [Fact]
@@ -49,7 +49,7 @@ public sealed class ReportServiceTests
 
         Assert.StartsWith(Encoding.UTF8.GetString(Encoding.UTF8.GetPreamble()), content);
         Assert.Contains("Mã đặt sân", content);
-        Assert.Contains("ÄÃ£ hoÃ n thÃ nh", content);
+        Assert.Contains("Đã hoàn thành", content);
         Assert.DoesNotContain("Completed", content);
     }
 
