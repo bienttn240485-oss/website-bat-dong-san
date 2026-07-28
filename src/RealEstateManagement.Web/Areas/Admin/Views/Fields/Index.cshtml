@@ -1,0 +1,74 @@
+@model IReadOnlyList<RealEstateManagement.Application.Fields.FieldSummaryDto>
+@using RealEstateManagement.Domain.Fields
+
+@functions {
+    private static string FormatMoney(long? amount) => amount is null ? "Chưa có giá" : string.Format("{0:N0} â‚«/giá»", amount).Replace(",", ".");
+    private static string StatusLabel(FieldStatus status) => status switch
+    {
+        FieldStatus.Active => "Äang hoạt động",
+        FieldStatus.TemporarilyClosed => "Tạm đóng",
+        FieldStatus.Maintenance => "Bảo trì",
+        FieldStatus.Inactive => "Ngừng khai thác",
+        _ => "Không xác định"
+    };
+    private static string StatusTone(FieldStatus status) => status == FieldStatus.Active ? "success" : status == FieldStatus.Maintenance ? "warning" : "neutral";
+}
+
+<div class="space-y-5">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+            <h2 class="text-2xl font-semibold text-ink">Quản lý sân</h2>
+            <p class="mt-1 text-sm text-muted">Owner quản lý thông tin sân, ảnh, giá» hoạt động, bảng giá vÃ  lịch khóa sân.</p>
+        </div>
+        <a class="fb-button fb-button-primary" href="/admin/fields/create">Thêm sân mới</a>
+    </div>
+
+    @if (TempData["SuccessMessage"] is string success)
+    {
+        <partial name="~/Views/Shared/Partials/_Alert.cshtml" model='new AlertViewModel("ThÃ nh công", success, "success")' />
+    }
+
+    <section class="fb-card overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="fb-table">
+                <thead>
+                    <tr>
+                        <th>Mã</th>
+                        <th>Sân</th>
+                        <th>Loại</th>
+                        <th>Giá từ</th>
+                        <th>Trạng thái</th>
+                        <th class="text-right">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-line bg-white">
+                    @foreach (var field in Model)
+                    {
+                        <tr>
+                            <td class="font-medium">@field.Code</td>
+                            <td>
+                                <div class="flex items-center gap-3">
+                                    <img class="h-12 w-20 rounded-ui border border-line object-cover" src="@(field.CoverImagePath ?? "/images/fields/san-5a.svg")" alt="@(field.CoverImageAltText ?? field.Name)" />
+                                    <div>
+                                        <p class="font-medium">@field.Name</p>
+                                        <p class="text-xs text-muted">@field.Slug</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>@field.FieldType</td>
+                            <td>@FormatMoney(field.PriceFrom)</td>
+                            <td><partial name="~/Views/Shared/Partials/_StatusBadge.cshtml" model='new StatusBadgeViewModel(StatusLabel(field.Status), StatusTone(field.Status))' /></td>
+                            <td class="text-right">
+                                <div class="flex justify-end gap-2">
+                                    <a class="fb-button fb-button-secondary min-h-9 px-3" href="/admin/fields/@field.Id">Xem</a>
+                                    <a class="fb-button fb-button-secondary min-h-9 px-3" href="/admin/fields/@field.Id/edit">Sửa</a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
