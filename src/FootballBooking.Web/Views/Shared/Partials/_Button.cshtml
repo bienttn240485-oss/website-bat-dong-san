@@ -1,0 +1,30 @@
+@model ButtonViewModel
+@{
+    var styleClass = Model.Style switch
+    {
+        "secondary" => "fb-button-secondary",
+        "danger" => "fb-button-danger",
+        _ => "fb-button-primary"
+    };
+}
+
+@if (!string.IsNullOrWhiteSpace(Model.Url))
+{
+    <a class="fb-button @styleClass" href="@Model.Url" aria-disabled="@Model.Disabled.ToString().ToLowerInvariant()">
+        @if (!string.IsNullOrWhiteSpace(Model.IconName))
+        {
+            <partial name="Partials/_HeroIcon" model="new HeroIconViewModel(Model.IconName)" />
+        }
+        <span>@Model.Label</span>
+    </a>
+}
+else
+{
+    <button class="fb-button @styleClass" type="@Model.Type" disabled="@Model.Disabled">
+        @if (!string.IsNullOrWhiteSpace(Model.IconName))
+        {
+            <partial name="Partials/_HeroIcon" model="new HeroIconViewModel(Model.IconName)" />
+        }
+        <span>@Model.Label</span>
+    </button>
+}

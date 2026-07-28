@@ -1,0 +1,187 @@
+@model AdminDashboardViewModel
+@using FootballBooking.Application.Bookings
+@{
+    ViewData["Title"] = "Tổng quan";
+    ViewData["Breadcrumbs"] = new List<BreadcrumbItemViewModel>
+    {
+        new("Quản trị", "/admin/dashboard"),
+        new("Tổng quan")
+    };
+
+    var owner = Model.OwnerDashboard;
+    var staff = Model.StaffDashboard;
+    var range = owner?.Range;
+    var from = range?.FromDate.ToString("yyyy-MM-dd");
+    var to = range?.ToDate.ToString("yyyy-MM-dd");
+}
+
+<div class="space-y-5">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+            <p class="text-xs font-semibold uppercase tracking-wide text-muted">Khu vực nội bộ</p>
+            <h1 class="mt-1 text-2xl font-semibold text-ink">Tổng quan</h1>
+            <p class="mt-1 text-sm text-muted">Dữ liệu được tổng hợp từ lịch đặt sân, thanh toán và dịch vụ đã ghi nhận.</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+            <a class="fb-button fb-button-secondary" href="/admin/schedule">Lịch sân</a>
+            <a class="fb-button fb-button-secondary" href="/admin/payments">Thanh toán</a>
+            <a class="fb-button fb-button-primary" href="/admin/bookings/create">Tạo đặt sân</a>
+        </div>
+    </div>
+
+    @if (Model.IsOwner && owner is not null)
+    {
+        <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            @foreach (var item in owner.Metrics)
+            {
+                <partial name="_MetricCard" model="item" />
+            }
+        </div>
+
+        <div class="grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
+            <section class="fb-card min-w-0 p-4">
+                <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <h2 class="font-semibold text-ink">Doanh thu theo ngày</h2>
+                        <p class="text-sm text-muted">Khoảng @FormatDate(owner.Range.FromDate) - @FormatDate(owner.Range.ToDate)</p>
+                    </div>
+                    <a class="fb-button fb-button-secondary" href="/admin/reports">Xem báo cáo</a>
+                </div>
+                <div class="mt-4 h-72 min-w-0">
+                    <canvas data-report-chart data-chart-url="/admin/api/dashboard/revenue?from=@from&to=@to" aria-label="Biểu đồ doanh thu theo ngày"></canvas>
+                </div>
+                <p class="mt-3 hidden rounded-ui border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700" data-chart-error>Không tải được biểu đồ doanh thu.</p>
+            </section>
+
+            <section class="fb-card min-w-0 p-4">
+                <div>
+                    <h2 class="font-semibold text-ink">Tỷ lệ lấp đầy theo sân</h2>
+                    <p class="text-sm text-muted">Tính theo giờ mở cửa trong tháng hiện tại.</p>
+                </div>
+                <div class="mt-4 h-72 min-w-0">
+                    <canvas data-report-chart data-chart-url="/admin/api/dashboard/utilization?from=@from&to=@to" aria-label="Biểu đồ tỷ lệ lấp đầy theo sân"></canvas>
+                </div>
+                <p class="mt-3 hidden rounded-ui border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700" data-chart-error>Không tải được biểu đồ tỷ lệ lấp đầy.</p>
+            </section>
+        </div>
+
+        <div class="grid gap-5 xl:grid-cols-[1.2fr_0.8fr]">
+            <section class="fb-card min-w-0 overflow-hidden">
+                <div class="flex items-center justify-between border-b border-line px-4 py-3">
+                    <div>
+                        <h2 class="font-semibold text-ink">Lịch đặt sân sắp tới</h2>
+                        <p class="text-sm text-muted">Các lượt cần theo dõi trong vận hành.</p>
+                    </div>
+                    <a class="text-sm font-semibold text-brand-800 hover:text-brand-900" href="/admin/bookings">Xem danh sách</a>
+                </div>
+                <partial name="_ReportBookingTable" model="owner.UpcomingBookings" />
+            </section>
+
+            <section class="fb-card min-w-0 overflow-hidden">
+                <div class="border-b border-line px-4 py-3">
+                    <h2 class="font-semibold text-ink">Giờ cao điểm</h2>
+                    <p class="text-sm text-muted">Dựa trên giờ bắt đầu lượt đặt sân.</p>
+                </div>
+                <div class="divide-y divide-line">
+                    @if (owner.PeakHours.Count == 0)
+                    {
+                        <partial name="~/Views/Shared/Partials/_EmptyState.cshtml" model='new EmptyStateViewModel("Chưa đủ dữ liệu", "Giờ cao điểm sẽ hiển thị khi có lượt đặt sân trong tháng.")' />
+                    }
+                    else
+                    {
+                        @foreach (var hour in owner.PeakHours)
+                        {
+                            <div class="flex items-center justify-between gap-3 px-4 py-3 text-sm">
+                                <div>
+                                    <p class="font-semibold text-ink">@FormatMinute(hour.StartMinute)</p>
+                                    <p class="text-muted">@hour.BookingCount lượt đặt sân</p>
+                                </div>
+                                <span class="font-semibold text-ink">@FormatMoney(hour.RevenueAmount)</span>
+                            </div>
+                        }
+                    }
+                </div>
+            </section>
+        </div>
+    }
+    else if (staff is not null)
+    {
+        <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            @foreach (var item in staff.Metrics)
+            {
+                <partial name="_MetricCard" model="item" />
+            }
+        </div>
+
+        <div class="grid gap-5 xl:grid-cols-[1.2fr_0.8fr]">
+            <section class="fb-card min-w-0 overflow-hidden">
+                <div class="flex items-center justify-between border-b border-line px-4 py-3">
+                    <div>
+                        <h2 class="font-semibold text-ink">Lịch hôm nay</h2>
+                        <p class="text-sm text-muted">@FormatDate(staff.Today)</p>
+                    </div>
+                    <a class="text-sm font-semibold text-brand-800 hover:text-brand-900" href="/admin/schedule">Mở lịch sân</a>
+                </div>
+                <partial name="_ReportBookingTable" model="staff.TodaySchedule" />
+            </section>
+
+            <aside class="space-y-5">
+                <section class="fb-card overflow-hidden">
+                    <div class="border-b border-line px-4 py-3">
+                        <h2 class="font-semibold text-ink">Dịch vụ cần chuẩn bị</h2>
+                        <p class="text-sm text-muted">Tổng hợp từ lịch hôm nay.</p>
+                    </div>
+                    <div class="divide-y divide-line">
+                        @if (staff.ServicePreparation.Count == 0)
+                        {
+                            <partial name="~/Views/Shared/Partials/_EmptyState.cshtml" model='new EmptyStateViewModel("Chưa có dịch vụ", "Các dịch vụ cần chuẩn bị sẽ hiển thị khi khách chọn dịch vụ.")' />
+                        }
+                        else
+                        {
+                            @foreach (var service in staff.ServicePreparation)
+                            {
+                                <div class="flex items-center justify-between gap-3 px-4 py-3 text-sm">
+                                    <span class="font-medium text-ink">@service.ServiceName</span>
+                                    <span class="text-muted">@service.Quantity @service.UnitName</span>
+                                </div>
+                            }
+                        }
+                    </div>
+                </section>
+
+                <section class="fb-card overflow-hidden">
+                    <div class="border-b border-line px-4 py-3">
+                        <h2 class="font-semibold text-ink">Sân đang khóa</h2>
+                        <p class="text-sm text-muted">Các khoảng khóa trong ngày.</p>
+                    </div>
+                    <div class="divide-y divide-line">
+                        @if (staff.FieldBlocks.Count == 0)
+                        {
+                            <partial name="~/Views/Shared/Partials/_EmptyState.cshtml" model='new EmptyStateViewModel("Không có sân đang khóa", "Mọi sân đang hoạt động theo lịch mở cửa.")' />
+                        }
+                        else
+                        {
+                            @foreach (var block in staff.FieldBlocks)
+                            {
+                                <div class="px-4 py-3 text-sm">
+                                    <p class="font-medium text-ink">@block.FieldName · @FormatMinute(block.StartMinute) - @FormatMinute(block.EndMinute)</p>
+                                    <p class="mt-1 text-muted">@block.Reason</p>
+                                </div>
+                            }
+                        }
+                    </div>
+                </section>
+            </aside>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script src="~/js/admin-reports.js" asp-append-version="true"></script>
+}
+
+@functions {
+    private static string FormatDate(DateOnly date) => date.ToString("dd/MM/yyyy");
+    private static string FormatMinute(int minute) => $"{minute / 60:00}:{minute % 60:00}";
+    private static string FormatMoney(long amount) => amount.ToString("N0").Replace(",", ".") + " ₫";
+}

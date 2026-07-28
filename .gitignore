@@ -1,0 +1,61 @@
+# =========================
+# Agent và tài liệu nội bộ
+# =========================
+.agents/
+AGENTS.md
+TASKS.md
+FILE_MANIFEST.txt
+artifacts/
+.tmp-localappdata/
+
+# Nếu có tài liệu chỉ dùng nội bộ
+docs/internal/
+
+# =========================
+# Visual Studio / .NET
+# =========================
+.vs/
+**/bin/
+**/obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# =========================
+# Node.js
+# =========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# =========================
+# Database và dữ liệu local
+# =========================
+**/App_Data/*.db
+**/App_Data/*.db-shm
+**/App_Data/*.db-wal
+**/App_Data/*.sqlite
+**/App_Data/*.sqlite3
+
+# =========================
+# Biến môi trường và bí mật
+# =========================
+.env
+.env.*
+!.env.example
+secrets.json
+*.pfx
+*.p12
+*.key
+*.pem
+
+# =========================
+# Log và file tạm
+# =========================
+*.log
+*.tmp
+TestResults/
+coverage/
+coverage.xml

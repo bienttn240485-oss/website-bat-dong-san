@@ -1,0 +1,156 @@
+@model AdminReportsViewModel
+@{
+    ViewData["Title"] = "Báo cáo";
+    ViewData["Breadcrumbs"] = new List<BreadcrumbItemViewModel>
+    {
+        new("Quản trị", "/admin/dashboard"),
+        new("Báo cáo")
+    };
+
+    var fromIso = Model.FromDate.ToString("yyyy-MM-dd");
+    var toIso = Model.ToDate.ToString("yyyy-MM-dd");
+    var previousFromIso = Model.FromDate.AddDays(-7).ToString("yyyy-MM-dd");
+    var previousToIso = Model.ToDate.AddDays(-7).ToString("yyyy-MM-dd");
+    var nextFromIso = Model.FromDate.AddDays(7).ToString("yyyy-MM-dd");
+    var nextToIso = Model.ToDate.AddDays(7).ToString("yyyy-MM-dd");
+    var monthFromIso = new DateOnly(2026, 7, 1).ToString("yyyy-MM-dd");
+    var monthToIso = new DateOnly(2026, 7, 31).ToString("yyyy-MM-dd");
+    var quarterFromIso = new DateOnly(2026, 7, 1).ToString("yyyy-MM-dd");
+    var quarterToIso = new DateOnly(2026, 9, 30).ToString("yyyy-MM-dd");
+}
+
+<div class="space-y-5">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+            <p class="text-xs font-semibold uppercase tracking-wide text-muted">Dành cho Chủ sân</p>
+            <h1 class="mt-1 text-2xl font-semibold text-ink">Báo cáo</h1>
+            <p class="mt-1 text-sm text-muted">Theo dõi doanh thu, lượt đặt sân, tỷ lệ lấp đầy và công nợ trong khoảng ngày đã chọn.</p>
+        </div>
+        <a class="fb-button fb-button-primary" href="/admin/reports/revenue.csv?from=@fromIso&to=@toIso">Xuất CSV</a>
+    </div>
+
+    <form class="fb-card grid gap-4 p-4 sm:grid-cols-[1fr_1fr_auto]" method="get" action="/admin/reports">
+        <div>
+            <label class="fb-label" for="from">Từ ngày</label>
+            <input class="fb-input" id="from" name="from" type="date" value="@fromIso" />
+        </div>
+        <div>
+            <label class="fb-label" for="to">Đến ngày</label>
+            <input class="fb-input" id="to" name="to" type="date" value="@toIso" />
+        </div>
+        <div class="flex items-end">
+            <button class="fb-button fb-button-secondary w-full justify-center" type="submit">Lọc báo cáo</button>
+        </div>
+    </form>
+
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <p class="text-sm font-medium text-ink">Tuần đang xem: @Model.FromDate.ToString("dd/MM/yyyy") - @Model.ToDate.ToString("dd/MM/yyyy")</p>
+        <div class="flex flex-wrap gap-2">
+            <a class="fb-button fb-button-secondary" href="/admin/reports?from=@previousFromIso&to=@previousToIso">Tuần trước</a>
+            <a class="fb-button fb-button-secondary" href="/admin/reports?from=@nextFromIso&to=@nextToIso">Tuần sau</a>
+        </div>
+    </div>
+
+    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        @foreach (var metric in Model.Metrics)
+        {
+            <partial name="~/Areas/Admin/Views/Dashboard/_MetricCard.cshtml" model="metric" />
+        }
+    </div>
+
+    <div class="grid gap-5 xl:grid-cols-2">
+        <section class="fb-card min-w-0 p-4">
+            <div>
+                <h2 class="font-semibold text-ink">Doanh thu theo ngày</h2>
+                <p class="text-sm text-muted">Số tiền đã ghi nhận sau hoàn trả.</p>
+            </div>
+            <div class="mt-4 h-72 min-w-0">
+                <canvas data-report-chart data-chart-url="/admin/api/dashboard/revenue?from=@fromIso&to=@toIso" aria-label="Biểu đồ doanh thu theo ngày"></canvas>
+            </div>
+            <p class="mt-3 hidden rounded-ui border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700" data-chart-error>Không tải được biểu đồ doanh thu.</p>
+        </section>
+
+        <section class="fb-card min-w-0 p-4">
+            <div>
+                <h2 class="font-semibold text-ink">Lượt đặt sân theo ngày</h2>
+                <p class="text-sm text-muted">Không tính lượt đã hủy, hết hạn hoặc khách không đến.</p>
+            </div>
+            <div class="mt-4 h-72 min-w-0">
+                <canvas data-report-chart data-chart-url="/admin/api/dashboard/bookings?from=@fromIso&to=@toIso" aria-label="Biểu đồ lượt đặt sân theo ngày"></canvas>
+            </div>
+            <p class="mt-3 hidden rounded-ui border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700" data-chart-error>Không tải được biểu đồ lượt đặt sân.</p>
+        </section>
+    </div>
+
+    <div class="grid gap-5 md:grid-cols-2">
+        <section class="fb-card min-w-0 p-4">
+            <div>
+                <h2 class="font-semibold text-ink">Doanh thu tháng 7/2026</h2>
+                <p class="text-sm text-muted">Chỉ hiển thị dữ liệu đã phát sinh trong tháng.</p>
+            </div>
+            <div class="mt-4 h-52 min-w-0">
+                <canvas data-report-chart data-chart-url="/admin/api/dashboard/revenue?from=@monthFromIso&to=@monthToIso" aria-label="Biểu đồ doanh thu tháng 7/2026"></canvas>
+            </div>
+            <p class="mt-3 hidden rounded-ui border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700" data-chart-error>Không tải được biểu đồ doanh thu tháng.</p>
+        </section>
+
+        <section class="fb-card min-w-0 p-4">
+            <div>
+                <h2 class="font-semibold text-ink">Doanh thu quý 3/2026</h2>
+                <p class="text-sm text-muted">Dữ liệu hiện có sẽ được thể hiện, ngày chưa phát sinh giữ bằng 0.</p>
+            </div>
+            <div class="mt-4 h-52 min-w-0">
+                <canvas data-report-chart data-chart-url="/admin/api/dashboard/revenue?from=@quarterFromIso&to=@quarterToIso" aria-label="Biểu đồ doanh thu quý 3/2026"></canvas>
+            </div>
+            <p class="mt-3 hidden rounded-ui border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700" data-chart-error>Không tải được biểu đồ doanh thu quý.</p>
+        </section>
+    </div>
+
+    <div class="grid gap-5 xl:grid-cols-[1fr_1fr]">
+        <section class="fb-card min-w-0 overflow-hidden">
+            <div class="border-b border-line px-4 py-3">
+                <h2 class="font-semibold text-ink">Tỷ lệ lấp đầy theo sân</h2>
+                <p class="text-sm text-muted">So sánh số phút sử dụng với giờ mở cửa.</p>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="fb-table">
+                    <thead>
+                        <tr>
+                            <th>Sân</th>
+                            <th>Đã sử dụng</th>
+                            <th>Giờ mở cửa</th>
+                            <th>Tỷ lệ</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-line bg-white">
+                        @foreach (var item in Model.FieldUtilization)
+                        {
+                            <tr>
+                                <td class="font-medium">@item.FieldName</td>
+                                <td>@FormatHours(item.UsedMinutes)</td>
+                                <td>@FormatHours(item.AvailableMinutes)</td>
+                                <td class="font-semibold text-ink">@item.UtilizationPercent.ToString("0.#")%</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="fb-card min-w-0 overflow-hidden">
+            <div class="border-b border-line px-4 py-3">
+                <h2 class="font-semibold text-ink">Công nợ cần xử lý</h2>
+                <p class="text-sm text-muted">Các lượt đặt sân còn số tiền cần thu.</p>
+            </div>
+            <partial name="~/Areas/Admin/Views/Dashboard/_ReportBookingTable.cshtml" model="Model.PaymentsDue" />
+        </section>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/admin-reports.js" asp-append-version="true"></script>
+}
+
+@functions {
+    private static string FormatHours(int minutes) => $"{minutes / 60m:0.#} giờ";
+}

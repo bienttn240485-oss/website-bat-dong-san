@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/FootballBooking.Application/FootballBooking.Application.csproj" />
+    <Project Path="src/FootballBooking.Domain/FootballBooking.Domain.csproj" />
+    <Project Path="src/FootballBooking.Infrastructure/FootballBooking.Infrastructure.csproj" />
+    <Project Path="src/FootballBooking.Web/FootballBooking.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/FootballBooking.Tests/FootballBooking.Tests.csproj" />
+  </Folder>
+</Solution>

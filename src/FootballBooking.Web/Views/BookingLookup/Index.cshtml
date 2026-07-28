@@ -1,0 +1,87 @@
+@model BookingLookupViewModel
+@{
+    ViewData["Title"] = "Tra cứu đặt sân";
+}
+@functions {
+    private static string FormatMoney(long amount) => string.Format("{0:N0} ₫", amount).Replace(",", ".");
+    private static string FormatMinute(int minute) => $"{minute / 60:00}:{minute % 60:00}";
+}
+
+<section class="border-b border-line bg-white">
+    <div class="fb-container py-8">
+        <p class="text-sm font-semibold uppercase text-brand-800">Tra cứu đặt sân</p>
+        <h1 class="mt-2 text-3xl font-semibold text-ink">Kiểm tra thông tin đặt sân</h1>
+        <p class="mt-3 max-w-2xl text-sm leading-6 text-muted">Nhập mã đặt sân và số điện thoại đã dùng khi đặt sân. Hệ thống chỉ hiển thị đúng lượt đặt sân khớp cả hai thông tin.</p>
+    </div>
+</section>
+
+<section class="fb-container grid gap-5 py-8 lg:grid-cols-[0.8fr_1.2fr]">
+    <form class="fb-card p-4" method="post">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" class="mb-4 rounded-ui border border-red-200 bg-red-50 p-3 text-sm text-red-800"></div>
+        <div class="grid gap-4">
+            <div>
+                <label class="fb-label" asp-for="BookingCode">Mã đặt sân</label>
+                <input class="fb-input" asp-for="BookingCode" placeholder="FB-260725-X7K9" />
+                <span class="text-xs text-red-700" asp-validation-for="BookingCode"></span>
+            </div>
+            <div>
+                <label class="fb-label" asp-for="CustomerPhone">Số điện thoại</label>
+                <input class="fb-input" asp-for="CustomerPhone" placeholder="0901 234 567" />
+                <span class="text-xs text-red-700" asp-validation-for="CustomerPhone"></span>
+            </div>
+            <button class="fb-button fb-button-primary" type="submit">Tra cứu đặt sân</button>
+        </div>
+    </form>
+
+    <section class="fb-card p-4">
+        @if (Model.Result is null)
+        {
+            <partial name="Partials/_EmptyState" model='new EmptyStateViewModel(Model.HasSearched ? "Không tìm thấy lượt đặt sân" : "Chưa có thông tin tra cứu", Model.HasSearched ? "Vui lòng kiểm tra lại mã đặt sân và số điện thoại." : "Kết quả tra cứu sẽ hiển thị tại đây.", IconName: "clipboard-document-list")' />
+        }
+        else
+        {
+            <h2 class="font-semibold text-ink">@Model.Result.BookingCode</h2>
+            <dl class="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+                <div><dt class="text-muted">Sân</dt><dd class="font-semibold text-ink">@Model.Result.FieldName</dd></div>
+                <div><dt class="text-muted">Ngày</dt><dd class="font-semibold text-ink">@Model.Result.BookingDate.ToString("dd/MM/yyyy")</dd></div>
+                <div><dt class="text-muted">Khung giờ</dt><dd class="font-semibold text-ink">@FormatMinute(Model.Result.StartMinute) - @FormatMinute(Model.Result.EndMinute)</dd></div>
+                <div><dt class="text-muted">Trạng thái</dt><dd><partial name="Partials/_StatusBadge" model='new StatusBadgeViewModel(BookingLabels.Status(Model.Result.Status), BookingLabels.StatusTone(Model.Result.Status))' /></dd></div>
+                <div><dt class="text-muted">Thanh toán</dt><dd>@BookingLabels.PaymentStatus(Model.Result.PaymentStatus)</dd></div>
+                <div><dt class="text-muted">Tiền sân</dt><dd class="font-semibold text-ink">@FormatMoney(Model.Result.CourtAmount)</dd></div>
+                <div><dt class="text-muted">Dịch vụ</dt><dd class="font-semibold text-ink">@FormatMoney(Model.Result.ServiceAmount)</dd></div>
+                <div><dt class="text-muted">Khuyến mãi</dt><dd class="font-semibold text-ink">-@FormatMoney(Model.Result.DiscountAmount)</dd></div>
+                <div><dt class="text-muted">Đã thanh toán</dt><dd class="font-semibold text-ink">@FormatMoney(Model.Result.PaidAmount)</dd></div>
+                <div><dt class="text-muted">Còn lại</dt><dd class="font-semibold text-ink">@FormatMoney(Model.Result.RemainingAmount)</dd></div>
+                <div><dt class="text-muted">Tổng tiền</dt><dd class="font-semibold text-ink">@FormatMoney(Model.Result.TotalAmount)</dd></div>
+            </dl>
+            @if (Model.Result.ServiceLines.Count > 0)
+            {
+                <div class="mt-5 border-t border-line pt-4">
+                    <h3 class="font-semibold text-ink">Dịch vụ</h3>
+                    <div class="mt-3 grid gap-2 text-sm">
+                        @foreach (var service in Model.Result.ServiceLines)
+                        {
+                            <div class="flex justify-between gap-3">
+                                <span class="text-muted">@service.ServiceName × @service.Quantity @service.UnitName</span>
+                                <span class="font-medium text-ink">@FormatMoney(service.LineTotal)</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+            @if (Model.Result.Status is BookingStatus.PendingPayment or BookingStatus.Confirmed)
+            {
+                <form class="mt-5 border-t border-line pt-4" method="post" action="/booking/@Model.Result.BookingCode/cancel">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="customerPhone" value="@Model.CustomerPhone" />
+                    <label class="fb-label" for="cancellationReason">Lý do hủy</label>
+                    <textarea class="fb-input" id="cancellationReason" name="cancellationReason" rows="3" placeholder="Ví dụ: Đội đổi lịch thi đấu"></textarea>
+                    <button class="fb-button fb-button-danger mt-3" type="submit">Hủy đặt sân</button>
+                </form>
+            }
+        }
+    </section>
+</section>
+
+<partial name="_ValidationScriptsPartial" />

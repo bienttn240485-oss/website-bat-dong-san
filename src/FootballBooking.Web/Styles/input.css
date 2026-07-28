@@ -1,0 +1,158 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/forms";
+@import "../../../node_modules/preline/variants.css";
+
+@source "../Views/**/*.cshtml";
+@source "../Areas/**/*.cshtml";
+@source "../ViewModels/**/*.cs";
+@source "../../../node_modules/preline/dist/*.js";
+
+@theme {
+  --font-sans: "Inter", "Segoe UI", Arial, sans-serif;
+  --color-brand-50: #f0fdf6;
+  --color-brand-100: #dcfce9;
+  --color-brand-600: #16803d;
+  --color-brand-700: #116530;
+  --color-brand-800: #0f5132;
+  --color-brand-900: #0b3d25;
+  --color-amber-action: #b7791f;
+  --color-page: #f7f8f6;
+  --color-panel: #ffffff;
+  --color-line: #dfe5df;
+  --color-ink: #17231d;
+  --color-muted: #5d6a63;
+  --radius-ui: 0.5rem;
+  --shadow-ui: 0 1px 2px 0 rgb(15 23 42 / 0.08);
+}
+
+@layer base {
+  body {
+    @apply bg-page font-sans text-ink antialiased;
+  }
+
+  a,
+  button,
+  input,
+  select,
+  textarea {
+    @apply focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700;
+  }
+}
+
+@layer components {
+  .fb-container {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .fb-card {
+    @apply rounded-ui border border-line bg-panel shadow-ui;
+  }
+
+  .fb-button {
+    @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-ui border px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .fb-button-primary {
+    @apply border-brand-700 bg-brand-700 text-white hover:bg-brand-800;
+  }
+
+  .fb-button-secondary {
+    @apply border-line bg-white text-ink hover:bg-slate-50;
+  }
+
+  .fb-button-danger {
+    @apply border-red-700 bg-red-700 text-white hover:bg-red-800;
+  }
+
+  .fb-input {
+    @apply block w-full rounded-ui border-line bg-white text-sm text-ink shadow-none placeholder:text-slate-400 focus:border-brand-700 focus:ring-brand-700;
+  }
+
+  .fb-label {
+    @apply mb-1.5 block text-sm font-medium text-ink;
+  }
+
+  .fb-muted {
+    @apply text-sm text-muted;
+  }
+
+  .fb-section-title {
+    @apply text-xl font-semibold tracking-normal text-ink sm:text-2xl;
+  }
+
+  .fb-table {
+    @apply min-w-full divide-y divide-line text-sm;
+  }
+
+  .fb-table th {
+    @apply bg-slate-50 px-3 py-2 text-left text-xs font-semibold uppercase tracking-normal text-muted;
+  }
+
+  .fb-table td {
+    @apply px-3 py-2 align-middle text-ink;
+  }
+
+  .fc {
+    @apply text-sm text-ink;
+  }
+
+  .fc .fc-toolbar {
+    @apply flex-wrap gap-3;
+  }
+
+  .fc .fc-toolbar-title {
+    @apply text-lg font-semibold text-ink;
+  }
+
+  .fc .fc-button {
+    @apply rounded-ui border border-line bg-white px-3 py-2 text-sm font-semibold text-ink shadow-none hover:bg-slate-50 focus:ring-0;
+  }
+
+  .fc .fc-button-primary:not(:disabled).fc-button-active,
+  .fc .fc-button-primary:not(:disabled):active {
+    @apply border-brand-700 bg-brand-700 text-white;
+  }
+
+  .fc .fc-scrollgrid,
+  .fc-theme-standard td,
+  .fc-theme-standard th {
+    @apply border-line;
+  }
+
+  .fc .fc-col-header-cell,
+  .fc .fc-timegrid-axis {
+    @apply bg-slate-50 text-xs font-semibold uppercase text-muted;
+  }
+
+  .fc .fc-timegrid-slot-label {
+    @apply text-xs text-muted;
+  }
+
+  .fc .fc-event {
+    @apply rounded-ui border px-1 py-0.5 text-xs font-medium shadow-none;
+  }
+
+  .fb-calendar-event-info {
+    @apply border-blue-300 bg-blue-50 text-blue-800;
+  }
+
+  .fb-calendar-event-active {
+    @apply border-violet-300 bg-violet-50 text-violet-800;
+  }
+
+  .fb-calendar-event-warning {
+    @apply border-amber-300 bg-amber-50 text-amber-800;
+  }
+
+  .fb-calendar-event-success {
+    @apply border-green-300 bg-green-50 text-green-800;
+  }
+
+  .fb-calendar-event-danger {
+    @apply border-red-300 bg-red-50 text-red-800;
+  }
+
+  .fb-calendar-event-neutral {
+    @apply border-slate-300 bg-slate-100 text-slate-700;
+  }
+}

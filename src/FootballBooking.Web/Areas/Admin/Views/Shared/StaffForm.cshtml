@@ -1,0 +1,53 @@
+@model StaffFormViewModel
+@{
+    var isEdit = Model.Id.HasValue;
+    ViewData["Title"] = isEdit ? "Cập nhật nhân viên" : "Thêm nhân viên";
+    var action = isEdit ? $"/admin/staff/{Model.Id}/edit" : "/admin/staff/create";
+}
+
+<section class="fb-card p-4">
+    <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <h1 class="text-xl font-semibold text-ink">@ViewData["Title"]</h1>
+            <p class="mt-1 text-sm text-muted">Tài khoản nhân viên chỉ được dùng trong khu vực nội bộ.</p>
+        </div>
+        <a class="fb-button fb-button-secondary justify-center" href="/admin/staff">Quay lại danh sách</a>
+    </div>
+
+    <form class="grid gap-4" method="post" action="@action">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+
+        <div asp-validation-summary="ModelOnly" class="rounded-ui border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"></div>
+
+        <div class="grid gap-4 md:grid-cols-2">
+            <div>
+                <label class="fb-label" asp-for="FullName"></label>
+                <input class="fb-input" asp-for="FullName" autocomplete="name" />
+                <span class="text-xs text-red-700" asp-validation-for="FullName"></span>
+            </div>
+            <div>
+                <label class="fb-label" asp-for="Email"></label>
+                <input class="fb-input" asp-for="Email" autocomplete="username" placeholder="nhanvien@anphu.local" />
+                <span class="text-xs text-red-700" asp-validation-for="Email"></span>
+            </div>
+        </div>
+
+        <div>
+            <label class="fb-label" asp-for="Password"></label>
+            <input class="fb-input" asp-for="Password" autocomplete="new-password" type="password" />
+            <span class="text-xs text-red-700" asp-validation-for="Password"></span>
+            <p class="mt-1 text-xs text-muted">Khi cập nhật, để trống nếu không đổi mật khẩu.</p>
+        </div>
+
+        <label class="flex items-center gap-2 text-sm font-medium text-ink">
+            <input class="rounded border-line text-brand-700 focus:ring-brand-700" asp-for="IsActive" />
+            Tài khoản đang hoạt động
+        </label>
+
+        <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
+            <a class="fb-button fb-button-secondary justify-center" href="/admin/staff">Hủy</a>
+            <button class="fb-button fb-button-primary justify-center" type="submit">Lưu nhân viên</button>
+        </div>
+    </form>
+</section>

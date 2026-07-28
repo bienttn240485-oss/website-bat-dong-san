@@ -1,0 +1,69 @@
+﻿@model PromotionListViewModel
+@{
+    ViewData["Title"] = "Khuyến mãi";
+}
+@functions {
+    private static string FormatMoney(long amount) => string.Format("{0:N0} ₫", amount).Replace(",", ".");
+    private static string FormatDiscount(PromoCodeDto promotion)
+        => promotion.DiscountType == PromoDiscountType.FixedAmount
+            ? FormatMoney(promotion.DiscountValue)
+            : $"{promotion.DiscountValue / 100m:0.##}%";
+}
+
+<section class="fb-card p-4">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <h1 class="text-xl font-semibold text-ink">Khuyến mãi</h1>
+            <p class="mt-1 text-sm text-muted">Mã khuyến mãi được kiểm tra lại khi khách hoặc nhân viên tạo lượt đặt sân.</p>
+        </div>
+        <a class="fb-button fb-button-primary justify-center" href="/admin/promotions/create">Thêm khuyến mãi</a>
+    </div>
+
+    @if (Model.Promotions.Count == 0)
+    {
+        <div class="mt-4">
+            <partial name="~/Views/Shared/Partials/_EmptyState.cshtml" model='new EmptyStateViewModel("Chưa có khuyến mãi", "Thêm mã khuyến mãi để áp dụng trong luồng đặt sân.", IconName: "tag")' />
+        </div>
+    }
+    else
+    {
+        <div class="mt-4 overflow-x-auto">
+            <table class="min-w-full text-left text-sm">
+                <thead class="border-b border-line text-xs uppercase text-muted">
+                    <tr>
+                        <th class="py-2 pr-3">Mã</th>
+                        <th class="py-2 pr-3">Tên</th>
+                        <th class="py-2 pr-3">Loại giảm</th>
+                        <th class="py-2 pr-3">Giá trị</th>
+                        <th class="py-2 pr-3">Hiệu lực</th>
+                        <th class="py-2 pr-3">Trạng thái</th>
+                        <th class="py-2 text-right">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-line">
+                    @foreach (var promotion in Model.Promotions)
+                    {
+                        <tr>
+                            <td class="py-2 pr-3 font-medium text-ink">@promotion.Code</td>
+                            <td class="py-2 pr-3">@promotion.Name</td>
+                            <td class="py-2 pr-3 text-muted">@BookingLabels.PromoDiscountType(promotion.DiscountType)</td>
+                            <td class="py-2 pr-3 font-medium text-ink">@FormatDiscount(promotion)</td>
+                            <td class="py-2 pr-3 text-muted">@promotion.StartsAtUtc.ToLocalTime().ToString("dd/MM/yyyy") - @promotion.EndsAtUtc.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                            <td class="py-2 pr-3"><partial name="~/Views/Shared/Partials/_StatusBadge.cshtml" model='new StatusBadgeViewModel(promotion.IsActive ? "Đang áp dụng" : "Tạm dừng", promotion.IsActive ? "success" : "neutral")' /></td>
+                            <td class="py-2">
+                                <div class="flex justify-end gap-2">
+                                    <a class="fb-button fb-button-secondary px-3 py-1.5 text-xs" href="/admin/promotions/@promotion.Id/edit">Sửa</a>
+                                    <form method="post" action="/admin/promotions/@promotion.Id/toggle">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="isActive" value="@(!promotion.IsActive)" />
+                                        <button class="fb-button @(promotion.IsActive ? "fb-button-danger" : "fb-button-secondary") px-3 py-1.5 text-xs" type="submit">@(promotion.IsActive ? "Tạm dừng" : "Mở lại")</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>

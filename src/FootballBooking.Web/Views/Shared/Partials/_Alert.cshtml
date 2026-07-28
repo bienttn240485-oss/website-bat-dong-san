@@ -1,0 +1,21 @@
+@model AlertViewModel
+@{
+    var toneClass = Model.Tone switch
+    {
+        "success" => "border-green-200 bg-green-50 text-green-900",
+        "warning" => "border-amber-200 bg-amber-50 text-amber-900",
+        "danger" => "border-red-200 bg-red-50 text-red-900",
+        _ => "border-blue-200 bg-blue-50 text-blue-900"
+    };
+    var icon = Model.IconName ?? (Model.Tone == "warning" ? "exclamation-triangle" : Model.Tone == "success" ? "check-circle" : "information-circle");
+}
+
+<div class="rounded-ui border p-4 text-sm @toneClass" role="status">
+    <div class="flex gap-3">
+        <partial name="Partials/_HeroIcon" model='new HeroIconViewModel(icon, "h-5 w-5 shrink-0")' />
+        <div>
+            <p class="font-semibold">@Model.Title</p>
+            <p class="mt-1">@Model.Message</p>
+        </div>
+    </div>
+</div>

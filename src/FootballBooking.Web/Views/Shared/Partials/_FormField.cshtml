@@ -1,0 +1,10 @@
+@model FormFieldViewModel
+
+<div>
+    <label class="fb-label" for="@Model.Id">@Model.Label</label>
+    <input class="fb-input" id="@Model.Id" name="@Model.Id" type="@Model.Type" value="@Model.Value" placeholder="@Model.Placeholder" required="@Model.Required" />
+    @if (!string.IsNullOrWhiteSpace(Model.Hint))
+    {
+        <p class="mt-1 text-xs text-muted">@Model.Hint</p>
+    }
+</div>

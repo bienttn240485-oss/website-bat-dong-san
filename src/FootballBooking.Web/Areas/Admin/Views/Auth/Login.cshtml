@@ -1,0 +1,45 @@
+﻿@model AdminLoginViewModel
+
+@{
+    ViewData["Title"] = "Đăng nhập quản trị";
+    Layout = "~/Views/Shared/_PublicLayout.cshtml";
+}
+
+<section class="fb-container grid min-h-[calc(100vh-17rem)] items-center py-8">
+    <div class="mx-auto w-full max-w-md">
+        <div class="mb-5 text-center">
+            <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-ui bg-brand-700 text-white">
+                <partial name="~/Views/Shared/Partials/_HeroIcon.cshtml" model='new HeroIconViewModel("user")' />
+            </div>
+            <h1 class="text-2xl font-semibold text-ink">Đăng nhập quản trị</h1>
+            <p class="mt-2 text-sm text-muted">Chỉ tài khoản Chủ sân hoặc Nhân viên được truy cập khu vực nội bộ.</p>
+        </div>
+
+        <form class="fb-card grid gap-4 p-5" asp-area="Admin" asp-controller="Auth" asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post">
+            <div asp-validation-summary="ModelOnly" class="rounded-ui border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800"></div>
+
+            <div>
+                <label asp-for="Email" class="fb-label"></label>
+                <input asp-for="Email" class="fb-input" autocomplete="username" />
+                <span asp-validation-for="Email" class="mt-1 block text-xs text-red-700"></span>
+            </div>
+
+            <div>
+                <label asp-for="Password" class="fb-label"></label>
+                <input asp-for="Password" class="fb-input" autocomplete="current-password" />
+                <span asp-validation-for="Password" class="mt-1 block text-xs text-red-700"></span>
+            </div>
+
+            <label class="flex items-center gap-2 text-sm text-ink">
+                <input asp-for="RememberMe" class="rounded border-line text-brand-700 focus:ring-brand-700" />
+                <span>Ghi nhớ đăng nhập</span>
+            </label>
+
+            <button type="submit" class="fb-button fb-button-primary w-full">Đăng nhập</button>
+        </form>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

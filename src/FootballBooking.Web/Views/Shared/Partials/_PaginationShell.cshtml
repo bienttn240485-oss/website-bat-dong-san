@@ -1,0 +1,7 @@
+@model PaginationShellViewModel
+
+<nav class="flex items-center justify-between border-t border-line pt-3 text-sm" aria-label="Phân trang">
+    <button class="fb-button fb-button-secondary min-h-9 px-3" type="button" disabled="@(Model.CurrentPage <= 1)">Trước</button>
+    <span class="text-muted">Trang @Model.CurrentPage / @Model.TotalPages</span>
+    <button class="fb-button fb-button-secondary min-h-9 px-3" type="button" disabled="@(Model.CurrentPage >= Model.TotalPages)">Sau</button>
+</nav>

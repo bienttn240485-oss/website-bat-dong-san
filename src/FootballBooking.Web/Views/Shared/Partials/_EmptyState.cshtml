@@ -1,0 +1,15 @@
+@model EmptyStateViewModel
+
+<div class="rounded-ui border border-dashed border-line bg-white px-4 py-8 text-center">
+    <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-ui bg-slate-100 text-muted">
+        <partial name="Partials/_HeroIcon" model="new HeroIconViewModel(Model.IconName)" />
+    </div>
+    <h2 class="mt-3 text-base font-semibold text-ink">@Model.Title</h2>
+    <p class="mx-auto mt-1 max-w-md text-sm text-muted">@Model.Message</p>
+    @if (!string.IsNullOrWhiteSpace(Model.ActionLabel) && !string.IsNullOrWhiteSpace(Model.ActionUrl))
+    {
+        <div class="mt-4">
+            <partial name="Partials/_Button" model='new ButtonViewModel(Model.ActionLabel, Model.ActionUrl, "secondary")' />
+        </div>
+    }
+</div>

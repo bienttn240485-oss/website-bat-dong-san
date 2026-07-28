@@ -1,0 +1,23 @@
+﻿@model ErrorViewModel
+@{
+    ViewData["Title"] = "Lỗi";
+}
+
+<h1 class="text-danger">Đã xảy ra lỗi.</h1>
+<h2 class="text-danger">Hệ thống chưa thể xử lý yêu cầu của bạn.</h2>
+
+@if (Model.ShowRequestId)
+{
+    <p>
+        <strong>Mã yêu cầu:</strong> <code>@Model.RequestId</code>
+    </p>
+}
+
+<h3>Chế độ phát triển</h3>
+<p>
+    Môi trường <strong>Development</strong> sẽ hiển thị thông tin lỗi chi tiết hơn.
+</p>
+<p>
+    <strong>Không bật môi trường Development cho ứng dụng đã triển khai.</strong>
+    Chế độ này có thể hiển thị thông tin nhạy cảm từ lỗi hệ thống.
+</p>

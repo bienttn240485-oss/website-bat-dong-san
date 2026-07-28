@@ -1,0 +1,63 @@
+﻿@using FootballBooking.Application.Common.Security
+
+@{
+    var isOwner = User.IsInRole(ApplicationRoles.Owner);
+    var items = new[]
+    {
+        new { Label = "Tổng quan", Url = "/admin/dashboard", Icon = "home", OwnerOnly = false },
+        new { Label = "Lịch sân", Url = "/admin/schedule", Icon = "calendar", OwnerOnly = false },
+        new { Label = "Lịch đặt sân", Url = "/admin/bookings", Icon = "clipboard-document-list", OwnerOnly = false },
+        new { Label = "Thanh toán", Url = "/admin/payments", Icon = "credit-card", OwnerOnly = false },
+        new { Label = "Quản lý sân", Url = "/admin/fields", Icon = "building-office", OwnerOnly = true },
+        new { Label = "Dịch vụ", Url = "/admin/services", Icon = "clipboard-document-list", OwnerOnly = true },
+        new { Label = "Khuyến mãi", Url = "/admin/promotions", Icon = "tag", OwnerOnly = true },
+        new { Label = "Báo cáo", Url = "/admin/reports", Icon = "chart-bar", OwnerOnly = true },
+        new { Label = "Nhân viên", Url = "/admin/staff", Icon = "users", OwnerOnly = true }
+    };
+}
+
+<aside class="hidden h-screen w-64 shrink-0 border-r border-line bg-white lg:sticky lg:top-0 lg:block">
+    <div class="flex h-16 items-center border-b border-line px-4">
+        <partial name="~/Views/Shared/Partials/_BrandLogo.cshtml" />
+    </div>
+    <nav class="grid gap-1 p-3 text-sm" aria-label="Điều hướng quản trị">
+        @foreach (var item in items)
+        {
+            if (item.OwnerOnly && !isOwner)
+            {
+                continue;
+            }
+
+            var isActive = Context.Request.Path.Value?.StartsWith(item.Url, StringComparison.OrdinalIgnoreCase) == true;
+            <a class="flex items-center gap-3 rounded-ui px-3 py-2 font-medium transition @(isActive ? "bg-brand-50 text-brand-800" : "text-muted hover:bg-slate-50 hover:text-ink")" href="@item.Url">
+                <partial name="~/Views/Shared/Partials/_HeroIcon.cshtml" model="new HeroIconViewModel(item.Icon)" />
+                <span>@item.Label</span>
+            </a>
+        }
+    </nav>
+</aside>
+
+<div id="admin-mobile-sidebar" class="hs-overlay pointer-events-none fixed start-0 top-0 z-80 hidden size-full overflow-hidden lg:hidden" role="dialog" tabindex="-1" aria-label="Menu quản trị">
+    <div class="hs-overlay-open:translate-x-0 pointer-events-auto h-full w-80 max-w-[88vw] -translate-x-full bg-white shadow-sm transition-transform">
+        <div class="flex h-16 items-center justify-between border-b border-line px-4">
+            <partial name="~/Views/Shared/Partials/_BrandLogo.cshtml" />
+            <button class="fb-button fb-button-secondary px-3" type="button" aria-label="Đóng menu" data-hs-overlay="#admin-mobile-sidebar">
+                <partial name="~/Views/Shared/Partials/_HeroIcon.cshtml" model='new HeroIconViewModel("x-mark")' />
+            </button>
+        </div>
+        <nav class="grid gap-1 p-3 text-sm" aria-label="Điều hướng quản trị trên di động">
+            @foreach (var item in items)
+            {
+                if (item.OwnerOnly && !isOwner)
+                {
+                    continue;
+                }
+
+                <a class="flex items-center gap-3 rounded-ui px-3 py-2 font-medium text-muted hover:bg-slate-50 hover:text-ink" href="@item.Url">
+                    <partial name="~/Views/Shared/Partials/_HeroIcon.cshtml" model="new HeroIconViewModel(item.Icon)" />
+                    <span>@item.Label</span>
+                </a>
+            }
+        </nav>
+    </div>
+</div>

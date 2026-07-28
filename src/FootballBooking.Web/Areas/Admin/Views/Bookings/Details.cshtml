@@ -1,0 +1,276 @@
+﻿@model AdminBookingDetailViewModel
+@using FootballBooking.Domain.Bookings
+@{
+    ViewData["Title"] = Model.Booking.BookingCode;
+    var booking = Model.Booking;
+    var isClosed = booking.Status is BookingStatus.Completed or BookingStatus.Cancelled or BookingStatus.NoShow or BookingStatus.Expired;
+    var canConfirm = booking.Status == BookingStatus.PendingPayment;
+    var canCheckIn = booking.Status == BookingStatus.Confirmed;
+    var canStart = booking.Status == BookingStatus.CheckedIn;
+    var canSettle = booking.Status == BookingStatus.InProgress;
+    var canNoShow = booking.Status == BookingStatus.Confirmed;
+    var canCancel = booking.Status is BookingStatus.PendingPayment or BookingStatus.Confirmed or BookingStatus.CheckedIn;
+    var suggestedPayment = booking.RemainingAmount > 0 ? booking.RemainingAmount : 100000;
+}
+@functions {
+    private static string FormatMoney(long amount) => string.Format("{0:N0} ₫", amount).Replace(",", ".");
+    private static string FormatMinute(int minute) => $"{minute / 60:00}:{minute % 60:00}";
+    private static int StepIndex(BookingStatus status)
+        => status switch
+        {
+            BookingStatus.PendingPayment => 0,
+            BookingStatus.Confirmed => 1,
+            BookingStatus.CheckedIn => 2,
+            BookingStatus.InProgress => 3,
+            BookingStatus.Completed => 5,
+            _ => -1
+        };
+}
+
+<div class="space-y-5">
+    <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div class="min-w-0">
+            <div class="flex flex-wrap items-center gap-2">
+                <h1 class="break-words text-2xl font-semibold text-ink">@booking.BookingCode</h1>
+                <partial name="~/Views/Shared/Partials/_StatusBadge.cshtml" model='new StatusBadgeViewModel(BookingLabels.Status(booking.Status), BookingLabels.StatusTone(booking.Status))' />
+                <partial name="~/Views/Shared/Partials/_StatusBadge.cshtml" model='new StatusBadgeViewModel(BookingLabels.PaymentStatus(booking.PaymentStatus), booking.RemainingAmount > 0 ? "warning" : "success")' />
+            </div>
+            <p class="mt-2 text-sm text-muted">@booking.FieldName · @booking.BookingDate.ToString("dd/MM/yyyy") · @FormatMinute(booking.StartMinute) - @FormatMinute(booking.EndMinute)</p>
+        </div>
+        <a class="fb-button fb-button-secondary justify-center" href="/admin/bookings">Quay lại danh sách</a>
+    </div>
+
+    @if (isClosed)
+    {
+        <section class="fb-card p-4">
+            <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                    <h2 class="font-semibold text-ink">Hồ sơ đã khóa</h2>
+                    <p class="mt-1 text-sm text-muted">Booking này đã rời khỏi luồng vận hành. Màn hình chỉ dùng để xem lại thông tin, tài chính và lịch sử thanh toán.</p>
+                </div>
+                <a class="fb-button fb-button-secondary justify-center" href="/admin/bookings/@booking.Id/settlement">Xem phiếu quyết toán</a>
+            </div>
+        </section>
+    }
+    else
+    {
+        <section class="fb-card p-4">
+            <h2 class="font-semibold text-ink">Luồng xử lý</h2>
+            <div class="mt-4 grid gap-3 md:grid-cols-6">
+                @{ var currentStep = StepIndex(booking.Status); }
+                @foreach (var step in new[]
+                {
+                    new { Index = 0, Label = "Chờ thanh toán", Hint = "Giữ sân tạm" },
+                    new { Index = 1, Label = "Đã xác nhận", Hint = "Sẵn sàng đón khách" },
+                    new { Index = 2, Label = "Khách đã đến", Hint = "Check-in tại sân" },
+                    new { Index = 3, Label = "Đang sử dụng", Hint = "Theo dõi ca sân" },
+                    new { Index = 4, Label = "Quyết toán", Hint = "Thu còn lại" },
+                    new { Index = 5, Label = "Hoàn thành", Hint = "Khóa nghiệp vụ" }
+                })
+                {
+                    var isDone = currentStep >= 0 && step.Index < currentStep;
+                    var isCurrent = (step.Index == currentStep) || (step.Index == 4 && booking.Status == BookingStatus.InProgress);
+                    <div class="rounded-ui border p-3 @(isCurrent ? "border-brand-700 bg-brand-50" : isDone ? "border-green-200 bg-green-50" : "border-line bg-white")">
+                        <p class="text-sm font-semibold @(isCurrent ? "text-brand-900" : isDone ? "text-green-800" : "text-muted")">@step.Label</p>
+                        <p class="mt-1 text-xs text-muted">@step.Hint</p>
+                    </div>
+                }
+            </div>
+        </section>
+    }
+
+    <div class="grid gap-5 @(isClosed ? "" : "min-[1120px]:grid-cols-[1fr_0.72fr]")">
+        <div class="space-y-5">
+            <section class="fb-card p-4">
+                <h2 class="font-semibold text-ink">Thông tin lượt đặt sân</h2>
+                <dl class="mt-4 grid gap-4 text-sm sm:grid-cols-2">
+                    <div><dt class="text-muted">Khách hàng</dt><dd class="font-semibold text-ink">@booking.CustomerName</dd></div>
+                    <div><dt class="text-muted">Số điện thoại</dt><dd class="font-semibold text-ink">@booking.CustomerPhone</dd></div>
+                    <div><dt class="text-muted">Email</dt><dd class="font-semibold text-ink">@(booking.CustomerEmail ?? "Chưa có")</dd></div>
+                    <div><dt class="text-muted">Nguồn tạo</dt><dd class="font-semibold text-ink">@(booking.Source == BookingSource.GuestWeb ? "Khách đặt trên website" : booking.Source == BookingSource.Owner ? "Chủ sân tạo hộ" : booking.Source == BookingSource.Staff ? "Nhân viên tạo hộ" : "Tại sân")</dd></div>
+                    <div class="sm:col-span-2"><dt class="text-muted">Ghi chú</dt><dd class="font-semibold text-ink">@(booking.Note ?? "Không có ghi chú")</dd></div>
+                    @if (!string.IsNullOrWhiteSpace(booking.CancellationReason))
+                    {
+                        <div class="sm:col-span-2"><dt class="text-muted">Lý do hủy</dt><dd class="font-semibold text-ink">@booking.CancellationReason</dd></div>
+                    }
+                </dl>
+            </section>
+
+            <section class="fb-card p-4">
+                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <h2 class="font-semibold text-ink">Tài chính và quyết toán</h2>
+                        <p class="mt-1 text-sm text-muted">Số tiền được tính ở server và dùng làm căn cứ khi hoàn thành ca sân.</p>
+                    </div>
+                    <a class="fb-button fb-button-secondary justify-center" href="/admin/bookings/@booking.Id/settlement">Xem phiếu quyết toán</a>
+                </div>
+                <div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    <div class="rounded-ui border border-line p-3"><p class="text-xs text-muted">Tổng tiền</p><p class="mt-1 font-semibold text-ink">@FormatMoney(booking.TotalAmount)</p></div>
+                    <div class="rounded-ui border border-line p-3"><p class="text-xs text-muted">Đã thu</p><p class="mt-1 font-semibold text-brand-900">@FormatMoney(booking.PaidAmount)</p></div>
+                    <div class="rounded-ui border border-line p-3"><p class="text-xs text-muted">Đã hoàn</p><p class="mt-1 font-semibold text-ink">@FormatMoney(booking.RefundedAmount)</p></div>
+                    <div class="rounded-ui border @(booking.RemainingAmount > 0 ? "border-amber-200 bg-amber-50" : "border-green-200 bg-green-50") p-3"><p class="text-xs text-muted">Còn thu</p><p class="mt-1 font-semibold @(booking.RemainingAmount > 0 ? "text-amber-800" : "text-green-800")">@FormatMoney(booking.RemainingAmount)</p></div>
+                </div>
+
+                <div class="mt-5 overflow-x-auto">
+                    <table class="min-w-full text-left text-sm">
+                        <thead class="border-b border-line text-xs uppercase text-muted">
+                            <tr><th class="py-2 pr-3">Hạng mục</th><th class="py-2 pr-3">Diễn giải</th><th class="py-2 text-right">Thành tiền</th></tr>
+                        </thead>
+                        <tbody class="divide-y divide-line">
+                            <tr><td class="py-2 pr-3 font-medium text-ink">Tiền sân</td><td class="py-2 pr-3 text-muted">@FormatMinute(booking.StartMinute) - @FormatMinute(booking.EndMinute)</td><td class="py-2 text-right font-medium text-ink">@FormatMoney(booking.CourtAmount)</td></tr>
+                            @foreach (var service in booking.ServiceLines)
+                            {
+                                <tr><td class="py-2 pr-3 font-medium text-ink">@service.ServiceName</td><td class="py-2 pr-3 text-muted">@service.Quantity @service.UnitName × @FormatMoney(service.UnitPrice)</td><td class="py-2 text-right font-medium text-ink">@FormatMoney(service.LineTotal)</td></tr>
+                            }
+                            @if (booking.DiscountAmount > 0)
+                            {
+                                <tr><td class="py-2 pr-3 font-medium text-ink">Khuyến mãi</td><td class="py-2 pr-3 text-muted">@(booking.PromoCodeSnapshot ?? "Đã áp dụng")</td><td class="py-2 text-right font-medium text-red-700">-@FormatMoney(booking.DiscountAmount)</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        @if (!isClosed)
+        {
+        <aside class="space-y-5">
+            <section id="next-step" class="fb-card p-4">
+                <h2 class="font-semibold text-ink">Bước tiếp theo</h2>
+                <div class="mt-3 rounded-ui border border-line bg-slate-50 p-3 text-sm text-muted">
+                    @if (canConfirm)
+                    {
+                        <p><span class="font-semibold text-ink">Chờ thanh toán:</span> ghi nhận cọc nếu khách đã thanh toán, hoặc xác nhận giữ sân nếu sân cho phép thanh toán sau.</p>
+                    }
+                    else if (canCheckIn)
+                    {
+                        <p><span class="font-semibold text-ink">Đã xác nhận:</span> khi khách đến sân, thực hiện check-in để chuyển sang bước chuẩn bị sử dụng.</p>
+                    }
+                    else if (canStart)
+                    {
+                        <p><span class="font-semibold text-ink">Khách đã đến:</span> khi bắt đầu vào sân, chuyển sang trạng thái đang sử dụng.</p>
+                    }
+                    else if (canSettle)
+                    {
+                        <p><span class="font-semibold text-ink">Đang sử dụng:</span> sau khi kết thúc ca, vào phiếu quyết toán để thu phần còn lại và xác nhận hoàn thành.</p>
+                    }
+                    else if (booking.Status == BookingStatus.Completed)
+                    {
+                        <p><span class="font-semibold text-ink">Đã hoàn thành:</span> booking đã khóa thao tác vận hành. Chỉ còn xem phiếu và lịch sử thanh toán.</p>
+                    }
+                    else
+                    {
+                        <p>Không có thao tác vận hành tiếp theo cho trạng thái hiện tại.</p>
+                    }
+                </div>
+
+                <div class="mt-4 grid gap-2">
+                    @if (canConfirm)
+                    {
+                        @if (booking.RemainingAmount > 0)
+                        {
+                            <div class="rounded-ui border border-amber-200 bg-amber-50 p-3">
+                                <p class="text-sm font-semibold text-amber-900">Nếu khách đã cọc, ghi nhận thanh toán trước</p>
+                                <p class="mt-1 text-sm text-amber-800">Sau khi ghi nhận, hệ thống cập nhật số đã thu và trạng thái thanh toán. Booking vẫn ở bước chờ thanh toán cho đến khi bấm xác nhận giữ sân.</p>
+                                <form class="mt-3 grid gap-3" method="post" action="/admin/bookings/@booking.Id/payments">
+                                    @Html.AntiForgeryToken()
+                                    <div><label class="fb-label" asp-for="PaymentForm.Amount"></label><input class="fb-input" asp-for="PaymentForm.Amount" type="number" min="1" name="Amount" value="@suggestedPayment" /></div>
+                                    <div>
+                                        <label class="fb-label" asp-for="PaymentForm.Method"></label>
+                                        <select class="fb-input" asp-for="PaymentForm.Method" name="Method"><option value="@PaymentMethod.Cash">Tiền mặt</option><option value="@PaymentMethod.BankTransfer">Chuyển khoản</option><option value="@PaymentMethod.Other">Khác</option></select>
+                                    </div>
+                                    <div><label class="fb-label" asp-for="PaymentForm.TransactionCode"></label><input class="fb-input" asp-for="PaymentForm.TransactionCode" name="TransactionCode" placeholder="Mã giao dịch nếu có" /></div>
+                                    <div><label class="fb-label" asp-for="PaymentForm.Note"></label><textarea class="fb-input" asp-for="PaymentForm.Note" name="Note" rows="2" placeholder="Ví dụ: Khách đặt cọc qua chuyển khoản"></textarea></div>
+                                    <button class="fb-button fb-button-primary justify-center" type="submit">Ghi nhận tiền cọc</button>
+                                </form>
+                            </div>
+                        }
+                        <form method="post" action="/admin/bookings/@booking.Id/confirm">@Html.AntiForgeryToken()<button class="fb-button fb-button-secondary w-full justify-center" type="submit">Xác nhận giữ sân</button></form>
+                    }
+                    @if (canCheckIn)
+                    {
+                        @if (booking.RemainingAmount > 0)
+                        {
+                            <div class="rounded-ui border border-line bg-slate-50 p-3">
+                                <p class="text-sm font-semibold text-ink">Khách còn phải thu @FormatMoney(booking.RemainingAmount)</p>
+                                <p class="mt-1 text-sm text-muted">Có thể check-in trước nếu sân cho phép khách thanh toán sau. Nếu khách trả tiền ngay tại quầy, ghi nhận tại đây rồi tiếp tục check-in.</p>
+                                <form class="mt-3 grid gap-3" method="post" action="/admin/bookings/@booking.Id/payments">
+                                    @Html.AntiForgeryToken()
+                                    <div><label class="fb-label" asp-for="PaymentForm.Amount"></label><input class="fb-input" asp-for="PaymentForm.Amount" type="number" min="1" name="Amount" value="@suggestedPayment" /></div>
+                                    <div>
+                                        <label class="fb-label" asp-for="PaymentForm.Method"></label>
+                                        <select class="fb-input" asp-for="PaymentForm.Method" name="Method"><option value="@PaymentMethod.Cash">Tiền mặt</option><option value="@PaymentMethod.BankTransfer">Chuyển khoản</option><option value="@PaymentMethod.Other">Khác</option></select>
+                                    </div>
+                                    <div><label class="fb-label" asp-for="PaymentForm.TransactionCode"></label><input class="fb-input" asp-for="PaymentForm.TransactionCode" name="TransactionCode" placeholder="Mã giao dịch nếu có" /></div>
+                                    <div><label class="fb-label" asp-for="PaymentForm.Note"></label><textarea class="fb-input" asp-for="PaymentForm.Note" name="Note" rows="2" placeholder="Ví dụ: Khách thanh toán tại quầy"></textarea></div>
+                                    <button class="fb-button fb-button-secondary justify-center" type="submit">Ghi nhận thanh toán tại bước check-in</button>
+                                </form>
+                            </div>
+                        }
+                        <form method="post" action="/admin/bookings/@booking.Id/check-in">@Html.AntiForgeryToken()<button class="fb-button fb-button-primary w-full justify-center" type="submit">Check-in khách</button></form>
+                    }
+                    @if (canStart)
+                    {
+                        <form method="post" action="/admin/bookings/@booking.Id/start">@Html.AntiForgeryToken()<button class="fb-button fb-button-primary w-full justify-center" type="submit">Bắt đầu sử dụng sân</button></form>
+                    }
+                    @if (canSettle)
+                    {
+                        <a class="fb-button fb-button-primary w-full justify-center" href="/admin/bookings/@booking.Id/settlement">Quyết toán và hoàn thành</a>
+                    }
+                    @if (booking.Status == BookingStatus.Completed)
+                    {
+                        <a class="fb-button fb-button-secondary w-full justify-center" href="/admin/bookings/@booking.Id/settlement">Xem phiếu quyết toán</a>
+                    }
+                </div>
+            </section>
+
+            <section class="fb-card p-4">
+                <h2 class="font-semibold text-ink">Thao tác phụ</h2>
+                <div class="mt-4 grid gap-2">
+                    @if (canNoShow)
+                    {
+                        <form method="post" action="/admin/bookings/@booking.Id/no-show">@Html.AntiForgeryToken()<button class="fb-button fb-button-danger w-full justify-center" type="submit">Khách không đến</button></form>
+                    }
+                    @if (canCancel)
+                    {
+                        <form class="grid gap-3" method="post" action="/admin/bookings/@booking.Id/cancel">
+                            @Html.AntiForgeryToken()
+                            <label class="fb-label" asp-for="CancellationForm.Reason"></label>
+                            <textarea class="fb-input" asp-for="CancellationForm.Reason" name="Reason" rows="3" placeholder="Nhập lý do hủy để lưu lịch sử"></textarea>
+                            <button class="fb-button fb-button-danger justify-center" type="submit">Hủy đặt sân có lý do</button>
+                        </form>
+                    }
+                    @if (!canNoShow && !canCancel)
+                    {
+                        <p class="text-sm text-muted">Không có thao tác phụ khả dụng cho trạng thái hiện tại.</p>
+                    }
+                </div>
+            </section>
+        </aside>
+        }
+    </div>
+
+    <section class="fb-card p-4">
+        <h2 class="font-semibold text-ink">Lịch sử thanh toán</h2>
+        @if (booking.Payments.Count == 0)
+        {
+            <p class="mt-2 text-sm text-muted">Chưa ghi nhận giao dịch thanh toán.</p>
+        }
+        else
+        {
+            <div class="mt-3 grid gap-2 text-sm md:grid-cols-2">
+                @foreach (var payment in booking.Payments)
+                {
+                    <div class="rounded-ui border border-line p-3">
+                        <div class="flex flex-wrap items-center justify-between gap-2"><span class="font-medium text-ink">@BookingLabels.PaymentRecordType(payment.PaymentType) · @BookingLabels.PaymentMethod(payment.Method)</span><span class="font-semibold text-brand-900">@FormatMoney(payment.Amount)</span></div>
+                        <p class="mt-1 text-xs text-muted">@BookingLabels.PaymentRecordStatus(payment.Status) · @(payment.ProcessedAtUtc?.ToLocalTime().ToString("dd/MM/yyyy HH:mm") ?? payment.CreatedAtUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm"))</p>
+                        @if (!string.IsNullOrWhiteSpace(payment.Note))
+                        {
+                            <p class="mt-2 text-sm text-muted">@payment.Note</p>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    </section>
+</div>

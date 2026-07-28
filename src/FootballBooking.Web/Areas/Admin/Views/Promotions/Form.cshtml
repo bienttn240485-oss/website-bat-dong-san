@@ -1,0 +1,84 @@
+﻿@model PromotionFormViewModel
+@using FootballBooking.Domain.Bookings
+@{
+    var isEdit = Model.Id is not null;
+    ViewData["Title"] = isEdit ? "Cập nhật khuyến mãi" : "Thêm khuyến mãi";
+}
+
+<section class="fb-card p-4">
+    <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+            <h1 class="text-xl font-semibold text-ink">@(isEdit ? "Cập nhật khuyến mãi" : "Thêm khuyến mãi")</h1>
+            <p class="mt-1 text-sm text-muted">Khuyến mãi được kiểm tra lại ở server trước khi tạo lượt đặt sân.</p>
+        </div>
+        <a class="fb-button fb-button-secondary justify-center" href="/admin/promotions">Quay lại</a>
+    </div>
+
+    <form class="mt-5 grid gap-4" method="post" action="@(isEdit ? $"/admin/promotions/{Model.Id}/edit" : "/admin/promotions/create")">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" class="text-sm text-red-700"></div>
+        <div class="grid gap-4 md:grid-cols-2">
+            <div>
+                <label class="fb-label" asp-for="Code"></label>
+                <input class="fb-input" asp-for="Code" placeholder="Để trống để hệ thống tự tạo" />
+                <span class="text-xs text-red-700" asp-validation-for="Code"></span>
+            </div>
+            <div>
+                <label class="fb-label" asp-for="Name"></label>
+                <input class="fb-input" asp-for="Name" />
+                <span class="text-xs text-red-700" asp-validation-for="Name"></span>
+            </div>
+            <div>
+                <label class="fb-label" asp-for="DiscountType"></label>
+                <select class="fb-input" asp-for="DiscountType">
+                    <option value="@PromoDiscountType.FixedAmount">Giảm số tiền cố định</option>
+                    <option value="@PromoDiscountType.Percentage">Giảm theo phần trăm</option>
+                </select>
+            </div>
+            <div>
+                <label class="fb-label" asp-for="DiscountValueInput"></label>
+                <input class="fb-input" asp-for="DiscountValueInput" type="number" min="0.01" step="0.01" />
+                <p class="mt-1 text-xs text-muted">Nếu chọn phần trăm, nhập 15 cho 15%. Nếu chọn số tiền, nhập số tiền VND.</p>
+                <span class="text-xs text-red-700" asp-validation-for="DiscountValueInput"></span>
+            </div>
+            <div>
+                <label class="fb-label" asp-for="MinimumOrderAmount"></label>
+                <input class="fb-input" asp-for="MinimumOrderAmount" type="number" min="0" step="1000" />
+                <span class="text-xs text-red-700" asp-validation-for="MinimumOrderAmount"></span>
+            </div>
+            <div>
+                <label class="fb-label" asp-for="MaximumDiscountAmount"></label>
+                <input class="fb-input" asp-for="MaximumDiscountAmount" type="number" min="0" step="1000" />
+                <span class="text-xs text-red-700" asp-validation-for="MaximumDiscountAmount"></span>
+            </div>
+            <div>
+                <label class="fb-label" asp-for="StartsAtText"></label>
+                <input class="fb-input" asp-for="StartsAtText" type="datetime-local" />
+                <span class="text-xs text-red-700" asp-validation-for="StartsAtText"></span>
+            </div>
+            <div>
+                <label class="fb-label" asp-for="EndsAtText"></label>
+                <input class="fb-input" asp-for="EndsAtText" type="datetime-local" />
+                <span class="text-xs text-red-700" asp-validation-for="EndsAtText"></span>
+            </div>
+            <div>
+                <label class="fb-label" asp-for="TotalUsageLimit"></label>
+                <input class="fb-input" asp-for="TotalUsageLimit" type="number" min="0" />
+                <span class="text-xs text-red-700" asp-validation-for="TotalUsageLimit"></span>
+            </div>
+            <div>
+                <label class="fb-label" asp-for="PerPhoneUsageLimit"></label>
+                <input class="fb-input" asp-for="PerPhoneUsageLimit" type="number" min="0" />
+                <span class="text-xs text-red-700" asp-validation-for="PerPhoneUsageLimit"></span>
+            </div>
+        </div>
+        <label class="flex items-center gap-2 rounded-ui border border-line px-3 py-2 text-sm text-ink">
+            <input class="rounded border-line text-brand-700 focus:ring-brand-700" asp-for="IsActive" />
+            <span>Đang áp dụng</span>
+        </label>
+        <div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <a class="fb-button fb-button-secondary justify-center" href="/admin/promotions">Hủy</a>
+            <button class="fb-button fb-button-primary justify-center" type="submit">Lưu khuyến mãi</button>
+        </div>
+    </form>
+</section>

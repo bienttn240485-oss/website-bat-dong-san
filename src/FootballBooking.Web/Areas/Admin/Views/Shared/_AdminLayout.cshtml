@@ -1,0 +1,26 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Quản trị Sân bóng An Phú</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="min-h-screen bg-page">
+    <div class="flex min-h-screen">
+        <partial name="Partials/_AdminSidebar" />
+        <div class="min-w-0 flex-1">
+            <partial name="Partials/_AdminTopbar" />
+            <main class="px-4 py-5 lg:px-6">
+                @if (ViewData["Breadcrumbs"] is IReadOnlyList<BreadcrumbItemViewModel> breadcrumbs)
+                {
+                    <partial name="~/Views/Shared/Partials/_Breadcrumb.cshtml" model="breadcrumbs" />
+                }
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

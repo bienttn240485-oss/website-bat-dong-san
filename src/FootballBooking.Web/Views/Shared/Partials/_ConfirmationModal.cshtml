@@ -1,0 +1,14 @@
+@model ConfirmationModalViewModel
+
+<div id="@Model.Id" class="hs-overlay pointer-events-none fixed start-0 top-0 z-80 hidden size-full overflow-y-auto overflow-x-hidden" role="dialog" tabindex="-1" aria-labelledby="@(Model.Id)-title">
+    <div class="m-3 mt-12 opacity-0 transition-all hs-overlay-open:opacity-100 sm:mx-auto sm:w-full sm:max-w-md">
+        <div class="fb-card pointer-events-auto p-5">
+            <h3 id="@(Model.Id)-title" class="text-lg font-semibold text-ink">@Model.Title</h3>
+            <p class="mt-2 text-sm text-muted">@Model.Message</p>
+            <div class="mt-5 flex justify-end gap-2">
+                <button class="fb-button fb-button-secondary" type="button" data-hs-overlay="#@Model.Id">@Model.CancelLabel</button>
+                <button class="fb-button fb-button-danger" type="button">@Model.ConfirmLabel</button>
+            </div>
+        </div>
+    </div>
+</div>

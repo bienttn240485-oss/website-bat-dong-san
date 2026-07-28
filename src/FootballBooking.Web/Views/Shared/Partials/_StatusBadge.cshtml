@@ -1,0 +1,14 @@
+@model StatusBadgeViewModel
+@{
+    var toneClass = Model.Tone switch
+    {
+        "success" => "border-green-200 bg-green-50 text-green-800",
+        "warning" => "border-amber-200 bg-amber-50 text-amber-800",
+        "danger" => "border-red-200 bg-red-50 text-red-800",
+        "info" => "border-blue-200 bg-blue-50 text-blue-800",
+        "active" => "border-brand-100 bg-brand-50 text-brand-800",
+        _ => "border-slate-200 bg-slate-50 text-slate-700"
+    };
+}
+
+<span class="inline-flex items-center rounded-ui border px-2 py-1 text-xs font-medium @toneClass">@Model.Label</span>

@@ -1,0 +1,37 @@
+{
+  "name": "footballbooking",
+  "version": "1.0.0",
+  "description": "He thong quan ly va dat san bong mini dung ASP.NET Core MVC.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "css:dev": "tailwindcss -i ./src/FootballBooking.Web/Styles/input.css -o ./src/FootballBooking.Web/wwwroot/css/site.css --watch",
+    "js:dev": "esbuild ./src/FootballBooking.Web/Scripts/site.js ./src/FootballBooking.Web/Scripts/admin-schedule.js ./src/FootballBooking.Web/Scripts/admin-reports.js --bundle --format=iife --sourcemap --outdir=./src/FootballBooking.Web/wwwroot/js --watch",
+    "dev": "concurrently \"npm:css:dev\" \"npm:js:dev\"",
+    "css:build": "tailwindcss -i ./src/FootballBooking.Web/Styles/input.css -o ./src/FootballBooking.Web/wwwroot/css/site.css --minify",
+    "js:build": "esbuild ./src/FootballBooking.Web/Scripts/site.js ./src/FootballBooking.Web/Scripts/admin-schedule.js ./src/FootballBooking.Web/Scripts/admin-reports.js --bundle --format=iife --minify --outdir=./src/FootballBooking.Web/wwwroot/js",
+    "build": "npm run css:build && npm run js:build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.3",
+    "@tailwindcss/forms": "^0.5.11",
+    "concurrently": "^10.0.4",
+    "esbuild": "^0.28.1",
+    "tailwindcss": "^4.3.3"
+  },
+  "dependencies": {
+    "@fullcalendar/core": "^6.1.21",
+    "@fullcalendar/daygrid": "^6.1.21",
+    "@fullcalendar/interaction": "^6.1.21",
+    "@fullcalendar/timegrid": "^6.1.21",
+    "chart.js": "^4.5.1",
+    "preline": "^4.2.0"
+  }
+}

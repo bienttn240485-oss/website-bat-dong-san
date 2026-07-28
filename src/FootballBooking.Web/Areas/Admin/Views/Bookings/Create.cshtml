@@ -1,0 +1,119 @@
+@model BookingCreateViewModel
+@{
+    ViewData["Title"] = "Tạo đặt sân";
+}
+@functions {
+    private static string FormatMoney(long amount) => string.Format("{0:N0} ₫", amount).Replace(",", ".");
+    private static string FormatMinute(int minute) => $"{minute / 60:00}:{minute % 60:00}";
+}
+
+<div class="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
+    <form class="fb-card p-4" method="post">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" class="mb-4 rounded-ui border border-red-200 bg-red-50 p-3 text-sm text-red-800"></div>
+        <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+                <label class="fb-label" asp-for="FieldId">Sân bóng</label>
+                <select class="fb-input" asp-for="FieldId">
+                    @foreach (var field in Model.Fields)
+                    {
+                        <option value="@field.Id">@field.Name - @field.FieldType</option>
+                    }
+                </select>
+            </div>
+            <div>
+                <label class="fb-label" asp-for="BookingDateText">Ngày đặt sân</label>
+                <input class="fb-input" asp-for="BookingDateText" placeholder="dd/MM/yyyy" />
+                <span class="text-xs text-red-700" asp-validation-for="BookingDateText"></span>
+            </div>
+            <div>
+                <label class="fb-label" asp-for="StartMinute">Từ phút</label>
+                <input class="fb-input" asp-for="StartMinute" type="number" />
+            </div>
+            <div>
+                <label class="fb-label" asp-for="EndMinute">Đến phút</label>
+                <input class="fb-input" asp-for="EndMinute" type="number" />
+            </div>
+            <div>
+                <label class="fb-label" asp-for="CustomerName"></label>
+                <input class="fb-input" asp-for="CustomerName" placeholder="Trần Quốc Huy" />
+                <span class="text-xs text-red-700" asp-validation-for="CustomerName"></span>
+            </div>
+            <div>
+                <label class="fb-label" asp-for="CustomerPhone"></label>
+                <input class="fb-input" asp-for="CustomerPhone" placeholder="0902 345 678" />
+                <span class="text-xs text-red-700" asp-validation-for="CustomerPhone"></span>
+            </div>
+            <div>
+                <label class="fb-label" asp-for="CustomerEmail"></label>
+                <input class="fb-input" asp-for="CustomerEmail" placeholder="khach@example.local" />
+            </div>
+            <div>
+                <label class="fb-label" asp-for="Note"></label>
+                <input class="fb-input" asp-for="Note" placeholder="Khách gọi điện đặt sân" />
+            </div>
+            <div class="sm:col-span-2">
+                <h2 class="text-base font-semibold text-ink">Dịch vụ đi kèm</h2>
+                <div class="mt-3 grid gap-3 sm:grid-cols-2">
+                    @for (var i = 0; i < Model.Services.Count; i++)
+                    {
+                        <div class="rounded-ui border border-line bg-white p-3">
+                            <input type="hidden" asp-for="Services[i].ServiceId" />
+                            <input type="hidden" asp-for="Services[i].Name" />
+                            <input type="hidden" asp-for="Services[i].UnitName" />
+                            <input type="hidden" asp-for="Services[i].UnitPrice" />
+                            <div class="flex items-start justify-between gap-3">
+                                <div>
+                                    <p class="font-medium text-ink">@Model.Services[i].Name</p>
+                                    <p class="mt-1 text-xs text-muted">@Model.Services[i].Description</p>
+                                    <p class="mt-2 text-sm font-semibold text-brand-800">@FormatMoney(Model.Services[i].UnitPrice) / @Model.Services[i].UnitName</p>
+                                </div>
+                                <input class="fb-input w-20" asp-for="Services[i].Quantity" type="number" min="0" max="20" aria-label="Số lượng @Model.Services[i].Name" />
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="sm:col-span-2">
+                <label class="fb-label" asp-for="PromotionCode"></label>
+                <input class="fb-input" asp-for="PromotionCode" placeholder="ANPHU50" />
+            </div>
+        </div>
+        <div class="mt-5 flex justify-end">
+            <button class="fb-button fb-button-primary" type="submit">Lưu đặt sân</button>
+        </div>
+    </form>
+
+    <aside class="space-y-4">
+        <section class="fb-card p-4">
+            <h2 class="font-semibold text-ink">Tạm tính</h2>
+            @if (Model.Quote is null)
+            {
+                <p class="mt-3 text-sm text-muted">Nhập khung giờ hợp lệ để xem giá.</p>
+            }
+            else
+            {
+                <div class="mt-3 space-y-2 text-sm">
+                    @foreach (var segment in Model.Quote.Segments)
+                    {
+                        <div class="flex justify-between gap-3"><span class="text-muted">@FormatMinute(segment.StartMinute) - @FormatMinute(segment.EndMinute)</span><span class="font-medium">@FormatMoney(segment.Amount)</span></div>
+                    }
+                    <div class="border-t border-line pt-3 flex justify-between font-semibold"><span>Tổng tiền sân</span><span>@FormatMoney(Model.Quote.CourtAmount)</span></div>
+                    <div class="flex justify-between"><span class="text-muted">Dịch vụ đã chọn</span><span>@FormatMoney(Model.ServiceAmount)</span></div>
+                    <div class="border-t border-line pt-3 flex justify-between font-semibold text-brand-900"><span>Tạm tính trước khuyến mãi</span><span>@FormatMoney(Model.EstimatedTotal)</span></div>
+                </div>
+            }
+        </section>
+        <section class="fb-card p-4">
+            <h2 class="font-semibold text-ink">Khung giờ trống</h2>
+            <div class="mt-3 grid grid-cols-2 gap-2">
+                @foreach (var slot in Model.Slots.Take(12))
+                {
+                    <span class="rounded-ui border px-3 py-2 text-center text-xs font-medium @(slot.IsAvailable ? "border-green-200 bg-green-50 text-green-800" : "border-slate-200 bg-slate-50 text-muted")">@slot.Label</span>
+                }
+            </div>
+        </section>
+    </aside>
+</div>
+
+<partial name="_ValidationScriptsPartial" />

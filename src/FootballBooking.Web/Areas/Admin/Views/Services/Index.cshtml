@@ -1,0 +1,65 @@
+﻿@model ServiceListViewModel
+@{
+    ViewData["Title"] = "Dịch vụ";
+}
+@functions {
+    private static string FormatMoney(long amount) => string.Format("{0:N0} ₫", amount).Replace(",", ".");
+}
+
+<section class="fb-card p-4">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <h1 class="text-xl font-semibold text-ink">Dịch vụ</h1>
+            <p class="mt-1 text-sm text-muted">Danh mục dịch vụ dùng trong form đặt sân và chuẩn bị vận hành.</p>
+        </div>
+        <a class="fb-button fb-button-primary justify-center" href="/admin/services/create">Thêm dịch vụ</a>
+    </div>
+
+    @if (Model.Services.Count == 0)
+    {
+        <div class="mt-4">
+            <partial name="~/Views/Shared/Partials/_EmptyState.cshtml" model='new EmptyStateViewModel("Chưa có dịch vụ", "Thêm dịch vụ đầu tiên để khách hoặc nhân viên chọn khi đặt sân.", IconName: "clipboard-document-list")' />
+        </div>
+    }
+    else
+    {
+        <div class="mt-4 overflow-x-auto">
+            <table class="min-w-full text-left text-sm">
+                <thead class="border-b border-line text-xs uppercase text-muted">
+                    <tr>
+                        <th class="py-2 pr-3">Mã</th>
+                        <th class="py-2 pr-3">Tên dịch vụ</th>
+                        <th class="py-2 pr-3">Đơn vị</th>
+                        <th class="py-2 pr-3">Đơn giá</th>
+                        <th class="py-2 pr-3">Số lượng</th>
+                        <th class="py-2 pr-3">Trạng thái</th>
+                        <th class="py-2 text-right">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-line">
+                    @foreach (var service in Model.Services)
+                    {
+                        <tr>
+                            <td class="py-2 pr-3 font-medium text-ink">@service.Code</td>
+                            <td class="py-2 pr-3">@service.Name</td>
+                            <td class="py-2 pr-3 text-muted">@service.UnitName</td>
+                            <td class="py-2 pr-3 font-medium text-ink">@FormatMoney(service.UnitPrice)</td>
+                            <td class="py-2 pr-3 text-muted">@(service.IsQuantityTracked ? (service.AvailableQuantity?.ToString() ?? "Không giới hạn") : "Không theo dõi")</td>
+                            <td class="py-2 pr-3"><partial name="~/Views/Shared/Partials/_StatusBadge.cshtml" model='new StatusBadgeViewModel(service.IsActive ? "Đang dùng" : "Tạm dừng", service.IsActive ? "success" : "neutral")' /></td>
+                            <td class="py-2">
+                                <div class="flex justify-end gap-2">
+                                    <a class="fb-button fb-button-secondary px-3 py-1.5 text-xs" href="/admin/services/@service.Id/edit">Sửa</a>
+                                    <form method="post" action="/admin/services/@service.Id/toggle">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="isActive" value="@(!service.IsActive)" />
+                                        <button class="fb-button @(service.IsActive ? "fb-button-danger" : "fb-button-secondary") px-3 py-1.5 text-xs" type="submit">@(service.IsActive ? "Tạm dừng" : "Mở lại")</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
