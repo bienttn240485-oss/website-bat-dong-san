@@ -1,6 +1,9 @@
 ﻿using RealEstateManagement.Infrastructure.Identity;
 using RealEstateManagement.Domain.Bookings;
+using RealEstateManagement.Domain.Contracts;
 using RealEstateManagement.Domain.Fields;
+using RealEstateManagement.Domain.Leads;
+using RealEstateManagement.Domain.Properties;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +24,13 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     public DbSet<PaymentRecord> Payments => Set<PaymentRecord>();
     public DbSet<PromoCode> PromoCodes => Set<PromoCode>();
     public DbSet<PromoCodeUsage> PromoCodeUsages => Set<PromoCodeUsage>();
+    public DbSet<Property> Properties => Set<Property>();
+    public DbSet<PropertyImage> PropertyImages => Set<PropertyImage>();
+    public DbSet<PropertyFurnitureItem> PropertyFurnitureItems => Set<PropertyFurnitureItem>();
+    public DbSet<PropertyAmenity> PropertyAmenities => Set<PropertyAmenity>();
+    public DbSet<LandlordContract> LandlordContracts => Set<LandlordContract>();
+    public DbSet<TenantContract> TenantContracts => Set<TenantContract>();
+    public DbSet<Lead> Leads => Set<Lead>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -32,6 +42,12 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
             entity.Property(user => user.FullName)
                 .HasMaxLength(120)
                 .IsRequired();
+
+            entity.Property(user => user.DisplayName)
+                .HasMaxLength(120);
+
+            entity.Property(user => user.AvatarUrl)
+                .HasMaxLength(500);
 
             entity.Property(user => user.AccountStatus)
                 .HasConversion<int>()

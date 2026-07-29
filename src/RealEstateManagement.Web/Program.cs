@@ -31,12 +31,13 @@ if (shouldSeedDevelopmentData)
 {
     if (!app.Environment.IsDevelopment())
     {
-        throw new InvalidOperationException("Chỉ được seed dữ liệu mẫu khi môi trÆ°á»ng lÃ  Development.");
+        throw new InvalidOperationException("Chỉ được seed dữ liệu mẫu khi môi trường là Development.");
     }
 
     using var seedScope = app.Services.CreateScope();
     var identitySeeder = seedScope.ServiceProvider.GetRequiredService<IdentitySeeder>();
     await identitySeeder.SeedDevelopmentOwnerAsync();
+    await seedScope.ServiceProvider.GetRequiredService<DevelopmentRealEstateSeeder>().SeedAsync();
     // await seedScope.ServiceProvider.GetRequiredService<DevelopmentFieldSeeder>().SeedAsync();
     // await seedScope.ServiceProvider.GetRequiredService<DevelopmentCommerceSeeder>().SeedAsync();
     // await seedScope.ServiceProvider.GetRequiredService<DevelopmentOperationsSeeder>().SeedAsync();
@@ -77,4 +78,3 @@ app.MapControllerRoute(
 app.Run();
 
 public partial class Program;
-

@@ -1,10 +1,18 @@
 ﻿using RealEstateManagement.Application.Common.Time;
 using RealEstateManagement.Application.Bookings;
+using RealEstateManagement.Application.Contracts;
+using RealEstateManagement.Application.Dashboard;
 using RealEstateManagement.Application.Fields;
+using RealEstateManagement.Application.Leads;
+using RealEstateManagement.Application.Properties;
 using RealEstateManagement.Infrastructure.Bookings;
+using RealEstateManagement.Infrastructure.Contracts;
 using RealEstateManagement.Infrastructure.Data;
+using RealEstateManagement.Infrastructure.Dashboard;
 using RealEstateManagement.Infrastructure.Fields;
 using RealEstateManagement.Infrastructure.Identity;
+using RealEstateManagement.Infrastructure.Leads;
+using RealEstateManagement.Infrastructure.Properties;
 using RealEstateManagement.Infrastructure.Reports;
 using RealEstateManagement.Infrastructure.SeedData;
 using RealEstateManagement.Infrastructure.Time;
@@ -46,6 +54,16 @@ public static class DependencyInjection
         services.AddScoped<IBookingStore, EfBookingStore>();
         services.AddScoped<IReportStore, EfReportStore>();
         services.AddScoped<IReportService, ReportService>();
+        services.AddScoped<IPropertyStore, EfPropertyStore>();
+        services.AddScoped<IPropertyService, PropertyService>();
+        services.AddScoped<ILandlordContractStore, EfLandlordContractStore>();
+        services.AddScoped<ILandlordContractService, LandlordContractService>();
+        services.AddScoped<ITenantContractStore, EfTenantContractStore>();
+        services.AddScoped<ITenantContractService, TenantContractService>();
+        services.AddScoped<ILeadStore, EfLeadStore>();
+        services.AddScoped<ILeadService, LeadService>();
+        services.AddScoped<IDashboardStore, EfDashboardStore>();
+        services.AddScoped<IDashboardService, DashboardService>();
         services.AddScoped<IBookingService>(provider =>
         {
             var policy = new BookingPolicyOptions();
@@ -74,6 +92,7 @@ public static class DependencyInjection
         services.AddScoped<DevelopmentFieldSeeder>();
         services.AddScoped<DevelopmentCommerceSeeder>();
         services.AddScoped<DevelopmentOperationsSeeder>();
+        services.AddScoped<DevelopmentRealEstateSeeder>();
 
         return services;
     }
