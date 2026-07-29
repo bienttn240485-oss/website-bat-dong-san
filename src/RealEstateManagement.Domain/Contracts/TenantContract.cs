@@ -87,6 +87,53 @@ public sealed class TenantContract
     public DateTimeOffset CreatedAtUtc { get; private set; }
     public DateTimeOffset UpdatedAtUtc { get; private set; }
 
+    public void UpdateDetails(
+        string tenantName,
+        string? managerName,
+        long rentalPrice,
+        DateOnly signedDate,
+        int termMonths,
+        long depositAmount,
+        DateOnly? depositReturnDate,
+        string? peCode,
+        string? passCode,
+        string? notes,
+        DateTimeOffset utcNow)
+    {
+        if (string.IsNullOrWhiteSpace(tenantName))
+        {
+            throw new ArgumentException("Tenant name is required.", nameof(tenantName));
+        }
+
+        if (rentalPrice < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(rentalPrice), "Rental price cannot be negative.");
+        }
+
+        if (depositAmount < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(depositAmount), "Deposit amount cannot be negative.");
+        }
+
+        if (termMonths <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(termMonths), "Term months must be greater than zero.");
+        }
+
+        TenantName = tenantName.Trim();
+        ManagerName = NormalizeOptional(managerName);
+        RentalPrice = rentalPrice;
+        SignedDate = signedDate;
+        TermMonths = termMonths;
+        ExpiryDate = signedDate.AddMonths(termMonths);
+        DepositAmount = depositAmount;
+        DepositReturnDate = depositReturnDate;
+        PeCode = NormalizeOptional(peCode);
+        PassCode = NormalizeOptional(passCode);
+        Notes = NormalizeOptional(notes);
+        UpdatedAtUtc = utcNow;
+    }
+
     public void ChangeStatus(ContractStatus status, DateTimeOffset utcNow)
     {
         Status = status;

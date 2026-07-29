@@ -86,6 +86,55 @@ public sealed class LandlordContract
     public DateTimeOffset CreatedAtUtc { get; private set; }
     public DateTimeOffset UpdatedAtUtc { get; private set; }
 
+    public void UpdateDetails(
+        string landlordName,
+        string? peCode,
+        string? saleName,
+        long inputPrice,
+        DateOnly signedDate,
+        DateOnly? expiryDate,
+        DepositStatus depositStatus,
+        int? paymentDay,
+        string? paymentWindow,
+        DateOnly? nextDueDate,
+        string? notes,
+        DateTimeOffset utcNow)
+    {
+        if (string.IsNullOrWhiteSpace(landlordName))
+        {
+            throw new ArgumentException("Landlord name is required.", nameof(landlordName));
+        }
+
+        if (inputPrice < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(inputPrice), "Input price cannot be negative.");
+        }
+
+        var normalizedExpiryDate = expiryDate ?? signedDate.AddMonths(12);
+        if (normalizedExpiryDate <= signedDate)
+        {
+            throw new ArgumentException("Expiry date must be after signed date.", nameof(expiryDate));
+        }
+
+        if (paymentDay is < 1 or > 31)
+        {
+            throw new ArgumentOutOfRangeException(nameof(paymentDay), "Payment day must be between 1 and 31.");
+        }
+
+        LandlordName = landlordName.Trim();
+        PeCode = NormalizeOptional(peCode);
+        SaleName = NormalizeOptional(saleName);
+        InputPrice = inputPrice;
+        SignedDate = signedDate;
+        ExpiryDate = normalizedExpiryDate;
+        DepositStatus = depositStatus;
+        PaymentDay = paymentDay;
+        PaymentWindow = NormalizeOptional(paymentWindow);
+        NextDueDate = nextDueDate;
+        Notes = NormalizeOptional(notes);
+        UpdatedAtUtc = utcNow;
+    }
+
     private static string? NormalizeOptional(string? value)
         => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 }

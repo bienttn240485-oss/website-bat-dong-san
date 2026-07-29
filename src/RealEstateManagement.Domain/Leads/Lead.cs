@@ -55,6 +55,34 @@ public sealed class Lead
     public DateTimeOffset CreatedAtUtc { get; private set; }
     public DateTimeOffset UpdatedAtUtc { get; private set; }
 
+    public void UpdateDetails(
+        string name,
+        string contact,
+        Guid? propertyId,
+        string? subject,
+        string? message,
+        string? language,
+        DateTimeOffset utcNow)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new ArgumentException("Lead name is required.", nameof(name));
+        }
+
+        if (string.IsNullOrWhiteSpace(contact))
+        {
+            throw new ArgumentException("Lead contact is required.", nameof(contact));
+        }
+
+        Name = name.Trim();
+        Contact = contact.Trim();
+        PropertyId = propertyId;
+        Subject = NormalizeOptional(subject);
+        Message = NormalizeOptional(message);
+        Language = string.IsNullOrWhiteSpace(language) ? "vi" : language.Trim();
+        UpdatedAtUtc = utcNow;
+    }
+
     public void ChangeStatus(LeadStatus status, DateTimeOffset utcNow)
     {
         Status = status;
