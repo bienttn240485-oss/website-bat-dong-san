@@ -84,6 +84,7 @@ public sealed class PropertyService(IPropertyStore store, ISystemClock clock) : 
             command.Notes,
             now);
         property.ChangeStatus(command.Status, now);
+        await store.ClearPropertyChildrenAsync(propertyId, cancellationToken);
         ReplaceChildren(property, command, propertyId);
 
         await store.SaveChangesAsync(cancellationToken);
@@ -100,6 +101,25 @@ public sealed class PropertyService(IPropertyStore store, ISystemClock clock) : 
         }
 
         property.ChangeStatus(command.Status, clock.UtcNow);
+        await store.SaveChangesAsync(cancellationToken);
+
+        return PropertyCommandResult.Success(property.Id);
+    }
+
+    public async Task<PropertyCommandResult> DeletePropertyAsync(Guid propertyId, CancellationToken cancellationToken = default)
+    {
+        var property = await store.GetPropertyForUpdateAsync(propertyId, cancellationToken);
+        if (property is null)
+        {
+            return PropertyCommandResult.Failure(["Không tìm thấy căn hộ cần xóa."]);
+        }
+
+        if (await store.HasContractRelationshipsAsync(propertyId, cancellationToken))
+        {
+            return PropertyCommandResult.Failure(["Không thể xóa căn hộ đang có hợp đồng chủ nhà hoặc hợp đồng thuê."]);
+        }
+
+        store.DeleteProperty(property);
         await store.SaveChangesAsync(cancellationToken);
 
         return PropertyCommandResult.Success(property.Id);

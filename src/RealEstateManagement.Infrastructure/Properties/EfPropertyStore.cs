@@ -27,9 +27,6 @@ public sealed class EfPropertyStore(ApplicationDbContext dbContext) : IPropertyS
 
     public Task<Property?> GetPropertyForUpdateAsync(Guid id, CancellationToken cancellationToken)
         => dbContext.Properties
-            .Include(property => property.Images)
-            .Include(property => property.FurnitureItems)
-            .Include(property => property.Amenities)
             .FirstOrDefaultAsync(property => property.Id == id, cancellationToken);
 
     public Task<bool> CodeExistsAsync(string normalizedCode, Guid? exceptPropertyId, CancellationToken cancellationToken)
@@ -37,11 +34,61 @@ public sealed class EfPropertyStore(ApplicationDbContext dbContext) : IPropertyS
             property => property.Code == normalizedCode && (exceptPropertyId == null || property.Id != exceptPropertyId.Value),
             cancellationToken);
 
+    public async Task<bool> HasContractRelationshipsAsync(Guid propertyId, CancellationToken cancellationToken)
+        => await dbContext.LandlordContracts.AnyAsync(contract => contract.PropertyId == propertyId, cancellationToken)
+            || await dbContext.TenantContracts.AnyAsync(contract => contract.PropertyId == propertyId, cancellationToken);
+
+    public async Task ClearPropertyChildrenAsync(Guid propertyId, CancellationToken cancellationToken)
+    {
+        await dbContext.PropertyImages
+            .Where(image => image.PropertyId == propertyId)
+            .ExecuteDeleteAsync(cancellationToken);
+        await dbContext.PropertyFurnitureItems
+            .Where(item => item.PropertyId == propertyId)
+            .ExecuteDeleteAsync(cancellationToken);
+        await dbContext.PropertyAmenities
+            .Where(amenity => amenity.PropertyId == propertyId)
+            .ExecuteDeleteAsync(cancellationToken);
+    }
+
     public async Task AddPropertyAsync(Property property, CancellationToken cancellationToken)
         => await dbContext.Properties.AddAsync(property, cancellationToken);
 
+    public void DeleteProperty(Property property)
+        => dbContext.Properties.Remove(property);
+
     public Task SaveChangesAsync(CancellationToken cancellationToken)
-        => dbContext.SaveChangesAsync(cancellationToken);
+    {
+        MarkReplacementChildrenAsAdded();
+        return dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private void MarkReplacementChildrenAsAdded()
+    {
+        foreach (var entry in dbContext.ChangeTracker.Entries<PropertyImage>())
+        {
+            if (entry.State == EntityState.Modified)
+            {
+                entry.State = EntityState.Added;
+            }
+        }
+
+        foreach (var entry in dbContext.ChangeTracker.Entries<PropertyFurnitureItem>())
+        {
+            if (entry.State == EntityState.Modified)
+            {
+                entry.State = EntityState.Added;
+            }
+        }
+
+        foreach (var entry in dbContext.ChangeTracker.Entries<PropertyAmenity>())
+        {
+            if (entry.State == EntityState.Modified)
+            {
+                entry.State = EntityState.Added;
+            }
+        }
+    }
 
     private IQueryable<Property> QueryProperties()
         => dbContext.Properties
@@ -124,7 +171,8 @@ public sealed class EfPropertyStore(ApplicationDbContext dbContext) : IPropertyS
             property.SalePrice,
             property.Status,
             property.AvailableFromDate,
-            primaryImage?.Url);
+            primaryImage?.Url,
+            property.CreatedAtUtc);
     }
 
     private static PropertyDetailDto ToDetailDto(Property property)

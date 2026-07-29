@@ -10,18 +10,107 @@ public sealed class EfTenantContractStore(ApplicationDbContext dbContext) : ITen
 {
     public async Task<IReadOnlyList<TenantContractDto>> ListTenantContractsAsync(ContractFilterQuery query, CancellationToken cancellationToken)
     {
-        var contracts = await ApplyFilter(dbContext.TenantContracts.AsNoTracking(), query)
-            .OrderBy(contract => contract.ExpiryDate)
-            .ToListAsync(cancellationToken);
+        var rows = dbContext.TenantContracts.AsNoTracking()
+            .Join(dbContext.Properties.AsNoTracking(),
+                contract => contract.PropertyId,
+                property => property.Id,
+                (contract, property) => new { Contract = contract, Property = property });
 
-        return contracts.Select(ToDto).ToArray();
+        if (query.PropertyId is not null)
+        {
+            rows = rows.Where(row => row.Contract.PropertyId == query.PropertyId);
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.Keyword))
+        {
+            var keyword = query.Keyword.Trim();
+            rows = rows.Where(row =>
+                row.Contract.TenantName.Contains(keyword)
+                || row.Property.Code.Contains(keyword)
+                || row.Property.Area.Contains(keyword)
+                || (row.Contract.PeCode != null && row.Contract.PeCode.Contains(keyword))
+                || (row.Contract.ManagerName != null && row.Contract.ManagerName.Contains(keyword)));
+        }
+
+        if (query.Project is not null)
+        {
+            rows = rows.Where(row => row.Property.Project == query.Project);
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.Area))
+        {
+            var area = query.Area.Trim();
+            rows = rows.Where(row => row.Property.Area == area);
+        }
+
+        if (query.Status is not null)
+        {
+            rows = rows.Where(row => row.Contract.Status == query.Status);
+        }
+
+        if (query.ExpiringBefore is not null)
+        {
+            rows = rows.Where(row => row.Contract.ExpiryDate <= query.ExpiringBefore.Value);
+        }
+
+        if (query.ExpiredOnly && query.ExpiringBefore is not null)
+        {
+            rows = rows.Where(row => row.Contract.ExpiryDate < query.ExpiringBefore.Value);
+        }
+
+        return await rows
+            .OrderBy(row => row.Contract.ExpiryDate)
+            .ThenBy(row => row.Property.Code)
+            .Select(row => new TenantContractDto(
+                row.Contract.Id,
+                row.Contract.PropertyId,
+                row.Property.Code,
+                row.Property.Project,
+                row.Property.Area,
+                row.Contract.TenantName,
+                row.Contract.ManagerName,
+                row.Contract.RentalPrice,
+                row.Contract.SignedDate,
+                row.Contract.TermMonths,
+                row.Contract.ExpiryDate,
+                row.Contract.DepositAmount,
+                row.Contract.DepositReturnDate,
+                row.Contract.PeCode,
+                row.Contract.PassCode,
+                row.Contract.Status,
+                row.Contract.Notes))
+            .ToListAsync(cancellationToken);
     }
 
     public async Task<TenantContractDto?> GetTenantContractAsync(Guid id, CancellationToken cancellationToken)
-    {
-        var contract = await dbContext.TenantContracts.AsNoTracking().FirstOrDefaultAsync(contract => contract.Id == id, cancellationToken);
-        return contract is null ? null : ToDto(contract);
-    }
+        => await dbContext.TenantContracts.AsNoTracking()
+            .Join(dbContext.Properties.AsNoTracking(),
+                contract => contract.PropertyId,
+                property => property.Id,
+                (contract, property) => new { Contract = contract, Property = property })
+            .Where(row => row.Contract.Id == id)
+            .Select(row => new TenantContractDto(
+                row.Contract.Id,
+                row.Contract.PropertyId,
+                row.Property.Code,
+                row.Property.Project,
+                row.Property.Area,
+                row.Contract.TenantName,
+                row.Contract.ManagerName,
+                row.Contract.RentalPrice,
+                row.Contract.SignedDate,
+                row.Contract.TermMonths,
+                row.Contract.ExpiryDate,
+                row.Contract.DepositAmount,
+                row.Contract.DepositReturnDate,
+                row.Contract.PeCode,
+                row.Contract.PassCode,
+                row.Contract.Status,
+                row.Contract.Notes))
+            .FirstOrDefaultAsync(cancellationToken);
+
+    public Task<IReadOnlyList<TenantContractDto>> ListTenantContractsForPropertyAsync(Guid propertyId, CancellationToken cancellationToken)
+        => ListTenantContractsAsync(new ContractFilterQuery(PropertyId: propertyId), cancellationToken);
 
     public Task<TenantContract?> GetTenantContractForUpdateAsync(Guid id, CancellationToken cancellationToken)
         => dbContext.TenantContracts.FirstOrDefaultAsync(contract => contract.Id == id, cancellationToken);
@@ -41,41 +130,4 @@ public sealed class EfTenantContractStore(ApplicationDbContext dbContext) : ITen
 
     public Task SaveChangesAsync(CancellationToken cancellationToken)
         => dbContext.SaveChangesAsync(cancellationToken);
-
-    private static IQueryable<TenantContract> ApplyFilter(IQueryable<TenantContract> queryable, ContractFilterQuery query)
-    {
-        if (query.PropertyId is not null)
-        {
-            queryable = queryable.Where(contract => contract.PropertyId == query.PropertyId);
-        }
-
-        if (query.Status is not null)
-        {
-            queryable = queryable.Where(contract => contract.Status == query.Status);
-        }
-
-        if (query.ExpiringBefore is not null)
-        {
-            queryable = queryable.Where(contract => contract.ExpiryDate <= query.ExpiringBefore.Value);
-        }
-
-        return queryable;
-    }
-
-    private static TenantContractDto ToDto(TenantContract contract)
-        => new(
-            contract.Id,
-            contract.PropertyId,
-            contract.TenantName,
-            contract.ManagerName,
-            contract.RentalPrice,
-            contract.SignedDate,
-            contract.TermMonths,
-            contract.ExpiryDate,
-            contract.DepositAmount,
-            contract.DepositReturnDate,
-            contract.PeCode,
-            contract.PassCode,
-            contract.Status,
-            contract.Notes);
 }

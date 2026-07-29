@@ -1,15 +1,24 @@
 using RealEstateManagement.Domain.Contracts;
+using RealEstateManagement.Domain.Properties;
 
 namespace RealEstateManagement.Application.Contracts;
 
 public sealed record ContractFilterQuery(
     Guid? PropertyId = null,
+    string? Keyword = null,
+    PropertyProject? Project = null,
+    string? Area = null,
     ContractStatus? Status = null,
-    DateOnly? ExpiringBefore = null);
+    DepositStatus? DepositStatus = null,
+    DateOnly? ExpiringBefore = null,
+    bool ExpiredOnly = false);
 
 public sealed record LandlordContractDto(
     Guid Id,
     Guid PropertyId,
+    string PropertyCode,
+    PropertyProject? Project,
+    string Area,
     string LandlordName,
     string? PeCode,
     string? SaleName,
@@ -25,6 +34,9 @@ public sealed record LandlordContractDto(
 public sealed record TenantContractDto(
     Guid Id,
     Guid PropertyId,
+    string PropertyCode,
+    PropertyProject? Project,
+    string Area,
     string TenantName,
     string? ManagerName,
     long RentalPrice,

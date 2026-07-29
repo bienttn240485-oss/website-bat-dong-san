@@ -11,6 +11,9 @@ public sealed class LandlordContractService(ILandlordContractStore store, ISyste
     public Task<LandlordContractDto?> GetLandlordContractAsync(Guid id, CancellationToken cancellationToken = default)
         => store.GetLandlordContractAsync(id, cancellationToken);
 
+    public Task<LandlordContractDto?> GetLandlordContractForPropertyAsync(Guid propertyId, CancellationToken cancellationToken = default)
+        => store.GetLandlordContractForPropertyAsync(propertyId, cancellationToken);
+
     public async Task<ContractCommandResult> CreateLandlordContractAsync(LandlordContractEditorCommand command, CancellationToken cancellationToken = default)
     {
         var errors = await ValidateEditorAsync(command, null, cancellationToken);
@@ -72,6 +75,17 @@ public sealed class LandlordContractService(ILandlordContractStore store, ISyste
         await store.SaveChangesAsync(cancellationToken);
 
         return ContractCommandResult.Success(contract.Id);
+    }
+
+    public async Task<ContractCommandResult> DeleteLandlordContractAsync(Guid contractId, CancellationToken cancellationToken = default)
+    {
+        var contract = await store.GetLandlordContractAsync(contractId, cancellationToken);
+        if (contract is null)
+        {
+            return ContractCommandResult.Failure(["Không tìm thấy hợp đồng chủ nhà cần xóa."]);
+        }
+
+        return ContractCommandResult.Failure(["Không xóa hợp đồng chủ nhà để giữ lịch sử quản lý. Hãy cập nhật ghi chú hoặc tạo quy trình kết thúc hợp đồng ở phase sau."]);
     }
 
     private async Task<List<string>> ValidateEditorAsync(LandlordContractEditorCommand command, Guid? contractId, CancellationToken cancellationToken)

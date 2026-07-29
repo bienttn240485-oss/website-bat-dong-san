@@ -1,0 +1,247 @@
+@model PropertyDetailViewModel
+
+@{
+    var property = Model.Property;
+    static string TextOrEmpty(string? value) => string.IsNullOrWhiteSpace(value) ? "Chưa có" : value;
+    static string DateText(DateOnly? date) => date?.ToString("dd/MM/yyyy") ?? "Chưa có";
+}
+
+<div class="space-y-5">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+            <h2 class="text-2xl font-semibold text-ink">@property.Code</h2>
+            <p class="mt-1 text-sm text-muted">@PropertyDisplay.ProjectLabel(property.Project) · @property.Area · @PropertyDisplay.TypeLabel(property.Type)</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+            <a class="fb-button fb-button-secondary" href="/admin/properties">Danh sách</a>
+            <a class="fb-button fb-button-primary" href="/admin/properties/@property.Id/edit">Sửa</a>
+            @if (Model.CanDelete)
+            {
+                <form method="post" action="/admin/properties/@property.Id/delete" onsubmit="return confirm('Bạn chắc chắn muốn xóa căn hộ @property.Code?');">
+                    @Html.AntiForgeryToken()
+                    <button class="fb-button fb-button-danger" type="submit">Xóa</button>
+                </form>
+            }
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] is string success)
+    {
+        <partial name="~/Views/Shared/Partials/_Alert.cshtml" model='new AlertViewModel("Thành công", success, "success")' />
+    }
+    @if (TempData["ErrorMessage"] is string error)
+    {
+        <partial name="~/Views/Shared/Partials/_Alert.cshtml" model='new AlertViewModel("Không thể thực hiện", error, "danger")' />
+    }
+
+    <section class="fb-card p-4">
+        <div class="flex flex-wrap items-center gap-3">
+            <partial name="~/Views/Shared/Partials/_StatusBadge.cshtml" model='new StatusBadgeViewModel(PropertyDisplay.StatusLabel(property.Status), PropertyDisplay.StatusTone(property.Status))' />
+            <span class="text-sm text-muted">Ngày có thể vào ở: @DateText(property.AvailableFromDate)</span>
+        </div>
+
+        <dl class="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <div><dt class="fb-muted">Mã căn</dt><dd class="font-medium text-ink">@property.Code</dd></div>
+            <div><dt class="fb-muted">Dự án</dt><dd class="font-medium text-ink">@PropertyDisplay.ProjectLabel(property.Project)</dd></div>
+            <div><dt class="fb-muted">Phân khu</dt><dd class="font-medium text-ink">@property.Area</dd></div>
+            <div><dt class="fb-muted">Loại căn</dt><dd class="font-medium text-ink">@PropertyDisplay.TypeLabel(property.Type)</dd></div>
+            <div><dt class="fb-muted">Diện tích</dt><dd class="font-medium text-ink">@PropertyDisplay.FormatArea(property.AreaSize)</dd></div>
+            <div><dt class="fb-muted">Số WC</dt><dd class="font-medium text-ink">@(property.Bathrooms?.ToString() ?? "Chưa có")</dd></div>
+            <div><dt class="fb-muted">Giá thuê</dt><dd class="font-medium text-ink">@PropertyDisplay.FormatMoney(property.MonthlyPrice)</dd></div>
+            <div><dt class="fb-muted">Giá bán</dt><dd class="font-medium text-ink">@PropertyDisplay.FormatMoney(property.SalePrice)</dd></div>
+            <div><dt class="fb-muted">Hướng</dt><dd class="font-medium text-ink">@TextOrEmpty(property.Direction)</dd></div>
+            <div><dt class="fb-muted">Pháp lý</dt><dd class="font-medium text-ink">@TextOrEmpty(property.LegalStatus)</dd></div>
+            <div><dt class="fb-muted">Gói nội thất</dt><dd class="font-medium text-ink">@TextOrEmpty(property.FurniturePackage)</dd></div>
+            <div><dt class="fb-muted">Video URL</dt><dd class="break-words font-medium text-ink">@TextOrEmpty(property.VideoUrl)</dd></div>
+        </dl>
+    </section>
+
+    <section class="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
+        <article class="fb-card p-4">
+            <h3 class="font-semibold text-ink">Mô tả và ghi chú</h3>
+            <dl class="mt-4 space-y-4">
+                <div>
+                    <dt class="fb-muted">Thông tin vay</dt>
+                    <dd class="mt-1 whitespace-pre-line text-sm text-ink">@TextOrEmpty(property.LoanInfo)</dd>
+                </div>
+                <div>
+                    <dt class="fb-muted">Mô tả</dt>
+                    <dd class="mt-1 whitespace-pre-line text-sm text-ink">@TextOrEmpty(property.Description)</dd>
+                </div>
+                <div>
+                    <dt class="fb-muted">Ghi chú</dt>
+                    <dd class="mt-1 whitespace-pre-line text-sm text-ink">@TextOrEmpty(property.Notes)</dd>
+                </div>
+            </dl>
+        </article>
+
+        <article class="fb-card p-4">
+            <h3 class="font-semibold text-ink">Ảnh</h3>
+            @if (property.Images.Count == 0)
+            {
+                <p class="mt-3 text-sm text-muted">Chưa có ảnh.</p>
+            }
+            else
+            {
+                <div class="mt-3 grid gap-3 sm:grid-cols-2">
+                    @foreach (var image in property.Images.OrderBy(image => image.SortOrder))
+                    {
+                        <figure class="overflow-hidden rounded-ui border border-line">
+                            <img class="h-36 w-full object-cover" src="@image.Url" alt="@(image.AltText ?? property.Code)" />
+                            <figcaption class="px-3 py-2 text-xs text-muted">@TextOrEmpty(image.AltText)</figcaption>
+                        </figure>
+                    }
+                </div>
+            }
+        </article>
+    </section>
+
+    <section class="grid gap-5 lg:grid-cols-2">
+        <article class="fb-card p-4">
+            <h3 class="font-semibold text-ink">Nội thất</h3>
+            @if (property.FurnitureItems.Count == 0)
+            {
+                <p class="mt-3 text-sm text-muted">Chưa có dữ liệu nội thất.</p>
+            }
+            else
+            {
+                <ul class="mt-3 divide-y divide-line text-sm">
+                    @foreach (var item in property.FurnitureItems)
+                    {
+                        <li class="flex items-start justify-between gap-3 py-2">
+                            <span class="font-medium text-ink">@item.Name</span>
+                            <span class="text-muted">@item.Quantity</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </article>
+
+        <article class="fb-card p-4">
+            <h3 class="font-semibold text-ink">Tiện ích</h3>
+            @if (property.Amenities.Count == 0)
+            {
+                <p class="mt-3 text-sm text-muted">Chưa có tiện ích.</p>
+            }
+            else
+            {
+                <div class="mt-3 flex flex-wrap gap-2">
+                    @foreach (var amenity in property.Amenities)
+                    {
+                        <span class="rounded-ui border border-line bg-slate-50 px-3 py-1 text-sm text-ink">@amenity.Name</span>
+                    }
+                </div>
+            }
+        </article>
+    </section>
+
+    <section class="fb-card p-4">
+        <h3 class="font-semibold text-ink">Hợp đồng và tài chính</h3>
+        @foreach (var warning in Model.Contracts.Warnings)
+        {
+            <div class="mt-3 rounded-ui border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">@warning.Message</div>
+        }
+        <dl class="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <div><dt class="fb-muted">Giá vào</dt><dd class="font-medium text-ink">@ContractDisplay.Money(Model.Contracts.LandlordContract?.InputPrice)</dd></div>
+            <div><dt class="fb-muted">Giá ra</dt><dd class="font-medium text-ink">@ContractDisplay.Money(Model.Contracts.ActiveTenantContract?.RentalPrice)</dd></div>
+            <div><dt class="fb-muted">Chênh lệch/tháng</dt><dd class="font-medium text-ink">@ContractDisplay.Money(Model.Contracts.MonthlyMargin)</dd></div>
+            <div><dt class="fb-muted">Chênh lệch dự kiến/năm</dt><dd class="font-medium text-ink">@ContractDisplay.Money(Model.Contracts.AnnualProjectedMargin)</dd></div>
+        </dl>
+    </section>
+
+    <section class="grid gap-5 lg:grid-cols-2">
+        <article class="fb-card p-4">
+            <div class="flex items-center justify-between gap-3">
+                <h3 class="font-semibold text-ink">Hợp đồng chủ nhà</h3>
+                @if (Model.Contracts.LandlordContract is null)
+                {
+                    <a class="fb-button fb-button-secondary px-3 py-1 text-xs" href="/admin/landlord-contracts/create?propertyId=@property.Id">Thêm</a>
+                }
+            </div>
+            @if (Model.Contracts.LandlordContract is null)
+            {
+                <p class="mt-3 text-sm text-muted">Chưa có hợp đồng chủ nhà.</p>
+            }
+            else
+            {
+                var landlord = Model.Contracts.LandlordContract;
+                <dl class="mt-4 grid gap-3 text-sm md:grid-cols-2">
+                    <div><dt class="fb-muted">Chủ nhà</dt><dd class="font-medium text-ink">@landlord.LandlordName</dd></div>
+                    <div><dt class="fb-muted">Giá nhập</dt><dd class="font-medium text-ink">@ContractDisplay.Money(landlord.InputPrice)</dd></div>
+                    <div><dt class="fb-muted">Sale phụ trách</dt><dd class="font-medium text-ink">@(landlord.SaleName ?? "Chưa có")</dd></div>
+                    <div><dt class="fb-muted">Mã PE</dt><dd class="font-medium text-ink">@(landlord.PeCode ?? "Chưa có")</dd></div>
+                    <div><dt class="fb-muted">Trạng thái cọc</dt><dd class="font-medium text-ink">@ContractDisplay.DepositStatusLabel(landlord.DepositStatus)</dd></div>
+                    <div><dt class="fb-muted">Ngày ký</dt><dd class="font-medium text-ink">@ContractDisplay.DateText(landlord.SignedDate)</dd></div>
+                    <div><dt class="fb-muted">Ngày hết hạn</dt><dd class="font-medium text-ink">@ContractDisplay.DateText(landlord.ExpiryDate)</dd></div>
+                    <div><dt class="fb-muted">Ngày thanh toán</dt><dd class="font-medium text-ink">@(landlord.PaymentDay?.ToString() ?? "Chưa có")</dd></div>
+                    <div><dt class="fb-muted">Kỳ thanh toán tiếp theo</dt><dd class="font-medium text-ink">@ContractDisplay.DateText(landlord.NextDueDate)</dd></div>
+                </dl>
+                <a class="mt-4 inline-flex text-sm font-semibold text-brand-700" href="/admin/landlord-contracts/@landlord.Id">Xem hợp đồng</a>
+            }
+        </article>
+
+        <article class="fb-card p-4">
+            <div class="flex items-center justify-between gap-3">
+                <h3 class="font-semibold text-ink">Hợp đồng khách thuê hiện tại</h3>
+                <a class="fb-button fb-button-secondary px-3 py-1 text-xs" href="/admin/tenant-contracts/create?propertyId=@property.Id">Thêm</a>
+            </div>
+            @if (Model.Contracts.ActiveTenantContract is null)
+            {
+                <p class="mt-3 text-sm text-muted">Chưa có hợp đồng khách thuê đang hiệu lực.</p>
+            }
+            else
+            {
+                var tenant = Model.Contracts.ActiveTenantContract;
+                <dl class="mt-4 grid gap-3 text-sm md:grid-cols-2">
+                    <div><dt class="fb-muted">Khách thuê</dt><dd class="font-medium text-ink">@tenant.TenantName</dd></div>
+                    <div><dt class="fb-muted">Giá thuê</dt><dd class="font-medium text-ink">@ContractDisplay.Money(tenant.RentalPrice)</dd></div>
+                    <div><dt class="fb-muted">Thời hạn</dt><dd class="font-medium text-ink">@tenant.TermMonths tháng</dd></div>
+                    <div><dt class="fb-muted">Ngày ký</dt><dd class="font-medium text-ink">@ContractDisplay.DateText(tenant.SignedDate)</dd></div>
+                    <div><dt class="fb-muted">Ngày hết hạn</dt><dd class="font-medium text-ink">@ContractDisplay.DateText(tenant.ExpiryDate)</dd></div>
+                    <div><dt class="fb-muted">Tiền cọc</dt><dd class="font-medium text-ink">@ContractDisplay.Money(tenant.DepositAmount)</dd></div>
+                    <div><dt class="fb-muted">Pass cửa</dt><dd class="font-medium text-ink">@(tenant.PassCode ?? "Chưa có")</dd></div>
+                    <div><dt class="fb-muted">Trạng thái</dt><dd class="font-medium text-ink">@ContractDisplay.ContractStatusLabel(tenant.Status)</dd></div>
+                </dl>
+                <a class="mt-4 inline-flex text-sm font-semibold text-brand-700" href="/admin/tenant-contracts/@tenant.Id">Xem hợp đồng</a>
+            }
+        </article>
+    </section>
+
+    <section class="fb-card p-4">
+        <h3 class="font-semibold text-ink">Lịch sử hợp đồng khách thuê</h3>
+        @if (Model.Contracts.TenantContracts.Count == 0)
+        {
+            <p class="mt-3 text-sm text-muted">Chưa có lịch sử hợp đồng khách thuê.</p>
+        }
+        else
+        {
+            <div class="mt-3 overflow-x-auto">
+                <table class="min-w-[760px] w-full text-left text-sm">
+                    <thead class="border-b border-line text-xs uppercase text-muted">
+                        <tr>
+                            <th class="py-2 pr-3">Khách thuê</th>
+                            <th class="py-2 pr-3">Giá thuê</th>
+                            <th class="py-2 pr-3">Ngày ký</th>
+                            <th class="py-2 pr-3">Ngày hết hạn</th>
+                            <th class="py-2 pr-3">Tiền cọc</th>
+                            <th class="py-2 pr-3">Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-line">
+                        @foreach (var tenant in Model.Contracts.TenantContracts)
+                        {
+                            <tr>
+                                <td class="py-2 pr-3 font-medium text-ink">@tenant.TenantName</td>
+                                <td class="py-2 pr-3">@ContractDisplay.Money(tenant.RentalPrice)</td>
+                                <td class="py-2 pr-3">@ContractDisplay.DateText(tenant.SignedDate)</td>
+                                <td class="py-2 pr-3">@ContractDisplay.DateText(tenant.ExpiryDate)</td>
+                                <td class="py-2 pr-3">@ContractDisplay.Money(tenant.DepositAmount)</td>
+                                <td class="py-2 pr-3">@ContractDisplay.ContractStatusLabel(tenant.Status)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
+</div>

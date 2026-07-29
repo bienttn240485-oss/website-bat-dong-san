@@ -212,11 +212,20 @@ public sealed class PropertyServiceTests
         public Task<bool> CodeExistsAsync(string normalizedCode, Guid? exceptPropertyId, CancellationToken cancellationToken)
             => Task.FromResult(Properties.Any(property => property.Id != exceptPropertyId && property.Code == normalizedCode));
 
+        public Task<bool> HasContractRelationshipsAsync(Guid propertyId, CancellationToken cancellationToken)
+            => Task.FromResult(false);
+
+        public Task ClearPropertyChildrenAsync(Guid propertyId, CancellationToken cancellationToken)
+            => Task.CompletedTask;
+
         public Task AddPropertyAsync(Property property, CancellationToken cancellationToken)
         {
             Properties.Add(property);
             return Task.CompletedTask;
         }
+
+        public void DeleteProperty(Property property)
+            => Properties.Remove(property);
 
         public Task SaveChangesAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
@@ -233,6 +242,7 @@ public sealed class PropertyServiceTests
                 property.SalePrice,
                 property.Status,
                 property.AvailableFromDate,
-                null);
+                null,
+                property.CreatedAtUtc);
     }
 }

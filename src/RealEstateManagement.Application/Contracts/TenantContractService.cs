@@ -14,6 +14,9 @@ public sealed class TenantContractService(ITenantContractStore store, ISystemClo
     public Task<TenantContractDto?> GetTenantContractAsync(Guid id, CancellationToken cancellationToken = default)
         => store.GetTenantContractAsync(id, cancellationToken);
 
+    public Task<IReadOnlyList<TenantContractDto>> ListTenantContractsForPropertyAsync(Guid propertyId, CancellationToken cancellationToken = default)
+        => store.ListTenantContractsForPropertyAsync(propertyId, cancellationToken);
+
     public async Task<ContractCommandResult> CreateTenantContractAsync(TenantContractEditorCommand command, CancellationToken cancellationToken = default)
     {
         var errors = await ValidateEditorAsync(command, null, cancellationToken);
@@ -65,6 +68,7 @@ public sealed class TenantContractService(ITenantContractStore store, ISystemClo
             return ContractCommandResult.Failure(errors);
         }
 
+        var now = clock.UtcNow;
         contract.UpdateDetails(
             command.TenantName,
             command.ManagerName,
@@ -76,8 +80,8 @@ public sealed class TenantContractService(ITenantContractStore store, ISystemClo
             command.PeCode,
             command.PassCode,
             command.Notes,
-            clock.UtcNow);
-        contract.ChangeStatus(command.Status, clock.UtcNow);
+            now);
+        contract.ChangeStatus(command.Status, now);
 
         await SyncPropertyStatusAsync(command.PropertyId, contract, cancellationToken);
         await store.SaveChangesAsync(cancellationToken);
@@ -103,6 +107,17 @@ public sealed class TenantContractService(ITenantContractStore store, ISystemClo
         await store.SaveChangesAsync(cancellationToken);
 
         return ContractCommandResult.Success(contract.Id);
+    }
+
+    public async Task<ContractCommandResult> DeleteTenantContractAsync(Guid contractId, CancellationToken cancellationToken = default)
+    {
+        var contract = await store.GetTenantContractAsync(contractId, cancellationToken);
+        if (contract is null)
+        {
+            return ContractCommandResult.Failure(["Không tìm thấy hợp đồng khách thuê cần xóa."]);
+        }
+
+        return ContractCommandResult.Failure(["Không xóa hợp đồng khách thuê để giữ lịch sử quản lý. Hãy đổi trạng thái sang Đã hủy nếu hợp đồng không còn hiệu lực."]);
     }
 
     private async Task<List<string>> ValidateEditorAsync(TenantContractEditorCommand command, Guid? contractId, CancellationToken cancellationToken)
@@ -152,13 +167,17 @@ public sealed class TenantContractService(ITenantContractStore store, ISystemClo
     private async Task SyncPropertyStatusAsync(Guid propertyId, TenantContract? currentContract, CancellationToken cancellationToken)
     {
         var property = await store.GetPropertyForUpdateAsync(propertyId, cancellationToken);
-        if (property is null)
+        if (property is null || property.Status == PropertyStatus.Reserved)
         {
             return;
         }
 
-        var activeContracts = (await store.ListActiveTenantContractsAsync(propertyId, currentContract?.Id, cancellationToken)).ToList();
-        if (currentContract?.Status == ContractStatus.Active)
+        var today = TodayInBusinessTimeZone();
+        var activeContracts = (await store.ListActiveTenantContractsAsync(propertyId, currentContract?.Id, cancellationToken))
+            .Where(contract => contract.ExpiryDate > today)
+            .ToList();
+
+        if (currentContract?.Status == ContractStatus.Active && currentContract.ExpiryDate > today)
         {
             activeContracts.Add(currentContract);
         }
@@ -169,11 +188,13 @@ public sealed class TenantContractService(ITenantContractStore store, ISystemClo
             return;
         }
 
-        var today = DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(clock.UtcNow, BusinessTimeZone()).DateTime);
         property.ChangeStatus(activeContracts.Any(contract => contract.ExpiryDate <= today.AddDays(SoonAvailableDays))
             ? PropertyStatus.SoonAvailable
             : PropertyStatus.Occupied, clock.UtcNow);
     }
+
+    private DateOnly TodayInBusinessTimeZone()
+        => DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(clock.UtcNow, BusinessTimeZone()).DateTime);
 
     private static TimeZoneInfo BusinessTimeZone()
     {

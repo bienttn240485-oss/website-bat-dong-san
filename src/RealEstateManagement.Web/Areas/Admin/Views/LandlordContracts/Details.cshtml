@@ -1,0 +1,60 @@
+@model LandlordContractDetailViewModel
+
+@{
+    var contract = Model.Contract;
+}
+
+<div class="space-y-5">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+            <h2 class="text-2xl font-semibold text-ink">Hợp đồng chủ nhà @contract.PropertyCode</h2>
+            <p class="mt-1 text-sm text-muted">@PropertyDisplay.ProjectLabel(contract.Project) · @contract.Area</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+            <a class="fb-button fb-button-secondary" href="/admin/landlord-contracts">Danh sách</a>
+            <a class="fb-button fb-button-primary" href="/admin/landlord-contracts/@contract.Id/edit">Sửa</a>
+            @if (Model.CanDelete)
+            {
+                <form method="post" action="/admin/landlord-contracts/@contract.Id/delete" onsubmit="return confirm('Bạn chắc chắn muốn xóa hợp đồng chủ nhà @contract.PropertyCode?');">
+                    @Html.AntiForgeryToken()
+                    <button class="fb-button fb-button-danger" type="submit">Xóa</button>
+                </form>
+            }
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] is string success)
+    {
+        <partial name="~/Views/Shared/Partials/_Alert.cshtml" model='new AlertViewModel("Thành công", success, "success")' />
+    }
+    @if (TempData["ErrorMessage"] is string error)
+    {
+        <partial name="~/Views/Shared/Partials/_Alert.cshtml" model='new AlertViewModel("Không thể thực hiện", error, "danger")' />
+    }
+
+    @foreach (var warning in Model.Warnings)
+    {
+        <partial name="~/Views/Shared/Partials/_Alert.cshtml" model='new AlertViewModel("Cảnh báo", warning.Message, warning.Tone)' />
+    }
+
+    <section class="fb-card p-4">
+        <dl class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <div><dt class="fb-muted">Mã căn</dt><dd class="font-medium text-ink">@contract.PropertyCode</dd></div>
+            <div><dt class="fb-muted">Phân khu</dt><dd class="font-medium text-ink">@contract.Area</dd></div>
+            <div><dt class="fb-muted">Chủ nhà</dt><dd class="font-medium text-ink">@contract.LandlordName</dd></div>
+            <div><dt class="fb-muted">Sale phụ trách</dt><dd class="font-medium text-ink">@(contract.SaleName ?? "Chưa có")</dd></div>
+            <div><dt class="fb-muted">Mã PE</dt><dd class="font-medium text-ink">@(contract.PeCode ?? "Chưa có")</dd></div>
+            <div><dt class="fb-muted">Giá nhập/tháng</dt><dd class="font-medium text-ink">@ContractDisplay.Money(contract.InputPrice)</dd></div>
+            <div><dt class="fb-muted">Ngày ký</dt><dd class="font-medium text-ink">@ContractDisplay.DateText(contract.SignedDate)</dd></div>
+            <div><dt class="fb-muted">Ngày hết hạn</dt><dd class="font-medium text-ink">@ContractDisplay.DateText(contract.ExpiryDate)</dd></div>
+            <div><dt class="fb-muted">Trạng thái cọc</dt><dd class="font-medium text-ink">@ContractDisplay.DepositStatusLabel(contract.DepositStatus)</dd></div>
+            <div><dt class="fb-muted">Ngày thanh toán</dt><dd class="font-medium text-ink">@(contract.PaymentDay?.ToString() ?? "Chưa có")</dd></div>
+            <div><dt class="fb-muted">Kỳ thanh toán tiếp theo</dt><dd class="font-medium text-ink">@ContractDisplay.DateText(contract.NextDueDate)</dd></div>
+            <div><dt class="fb-muted">Cửa sổ thanh toán</dt><dd class="font-medium text-ink">@(contract.PaymentWindow ?? "Chưa có")</dd></div>
+        </dl>
+        <div class="mt-4">
+            <h3 class="font-semibold text-ink">Ghi chú</h3>
+            <p class="mt-1 whitespace-pre-line text-sm text-ink">@(contract.Notes ?? "Chưa có")</p>
+        </div>
+    </section>
+</div>

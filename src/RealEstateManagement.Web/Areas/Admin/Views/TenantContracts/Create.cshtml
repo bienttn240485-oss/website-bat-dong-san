@@ -1,0 +1,10 @@
+@model TenantContractFormViewModel
+
+<form class="fb-card grid gap-5 p-5" method="post">
+    @Html.AntiForgeryToken()
+    <partial name="_TenantContractForm" model="Model" />
+    <div class="flex flex-wrap gap-2">
+        <button class="fb-button fb-button-primary" type="submit">Lưu hợp đồng</button>
+        <a class="fb-button fb-button-secondary" href="/admin/tenant-contracts">Hủy</a>
+    </div>
+</form>

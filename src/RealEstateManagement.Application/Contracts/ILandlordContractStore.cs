@@ -6,6 +6,7 @@ public interface ILandlordContractStore
 {
     Task<IReadOnlyList<LandlordContractDto>> ListLandlordContractsAsync(ContractFilterQuery query, CancellationToken cancellationToken);
     Task<LandlordContractDto?> GetLandlordContractAsync(Guid id, CancellationToken cancellationToken);
+    Task<LandlordContractDto?> GetLandlordContractForPropertyAsync(Guid propertyId, CancellationToken cancellationToken);
     Task<LandlordContract?> GetLandlordContractForUpdateAsync(Guid id, CancellationToken cancellationToken);
     Task<bool> PropertyExistsAsync(Guid propertyId, CancellationToken cancellationToken);
     Task<bool> ContractExistsForPropertyAsync(Guid propertyId, Guid? exceptContractId, CancellationToken cancellationToken);

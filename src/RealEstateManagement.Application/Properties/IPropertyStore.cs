@@ -8,6 +8,9 @@ public interface IPropertyStore
     Task<PropertyDetailDto?> GetPropertyDetailAsync(Guid id, CancellationToken cancellationToken);
     Task<Property?> GetPropertyForUpdateAsync(Guid id, CancellationToken cancellationToken);
     Task<bool> CodeExistsAsync(string normalizedCode, Guid? exceptPropertyId, CancellationToken cancellationToken);
+    Task<bool> HasContractRelationshipsAsync(Guid propertyId, CancellationToken cancellationToken);
+    Task ClearPropertyChildrenAsync(Guid propertyId, CancellationToken cancellationToken);
     Task AddPropertyAsync(Property property, CancellationToken cancellationToken);
+    void DeleteProperty(Property property);
     Task SaveChangesAsync(CancellationToken cancellationToken);
 }

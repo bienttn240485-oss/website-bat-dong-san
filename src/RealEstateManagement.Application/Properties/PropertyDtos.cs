@@ -26,7 +26,8 @@ public sealed record PropertySummaryDto(
     long? SalePrice,
     PropertyStatus Status,
     DateOnly? AvailableFromDate,
-    string? PrimaryImageUrl);
+    string? PrimaryImageUrl,
+    DateTimeOffset CreatedAtUtc);
 
 public sealed record PropertyImageDto(Guid Id, string Url, string? AltText, int SortOrder, bool IsPrimary);
 

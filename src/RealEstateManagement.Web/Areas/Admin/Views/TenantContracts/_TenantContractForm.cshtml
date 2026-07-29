@@ -1,0 +1,69 @@
+@model TenantContractFormViewModel
+
+<div asp-validation-summary="ModelOnly" class="text-sm text-red-700"></div>
+<div class="grid gap-4 md:grid-cols-2">
+    <label class="grid gap-1">
+        <span class="fb-label">Căn hộ</span>
+        <select class="fb-input" asp-for="PropertyId" asp-items="Model.PropertyOptions"></select>
+        <span asp-validation-for="PropertyId" class="text-xs text-red-700"></span>
+    </label>
+    <label class="grid gap-1">
+        <span class="fb-label">Khách thuê</span>
+        <input class="fb-input" asp-for="TenantName" />
+        <span asp-validation-for="TenantName" class="text-xs text-red-700"></span>
+    </label>
+    <label class="grid gap-1">
+        <span class="fb-label">Người phụ trách</span>
+        <input class="fb-input" asp-for="ManagerName" />
+        <span asp-validation-for="ManagerName" class="text-xs text-red-700"></span>
+    </label>
+    <label class="grid gap-1">
+        <span class="fb-label">Giá thuê/tháng (VNĐ)</span>
+        <input class="fb-input" asp-for="RentalPrice" inputmode="numeric" />
+        <span asp-validation-for="RentalPrice" class="text-xs text-red-700"></span>
+    </label>
+    <label class="grid gap-1">
+        <span class="fb-label">Ngày ký</span>
+        <input class="fb-input" asp-for="SignedDate" type="date" />
+        <span asp-validation-for="SignedDate" class="text-xs text-red-700"></span>
+    </label>
+    <label class="grid gap-1">
+        <span class="fb-label">Thời hạn</span>
+        <select class="fb-input" asp-for="TermMonths" asp-items="Model.TermOptions"></select>
+        <span asp-validation-for="TermMonths" class="text-xs text-red-700"></span>
+    </label>
+    <label class="grid gap-1">
+        <span class="fb-label">Ngày hết hạn</span>
+        <input class="fb-input bg-slate-50" value="@ContractDisplay.DateText(Model.ExpiryDate)" readonly />
+    </label>
+    <label class="grid gap-1">
+        <span class="fb-label">Tiền cọc (VNĐ)</span>
+        <input class="fb-input" asp-for="DepositAmount" inputmode="numeric" />
+        <span asp-validation-for="DepositAmount" class="text-xs text-red-700"></span>
+    </label>
+    <label class="grid gap-1">
+        <span class="fb-label">Ngày trả cọc</span>
+        <input class="fb-input" asp-for="DepositReturnDate" type="date" />
+        <span asp-validation-for="DepositReturnDate" class="text-xs text-red-700"></span>
+    </label>
+    <label class="grid gap-1">
+        <span class="fb-label">Trạng thái</span>
+        <select class="fb-input" asp-for="Status" asp-items="Model.StatusOptions"></select>
+        <span asp-validation-for="Status" class="text-xs text-red-700"></span>
+    </label>
+    <label class="grid gap-1">
+        <span class="fb-label">Mã PE</span>
+        <input class="fb-input" asp-for="PeCode" />
+        <span asp-validation-for="PeCode" class="text-xs text-red-700"></span>
+    </label>
+    <label class="grid gap-1">
+        <span class="fb-label">Pass cửa</span>
+        <input class="fb-input" asp-for="PassCode" />
+        <span asp-validation-for="PassCode" class="text-xs text-red-700"></span>
+    </label>
+    <label class="grid gap-1 md:col-span-2">
+        <span class="fb-label">Ghi chú</span>
+        <textarea class="fb-input min-h-28" asp-for="Notes"></textarea>
+        <span asp-validation-for="Notes" class="text-xs text-red-700"></span>
+    </label>
+</div>

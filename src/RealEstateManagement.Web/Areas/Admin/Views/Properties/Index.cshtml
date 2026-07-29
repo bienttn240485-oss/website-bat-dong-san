@@ -1,0 +1,178 @@
+@model PropertyListViewModel
+
+@{
+    static string DateText(DateOnly? date) => date?.ToString("dd/MM/yyyy") ?? "Chưa có";
+    var sortBy = Model.Filter.SortBy;
+}
+
+<div class="space-y-5">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+            <h2 class="text-2xl font-semibold text-ink">Căn hộ</h2>
+            <p class="mt-1 text-sm text-muted">Quản lý thông tin căn hộ cho thuê và bán trong hệ thống bất động sản.</p>
+        </div>
+        <a class="fb-button fb-button-primary" href="/admin/properties/create">Thêm căn hộ</a>
+    </div>
+
+    @if (TempData["SuccessMessage"] is string success)
+    {
+        <partial name="~/Views/Shared/Partials/_Alert.cshtml" model='new AlertViewModel("Thành công", success, "success")' />
+    }
+    @if (TempData["ErrorMessage"] is string error)
+    {
+        <partial name="~/Views/Shared/Partials/_Alert.cshtml" model='new AlertViewModel("Không thể thực hiện", error, "danger")' />
+    }
+
+    <form class="fb-card p-4" method="get">
+        <div asp-validation-summary="ModelOnly" class="mb-3 rounded-ui border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800"></div>
+        <div class="grid gap-4 lg:grid-cols-4">
+            <div>
+                <label class="fb-label" for="Keyword">Từ khóa</label>
+                <input class="fb-input" id="Keyword" name="Keyword" value="@Model.Filter.Keyword" />
+            </div>
+            <div>
+                <label class="fb-label" for="Project">Dự án</label>
+                <select class="fb-input" id="Project" name="Project">
+                    @foreach (var option in Model.ProjectOptions)
+                    {
+                        <option value="@option.Value" selected="@option.Selected">@option.Text</option>
+                    }
+                </select>
+            </div>
+            <div>
+                <label class="fb-label" for="Area">Phân khu</label>
+                <input class="fb-input" id="Area" name="Area" value="@Model.Filter.Area" />
+            </div>
+            <div>
+                <label class="fb-label" for="Type">Loại căn</label>
+                <select class="fb-input" id="Type" name="Type">
+                    <option value="">Tất cả</option>
+                    @foreach (var option in Model.TypeOptions)
+                    {
+                        <option value="@option.Value" selected="@option.Selected">@option.Text</option>
+                    }
+                </select>
+            </div>
+            <div>
+                <label class="fb-label" for="Status">Trạng thái</label>
+                <select class="fb-input" id="Status" name="Status">
+                    <option value="">Tất cả</option>
+                    @foreach (var option in Model.StatusOptions)
+                    {
+                        <option value="@option.Value" selected="@option.Selected">@option.Text</option>
+                    }
+                </select>
+            </div>
+            <div>
+                <label class="fb-label" for="SortBy">Sắp xếp</label>
+                <select class="fb-input" id="SortBy" name="SortBy">
+                    <option value="@PropertySortOptions.Newest" selected="@(sortBy == PropertySortOptions.Newest)">Mới nhất</option>
+                    <option value="@PropertySortOptions.Code" selected="@(sortBy == PropertySortOptions.Code)">Theo mã căn</option>
+                </select>
+                <span asp-validation-for="Filter.SortBy" class="text-xs text-red-700"></span>
+            </div>
+            <label class="mt-7 flex items-center gap-2 text-sm text-ink">
+                <input class="rounded border-line text-brand-700" name="SalesOnly" type="checkbox" value="true" checked="@Model.Filter.SalesOnly" />
+                <input name="SalesOnly" type="hidden" value="false" />
+                Có giá bán
+            </label>
+            <div class="flex items-end gap-2">
+                <button class="fb-button fb-button-primary" type="submit">Lọc</button>
+                <a class="fb-button fb-button-secondary" href="/admin/properties">Xóa lọc</a>
+            </div>
+        </div>
+    </form>
+
+    @if (Model.Properties.Count == 0)
+    {
+        <section class="fb-card p-6 text-center">
+            <h3 class="text-lg font-semibold text-ink">Chưa có căn hộ phù hợp</h3>
+            <p class="mt-2 text-sm text-muted">Thử đổi bộ lọc hoặc thêm căn hộ mới từ dữ liệu thực tế.</p>
+            <a class="fb-button fb-button-primary mt-4" href="/admin/properties/create">Thêm căn hộ</a>
+        </section>
+    }
+    else
+    {
+        <section class="fb-card overflow-hidden">
+            <div class="hidden overflow-x-auto lg:block">
+                <table class="fb-table min-w-[980px]">
+                    <thead>
+                        <tr>
+                            <th>Mã căn</th>
+                            <th>Dự án</th>
+                            <th>Phân khu</th>
+                            <th>Loại căn</th>
+                            <th>Diện tích</th>
+                            <th>Giá thuê</th>
+                            <th>Giá bán</th>
+                            <th>Trạng thái</th>
+                            <th>Ngày vào ở</th>
+                            <th class="text-right">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-line bg-white">
+                        @foreach (var property in Model.Properties)
+                        {
+                            <tr>
+                                <td class="font-medium">@property.Code</td>
+                                <td>@property.ProjectLabel</td>
+                                <td>@property.Area</td>
+                                <td>@property.TypeLabel</td>
+                                <td>@PropertyDisplay.FormatArea(property.AreaSize)</td>
+                                <td>@PropertyDisplay.FormatMoney(property.MonthlyPrice)</td>
+                                <td>@PropertyDisplay.FormatMoney(property.SalePrice)</td>
+                                <td><partial name="~/Views/Shared/Partials/_StatusBadge.cshtml" model='new StatusBadgeViewModel(property.StatusLabel, property.StatusTone)' /></td>
+                                <td>@DateText(property.AvailableFromDate)</td>
+                                <td class="text-right">
+                                    <div class="flex justify-end gap-2">
+                                        <a class="fb-button fb-button-secondary min-h-9 px-3" href="/admin/properties/@property.Id">Xem</a>
+                                        <a class="fb-button fb-button-secondary min-h-9 px-3" href="/admin/properties/@property.Id/edit">Sửa</a>
+                                        @if (Model.CanDelete)
+                                        {
+                                            <form method="post" action="/admin/properties/@property.Id/delete" onsubmit="return confirm('Bạn chắc chắn muốn xóa căn hộ @property.Code?');">
+                                                @Html.AntiForgeryToken()
+                                                <button class="fb-button fb-button-danger min-h-9 px-3" type="submit">Xóa</button>
+                                            </form>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="grid gap-3 p-3 lg:hidden">
+                @foreach (var property in Model.Properties)
+                {
+                    <article class="rounded-ui border border-line p-3">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <h3 class="font-semibold text-ink">@property.Code</h3>
+                                <p class="text-sm text-muted">@property.ProjectLabel · @property.Area</p>
+                            </div>
+                            <partial name="~/Views/Shared/Partials/_StatusBadge.cshtml" model='new StatusBadgeViewModel(property.StatusLabel, property.StatusTone)' />
+                        </div>
+                        <dl class="mt-3 grid grid-cols-2 gap-2 text-sm">
+                            <div><dt class="text-muted">Loại căn</dt><dd class="font-medium text-ink">@property.TypeLabel</dd></div>
+                            <div><dt class="text-muted">Diện tích</dt><dd class="font-medium text-ink">@PropertyDisplay.FormatArea(property.AreaSize)</dd></div>
+                            <div><dt class="text-muted">Giá thuê</dt><dd class="font-medium text-ink">@PropertyDisplay.FormatMoney(property.MonthlyPrice)</dd></div>
+                            <div><dt class="text-muted">Giá bán</dt><dd class="font-medium text-ink">@PropertyDisplay.FormatMoney(property.SalePrice)</dd></div>
+                        </dl>
+                        <div class="mt-3 flex flex-wrap gap-2">
+                            <a class="fb-button fb-button-secondary min-h-9 px-3" href="/admin/properties/@property.Id">Xem</a>
+                            <a class="fb-button fb-button-secondary min-h-9 px-3" href="/admin/properties/@property.Id/edit">Sửa</a>
+                            @if (Model.CanDelete)
+                            {
+                                <form method="post" action="/admin/properties/@property.Id/delete" onsubmit="return confirm('Bạn chắc chắn muốn xóa căn hộ @property.Code?');">
+                                    @Html.AntiForgeryToken()
+                                    <button class="fb-button fb-button-danger min-h-9 px-3" type="submit">Xóa</button>
+                                </form>
+                            }
+                        </div>
+                    </article>
+                }
+            </div>
+        </section>
+    }
+</div>

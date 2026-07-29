@@ -1,0 +1,117 @@
+@model PropertyFormViewModel
+
+<div asp-validation-summary="ModelOnly" class="rounded-ui border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800"></div>
+
+<section class="fb-card p-4">
+    <h3 class="font-semibold text-ink">Thông tin căn hộ</h3>
+    <div class="mt-4 grid gap-4 md:grid-cols-2">
+        <div>
+            <label asp-for="Code" class="fb-label"></label>
+            <input asp-for="Code" class="fb-input" />
+            <span asp-validation-for="Code" class="text-xs text-red-700"></span>
+        </div>
+        <div>
+            <label asp-for="Project" class="fb-label"></label>
+            <select asp-for="Project" asp-items="Model.ProjectOptions" class="fb-input"></select>
+            <span asp-validation-for="Project" class="text-xs text-red-700"></span>
+        </div>
+        <div>
+            <label asp-for="Area" class="fb-label"></label>
+            <input asp-for="Area" class="fb-input" />
+            <span asp-validation-for="Area" class="text-xs text-red-700"></span>
+        </div>
+        <div>
+            <label asp-for="Type" class="fb-label"></label>
+            <select asp-for="Type" asp-items="Model.TypeOptions" class="fb-input"></select>
+            <span asp-validation-for="Type" class="text-xs text-red-700"></span>
+        </div>
+        <div>
+            <label asp-for="AreaSize" class="fb-label"></label>
+            <input asp-for="AreaSize" class="fb-input" inputmode="decimal" />
+            <span asp-validation-for="AreaSize" class="text-xs text-red-700"></span>
+        </div>
+        <div>
+            <label asp-for="Bathrooms" class="fb-label"></label>
+            <input asp-for="Bathrooms" class="fb-input" inputmode="numeric" />
+            <span asp-validation-for="Bathrooms" class="text-xs text-red-700"></span>
+        </div>
+        <div>
+            <label asp-for="MonthlyPrice" class="fb-label"></label>
+            <input asp-for="MonthlyPrice" class="fb-input" inputmode="numeric" />
+            <p class="mt-1 text-xs text-muted">Đơn vị VNĐ, ví dụ 15000000.</p>
+            <span asp-validation-for="MonthlyPrice" class="text-xs text-red-700"></span>
+        </div>
+        <div>
+            <label asp-for="SalePrice" class="fb-label"></label>
+            <input asp-for="SalePrice" class="fb-input" inputmode="numeric" />
+            <p class="mt-1 text-xs text-muted">Đơn vị VNĐ, để trống nếu không bán.</p>
+            <span asp-validation-for="SalePrice" class="text-xs text-red-700"></span>
+        </div>
+        <div>
+            <label asp-for="Direction" class="fb-label"></label>
+            <input asp-for="Direction" class="fb-input" />
+            <span asp-validation-for="Direction" class="text-xs text-red-700"></span>
+        </div>
+        <div>
+            <label asp-for="Status" class="fb-label"></label>
+            <select asp-for="Status" asp-items="Model.StatusOptions" class="fb-input"></select>
+            <span asp-validation-for="Status" class="text-xs text-red-700"></span>
+        </div>
+        <div>
+            <label asp-for="AvailableFromDate" class="fb-label"></label>
+            <input asp-for="AvailableFromDate" class="fb-input" type="date" />
+            <span asp-validation-for="AvailableFromDate" class="text-xs text-red-700"></span>
+        </div>
+        <div>
+            <label asp-for="VideoUrl" class="fb-label"></label>
+            <input asp-for="VideoUrl" class="fb-input" />
+            <span asp-validation-for="VideoUrl" class="text-xs text-red-700"></span>
+        </div>
+        <div>
+            <label asp-for="LegalStatus" class="fb-label"></label>
+            <input asp-for="LegalStatus" class="fb-input" />
+            <span asp-validation-for="LegalStatus" class="text-xs text-red-700"></span>
+        </div>
+        <div>
+            <label asp-for="FurniturePackage" class="fb-label"></label>
+            <input asp-for="FurniturePackage" class="fb-input" />
+            <span asp-validation-for="FurniturePackage" class="text-xs text-red-700"></span>
+        </div>
+        <div class="md:col-span-2">
+            <label asp-for="LoanInfo" class="fb-label"></label>
+            <textarea asp-for="LoanInfo" class="fb-input" rows="2"></textarea>
+            <span asp-validation-for="LoanInfo" class="text-xs text-red-700"></span>
+        </div>
+        <div class="md:col-span-2">
+            <label asp-for="Description" class="fb-label"></label>
+            <textarea asp-for="Description" class="fb-input" rows="4"></textarea>
+            <span asp-validation-for="Description" class="text-xs text-red-700"></span>
+        </div>
+        <div class="md:col-span-2">
+            <label asp-for="Notes" class="fb-label"></label>
+            <textarea asp-for="Notes" class="fb-input" rows="3"></textarea>
+            <span asp-validation-for="Notes" class="text-xs text-red-700"></span>
+        </div>
+    </div>
+</section>
+
+<section class="fb-card p-4">
+    <h3 class="font-semibold text-ink">Ảnh, nội thất và tiện ích</h3>
+    <div class="mt-4 grid gap-4 lg:grid-cols-3">
+        <div>
+            <label asp-for="ImagesText" class="fb-label"></label>
+            <textarea asp-for="ImagesText" class="fb-input" rows="6"></textarea>
+            <p class="mt-1 text-xs text-muted">Mỗi dòng là một URL ảnh. Dòng đầu là ảnh đại diện.</p>
+        </div>
+        <div>
+            <label asp-for="FurnitureText" class="fb-label"></label>
+            <textarea asp-for="FurnitureText" class="fb-input" rows="6"></textarea>
+            <p class="mt-1 text-xs text-muted">Mỗi dòng: Tên | số lượng | ghi chú.</p>
+        </div>
+        <div>
+            <label asp-for="AmenitiesText" class="fb-label"></label>
+            <textarea asp-for="AmenitiesText" class="fb-input" rows="6"></textarea>
+            <p class="mt-1 text-xs text-muted">Mỗi dòng là một tiện ích.</p>
+        </div>
+    </div>
+</section>

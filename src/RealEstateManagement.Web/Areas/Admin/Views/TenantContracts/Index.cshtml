@@ -1,0 +1,113 @@
+@model TenantContractListViewModel
+
+<div class="space-y-5">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+            <h2 class="text-2xl font-semibold text-ink">Hợp đồng khách thuê</h2>
+            <p class="mt-1 text-sm text-muted">Theo dõi giá ra, tiền cọc, trạng thái và cảnh báo hết hạn.</p>
+        </div>
+        <a class="fb-button fb-button-primary" href="/admin/tenant-contracts/create">Thêm hợp đồng</a>
+    </div>
+
+    <form class="fb-card grid gap-3 p-4 md:grid-cols-4" method="get">
+        <label class="grid gap-1 text-sm">
+            <span class="fb-label">Từ khóa</span>
+            <input class="fb-input" asp-for="Filter.Keyword" name="Keyword" />
+        </label>
+        <label class="grid gap-1 text-sm">
+            <span class="fb-label">Dự án</span>
+            <select class="fb-input" asp-for="Filter.Project" asp-items="Model.ProjectOptions" name="Project"></select>
+        </label>
+        <label class="grid gap-1 text-sm">
+            <span class="fb-label">Phân khu</span>
+            <input class="fb-input" asp-for="Filter.Area" name="Area" />
+        </label>
+        <label class="grid gap-1 text-sm">
+            <span class="fb-label">Trạng thái</span>
+            <select class="fb-input" asp-for="Filter.Status" asp-items="Model.StatusOptions" name="Status">
+                <option value="">Tất cả</option>
+            </select>
+        </label>
+        <label class="flex items-center gap-2 text-sm">
+            <input class="rounded border-line text-brand-700" asp-for="Filter.ExpiringSoon" name="ExpiringSoon" />
+            <span>Hết hạn trong 30 ngày</span>
+        </label>
+        <label class="flex items-center gap-2 text-sm">
+            <input class="rounded border-line text-brand-700" asp-for="Filter.ExpiredOnly" name="ExpiredOnly" />
+            <span>Đã hết hạn</span>
+        </label>
+        <label class="grid gap-1 text-sm">
+            <span class="fb-label">Sắp xếp</span>
+            <select class="fb-input" asp-for="Filter.SortBy" name="SortBy">
+                <option value="@ContractSortOptions.ExpiryDate">Ngày hết hạn</option>
+                <option value="@ContractSortOptions.SignedDate">Ngày ký</option>
+            </select>
+        </label>
+        <div class="flex items-end gap-2">
+            <button class="fb-button fb-button-secondary" type="submit">Lọc</button>
+            <a class="fb-button fb-button-ghost" href="/admin/tenant-contracts">Xóa lọc</a>
+        </div>
+    </form>
+
+    @if (Model.Contracts.Count == 0)
+    {
+        <section class="fb-card p-6 text-center">
+            <h3 class="font-semibold text-ink">Chưa có hợp đồng khách thuê</h3>
+            <p class="mt-1 text-sm text-muted">Tạo hợp đồng để đồng bộ trạng thái căn hộ và theo dõi giá ra.</p>
+        </section>
+    }
+    else
+    {
+        <section class="fb-card overflow-x-auto">
+            <table class="min-w-[980px] w-full text-left text-sm">
+                <thead class="border-b border-line bg-slate-50 text-xs uppercase text-muted">
+                    <tr>
+                        <th class="px-4 py-3">Mã căn</th>
+                        <th class="px-4 py-3">Phân khu</th>
+                        <th class="px-4 py-3">Khách thuê</th>
+                        <th class="px-4 py-3">Phụ trách</th>
+                        <th class="px-4 py-3">Giá thuê</th>
+                        <th class="px-4 py-3">Tiền cọc</th>
+                        <th class="px-4 py-3">Ngày ký</th>
+                        <th class="px-4 py-3">Hết hạn</th>
+                        <th class="px-4 py-3">Thời hạn</th>
+                        <th class="px-4 py-3">Trạng thái</th>
+                        <th class="px-4 py-3">Mã PE</th>
+                        <th class="px-4 py-3">Cảnh báo</th>
+                        <th class="px-4 py-3">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-line">
+                    @foreach (var contract in Model.Contracts)
+                    {
+                        <tr>
+                            <td class="px-4 py-3 font-semibold text-ink">@contract.PropertyCode</td>
+                            <td class="px-4 py-3">@contract.Area</td>
+                            <td class="px-4 py-3">@contract.TenantName</td>
+                            <td class="px-4 py-3">@(contract.ManagerName ?? "Chưa có")</td>
+                            <td class="px-4 py-3">@ContractDisplay.Money(contract.RentalPrice)</td>
+                            <td class="px-4 py-3">@ContractDisplay.Money(contract.DepositAmount)</td>
+                            <td class="px-4 py-3">@ContractDisplay.DateText(contract.SignedDate)</td>
+                            <td class="px-4 py-3">@ContractDisplay.DateText(contract.ExpiryDate)</td>
+                            <td class="px-4 py-3">@contract.TermMonths tháng</td>
+                            <td class="px-4 py-3">@ContractDisplay.ContractStatusLabel(contract.Status)</td>
+                            <td class="px-4 py-3">@(contract.PeCode ?? "Chưa có")</td>
+                            <td class="px-4 py-3">
+                                @foreach (var warning in contract.Warnings)
+                                {
+                                    <span class="rounded-ui bg-amber-50 px-2 py-1 text-xs text-amber-800">@warning.Message</span>
+                                }
+                            </td>
+                            <td class="px-4 py-3">
+                                <div class="flex flex-wrap gap-2">
+                                    <a class="fb-button fb-button-secondary px-3 py-1 text-xs" href="/admin/tenant-contracts/@contract.Id">Xem</a>
+                                    <a class="fb-button fb-button-secondary px-3 py-1 text-xs" href="/admin/tenant-contracts/@contract.Id/edit">Sửa</a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </section>
+    }
+</div>

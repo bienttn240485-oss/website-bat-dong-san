@@ -54,6 +54,19 @@ public sealed class TenantContractServiceTests
     }
 
     [Fact]
+    public async Task CreateTenantContractAsync_WhenActiveExpiresSoon_SetsPropertySoonAvailable()
+    {
+        var store = new InMemoryTenantContractStore();
+        var property = CreateProperty();
+        store.Properties.Add(property);
+        var service = new TenantContractService(store, new FixedClock());
+
+        await service.CreateTenantContractAsync(ValidCommand(property.Id) with { SignedDate = new DateOnly(2026, 5, 15), TermMonths = 3 });
+
+        Assert.Equal(PropertyStatus.SoonAvailable, property.Status);
+    }
+
+    [Fact]
     public async Task ChangeStatusAsync_WhenEnded_SetsPropertyAvailable()
     {
         var store = new InMemoryTenantContractStore();
@@ -67,6 +80,71 @@ public sealed class TenantContractServiceTests
 
         Assert.True(result.Succeeded);
         Assert.Equal(PropertyStatus.Available, property.Status);
+    }
+
+    [Fact]
+    public async Task CreateTenantContractAsync_WhenPropertyReserved_DoesNotOverwriteStatus()
+    {
+        var store = new InMemoryTenantContractStore();
+        var property = CreateProperty(status: PropertyStatus.Reserved);
+        store.Properties.Add(property);
+        var service = new TenantContractService(store, new FixedClock());
+
+        await service.CreateTenantContractAsync(ValidCommand(property.Id));
+
+        Assert.Equal(PropertyStatus.Reserved, property.Status);
+    }
+
+    [Theory]
+    [InlineData(0, "Thời hạn thuê phải lớn hơn 0 tháng.")]
+    public async Task CreateTenantContractAsync_WhenTermMonthsInvalid_ReturnsFailure(int termMonths, string expected)
+    {
+        var store = new InMemoryTenantContractStore();
+        var property = CreateProperty();
+        store.Properties.Add(property);
+        var service = new TenantContractService(store, new FixedClock());
+
+        var result = await service.CreateTenantContractAsync(ValidCommand(property.Id) with { TermMonths = termMonths });
+
+        Assert.False(result.Succeeded);
+        Assert.Contains(expected, result.Errors);
+    }
+
+    [Fact]
+    public async Task CreateTenantContractAsync_WhenRentalPriceNegative_ReturnsFailure()
+    {
+        var store = new InMemoryTenantContractStore();
+        var property = CreateProperty();
+        store.Properties.Add(property);
+        var service = new TenantContractService(store, new FixedClock());
+
+        var result = await service.CreateTenantContractAsync(ValidCommand(property.Id) with { RentalPrice = -1 });
+
+        Assert.False(result.Succeeded);
+        Assert.Contains("Giá thuê không được âm.", result.Errors);
+    }
+
+    [Fact]
+    public async Task CreateTenantContractAsync_WhenDepositAmountNegative_ReturnsFailure()
+    {
+        var store = new InMemoryTenantContractStore();
+        var property = CreateProperty();
+        store.Properties.Add(property);
+        var service = new TenantContractService(store, new FixedClock());
+
+        var result = await service.CreateTenantContractAsync(ValidCommand(property.Id) with { DepositAmount = -1 });
+
+        Assert.False(result.Succeeded);
+        Assert.Contains("Tiền cọc không được âm.", result.Errors);
+    }
+
+    [Fact]
+    public void ContractDisplay_WhenPriceInAndPriceOutDiffer_CalculatesMargin()
+    {
+        var margin = 24_000_000 - 18_000_000;
+
+        Assert.Equal(6_000_000, margin);
+        Assert.Equal(72_000_000, margin * 12);
     }
 
     private static TenantContractEditorCommand ValidCommand(Guid propertyId)
@@ -101,10 +179,13 @@ public sealed class TenantContractServiceTests
         public List<TenantContract> Contracts { get; } = [];
 
         public Task<IReadOnlyList<TenantContractDto>> ListTenantContractsAsync(ContractFilterQuery query, CancellationToken cancellationToken)
-            => Task.FromResult<IReadOnlyList<TenantContractDto>>([]);
+            => Task.FromResult<IReadOnlyList<TenantContractDto>>(Contracts.Select(ToDto).ToArray());
 
         public Task<TenantContractDto?> GetTenantContractAsync(Guid id, CancellationToken cancellationToken)
-            => Task.FromResult<TenantContractDto?>(null);
+            => Task.FromResult(ToDtoOrNull(Contracts.FirstOrDefault(contract => contract.Id == id)));
+
+        public Task<IReadOnlyList<TenantContractDto>> ListTenantContractsForPropertyAsync(Guid propertyId, CancellationToken cancellationToken)
+            => Task.FromResult<IReadOnlyList<TenantContractDto>>(Contracts.Where(contract => contract.PropertyId == propertyId).Select(ToDto).ToArray());
 
         public Task<TenantContract?> GetTenantContractForUpdateAsync(Guid id, CancellationToken cancellationToken)
             => Task.FromResult(Contracts.FirstOrDefault(contract => contract.Id == id));
@@ -124,5 +205,28 @@ public sealed class TenantContractServiceTests
         }
 
         public Task SaveChangesAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+
+        private static TenantContractDto ToDto(TenantContract contract)
+            => new(
+                contract.Id,
+                contract.PropertyId,
+                "OP-0101",
+                null,
+                "S1",
+                contract.TenantName,
+                contract.ManagerName,
+                contract.RentalPrice,
+                contract.SignedDate,
+                contract.TermMonths,
+                contract.ExpiryDate,
+                contract.DepositAmount,
+                contract.DepositReturnDate,
+                contract.PeCode,
+                contract.PassCode,
+                contract.Status,
+                contract.Notes);
+
+        private static TenantContractDto? ToDtoOrNull(TenantContract? contract)
+            => contract is null ? null : ToDto(contract);
     }
 }

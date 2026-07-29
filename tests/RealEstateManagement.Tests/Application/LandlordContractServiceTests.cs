@@ -39,6 +39,50 @@ public sealed class LandlordContractServiceTests
         Assert.Contains("Căn hộ này đã có hợp đồng chủ nhà.", result.Errors);
     }
 
+    [Fact]
+    public async Task CreateLandlordContractAsync_WhenExpiryBeforeSignedDate_ReturnsFailure()
+    {
+        var propertyId = Guid.NewGuid();
+        var store = new InMemoryLandlordContractStore();
+        store.PropertyIds.Add(propertyId);
+        var service = new LandlordContractService(store, new FixedClock());
+
+        var result = await service.CreateLandlordContractAsync(ValidCommand(propertyId) with { ExpiryDate = new DateOnly(2026, 6, 30) });
+
+        Assert.False(result.Succeeded);
+        Assert.Contains("Ngày hết hạn phải sau ngày ký.", result.Errors);
+    }
+
+    [Fact]
+    public async Task CreateLandlordContractAsync_WhenPaymentDayOutsideRange_ReturnsFailure()
+    {
+        var propertyId = Guid.NewGuid();
+        var store = new InMemoryLandlordContractStore();
+        store.PropertyIds.Add(propertyId);
+        var service = new LandlordContractService(store, new FixedClock());
+
+        var result = await service.CreateLandlordContractAsync(ValidCommand(propertyId) with { PaymentDay = 32 });
+
+        Assert.False(result.Succeeded);
+        Assert.Contains("Ngày thanh toán phải từ 1 đến 31.", result.Errors);
+    }
+
+    [Fact]
+    public async Task DeleteLandlordContractAsync_WhenRequested_KeepsHistory()
+    {
+        var propertyId = Guid.NewGuid();
+        var contract = CreateContract(propertyId);
+        var store = new InMemoryLandlordContractStore();
+        store.PropertyIds.Add(propertyId);
+        store.Contracts.Add(contract);
+        var service = new LandlordContractService(store, new FixedClock());
+
+        var result = await service.DeleteLandlordContractAsync(contract.Id);
+
+        Assert.False(result.Succeeded);
+        Assert.Single(store.Contracts);
+    }
+
     private static LandlordContractEditorCommand ValidCommand(Guid propertyId)
         => new(
             propertyId,
@@ -68,10 +112,13 @@ public sealed class LandlordContractServiceTests
         public List<LandlordContract> Contracts { get; } = [];
 
         public Task<IReadOnlyList<LandlordContractDto>> ListLandlordContractsAsync(ContractFilterQuery query, CancellationToken cancellationToken)
-            => Task.FromResult<IReadOnlyList<LandlordContractDto>>([]);
+            => Task.FromResult<IReadOnlyList<LandlordContractDto>>(Contracts.Select(ToDto).ToArray());
 
         public Task<LandlordContractDto?> GetLandlordContractAsync(Guid id, CancellationToken cancellationToken)
-            => Task.FromResult<LandlordContractDto?>(null);
+            => Task.FromResult(ToDtoOrNull(Contracts.FirstOrDefault(contract => contract.Id == id)));
+
+        public Task<LandlordContractDto?> GetLandlordContractForPropertyAsync(Guid propertyId, CancellationToken cancellationToken)
+            => Task.FromResult(ToDtoOrNull(Contracts.FirstOrDefault(contract => contract.PropertyId == propertyId)));
 
         public Task<LandlordContract?> GetLandlordContractForUpdateAsync(Guid id, CancellationToken cancellationToken)
             => Task.FromResult(Contracts.FirstOrDefault(contract => contract.Id == id));
@@ -89,5 +136,27 @@ public sealed class LandlordContractServiceTests
         }
 
         public Task SaveChangesAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+
+        private static LandlordContractDto ToDto(LandlordContract contract)
+            => new(
+                contract.Id,
+                contract.PropertyId,
+                "OP-0101",
+                null,
+                "S1",
+                contract.LandlordName,
+                contract.PeCode,
+                contract.SaleName,
+                contract.InputPrice,
+                contract.SignedDate,
+                contract.ExpiryDate,
+                contract.DepositStatus,
+                contract.PaymentDay,
+                contract.PaymentWindow,
+                contract.NextDueDate,
+                contract.Notes);
+
+        private static LandlordContractDto? ToDtoOrNull(LandlordContract? contract)
+            => contract is null ? null : ToDto(contract);
     }
 }

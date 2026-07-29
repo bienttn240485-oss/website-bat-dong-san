@@ -1,0 +1,21 @@
+@model PropertyFormViewModel
+
+<form class="space-y-5" method="post">
+    @Html.AntiForgeryToken()
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+            <h2 class="text-2xl font-semibold text-ink">Thêm căn hộ mới</h2>
+            <p class="mt-1 text-sm text-muted">Nhập thông tin căn hộ để đội Admin/Sale có thể quản lý và tư vấn.</p>
+        </div>
+        <div class="flex gap-2">
+            <a class="fb-button fb-button-secondary" href="/admin/properties">Hủy</a>
+            <button class="fb-button fb-button-primary" type="submit">Lưu căn hộ</button>
+        </div>
+    </div>
+
+    <partial name="_PropertyForm" model="Model" />
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
