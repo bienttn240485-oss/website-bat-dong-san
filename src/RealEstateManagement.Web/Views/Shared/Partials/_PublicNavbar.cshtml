@@ -7,16 +7,18 @@
         </button>
 
         <div class="hidden items-center gap-6 lg:flex">
-            <a class="text-sm font-medium text-ink hover:text-brand-800" asp-area="" asp-controller="Home" asp-action="Index">Trang chủ</a>
-            <a class="text-sm font-medium text-ink hover:text-brand-800" href="/fields">Sân bóng</a>
-            <a class="text-sm font-medium text-ink hover:text-brand-800" href="/services">Dịch vụ</a>
-            <a class="text-sm font-medium text-ink hover:text-brand-800" href="/promotions">Khuyến mãi</a>
-            <a class="text-sm font-medium text-ink hover:text-brand-800" href="/booking/lookup">Tra cứu đặt sân</a>
+            <a class="text-sm font-medium text-ink hover:text-brand-800" href="/">Trang chủ</a>
+            <a class="text-sm font-medium text-ink hover:text-brand-800" href="/properties">Căn cho thuê</a>
+            <a class="text-sm font-medium text-ink hover:text-brand-800" href="/sales">Căn bán</a>
             <a class="text-sm font-medium text-ink hover:text-brand-800" href="/contact">Liên hệ</a>
         </div>
 
         <div class="hidden items-center gap-2 lg:flex">
-            <a class="fb-button fb-button-primary" href="/booking">Đặt sân ngay</a>
+            @if (User.Identity?.IsAuthenticated == true && (User.IsInRole("Admin") || User.IsInRole("Sale")))
+            {
+                <a class="fb-button fb-button-secondary" href="/admin/properties">Vào trang quản trị</a>
+            }
+            <a class="fb-button fb-button-primary" href="/contact">Nhận tư vấn</a>
         </div>
     </nav>
 </header>
@@ -30,14 +32,16 @@
             </button>
         </div>
         <div class="grid gap-1 p-4 text-sm font-medium">
-            <a class="rounded-ui px-3 py-2 hover:bg-slate-50" asp-area="" asp-controller="Home" asp-action="Index">Trang chủ</a>
-            <a class="rounded-ui px-3 py-2 hover:bg-slate-50" href="/fields">Sân bóng</a>
-            <a class="rounded-ui px-3 py-2 hover:bg-slate-50" href="/services">Dịch vụ</a>
-            <a class="rounded-ui px-3 py-2 hover:bg-slate-50" href="/promotions">Khuyến mãi</a>
-            <a class="rounded-ui px-3 py-2 hover:bg-slate-50" href="/booking/lookup">Tra cứu đặt sân</a>
+            <a class="rounded-ui px-3 py-2 hover:bg-slate-50" href="/">Trang chủ</a>
+            <a class="rounded-ui px-3 py-2 hover:bg-slate-50" href="/properties">Căn cho thuê</a>
+            <a class="rounded-ui px-3 py-2 hover:bg-slate-50" href="/sales">Căn bán</a>
             <a class="rounded-ui px-3 py-2 hover:bg-slate-50" href="/contact">Liên hệ</a>
+            @if (User.Identity?.IsAuthenticated == true && (User.IsInRole("Admin") || User.IsInRole("Sale")))
+            {
+                <a class="rounded-ui px-3 py-2 hover:bg-slate-50" href="/admin/properties">Vào trang quản trị</a>
+            }
             <div class="mt-3 grid gap-2">
-                <a class="fb-button fb-button-primary" href="/booking">Đặt sân ngay</a>
+                <a class="fb-button fb-button-primary" href="/contact">Nhận tư vấn</a>
             </div>
         </div>
     </div>

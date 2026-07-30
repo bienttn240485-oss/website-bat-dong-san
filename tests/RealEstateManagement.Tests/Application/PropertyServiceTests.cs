@@ -1,4 +1,4 @@
-using RealEstateManagement.Application.Common.Time;
+﻿using RealEstateManagement.Application.Common.Time;
 using RealEstateManagement.Application.Properties;
 using RealEstateManagement.Domain.Properties;
 
@@ -27,6 +27,178 @@ public sealed class PropertyServiceTests
 
         var property = Assert.Single(result);
         Assert.Equal("OP-0101", property.Code);
+    }
+
+    [Fact]
+    public async Task ListPublicRentalsAsync_ReturnsOnlyPublicRentalProperties()
+    {
+        var store = new InMemoryPropertyStore();
+        store.Properties.Add(CreateProperty("OP-0101", status: PropertyStatus.Available, monthlyPrice: 18_000_000));
+        store.Properties.Add(CreateProperty("OR-0202", status: PropertyStatus.SoonAvailable, monthlyPrice: 15_000_000));
+        store.Properties.Add(CreateProperty("GH-0303", status: PropertyStatus.Reserved, monthlyPrice: 16_000_000));
+        store.Properties.Add(CreateProperty("BV-0404", status: PropertyStatus.Occupied, monthlyPrice: 20_000_000));
+        store.Properties.Add(CreateProperty("NO-0505", status: PropertyStatus.Available, monthlyPrice: null));
+        var service = new PropertyService(store, new FixedClock());
+
+        var result = await service.ListPublicRentalsAsync(new PublicPropertyFilterQuery());
+
+        Assert.Equal(["GH-***03", "OP-***01", "OR-***02"], result.Select(property => property.MaskedCode));
+    }
+
+    [Fact]
+    public async Task ListPublicSalesAsync_ReturnsOnlyPropertiesWithSalePrice()
+    {
+        var store = new InMemoryPropertyStore();
+        store.Properties.Add(CreateProperty("OP-0101", salePrice: 5_000_000_000));
+        store.Properties.Add(CreateProperty("OR-0202", salePrice: null));
+        var service = new PropertyService(store, new FixedClock());
+
+        var result = await service.ListPublicSalesAsync(new PublicPropertyFilterQuery());
+
+        var property = Assert.Single(result);
+        Assert.Equal("OP-***01", property.MaskedCode);
+    }
+
+    [Fact]
+    public async Task ListPublicRentalsAsync_WhenFilteredByProject_ReturnsMatchingProject()
+    {
+        var store = new InMemoryPropertyStore();
+        store.Properties.Add(CreateProperty("OP-0101", PropertyProject.OpusOne));
+        store.Properties.Add(CreateProperty("OR-0202", PropertyProject.Origami));
+        var service = new PropertyService(store, new FixedClock());
+
+        var result = await service.ListPublicRentalsAsync(new PublicPropertyFilterQuery(Project: PropertyProject.Origami));
+
+        var property = Assert.Single(result);
+        Assert.Equal(PropertyProject.Origami, property.Project);
+    }
+
+    [Fact]
+    public async Task ListPublicRentalsAsync_WhenFilteredByArea_ReturnsMatchingArea()
+    {
+        var store = new InMemoryPropertyStore();
+        store.Properties.Add(CreateProperty("OP-0101", area: "S1"));
+        store.Properties.Add(CreateProperty("OR-0202", area: "S2"));
+        var service = new PropertyService(store, new FixedClock());
+
+        var result = await service.ListPublicRentalsAsync(new PublicPropertyFilterQuery(Area: "s2"));
+
+        var property = Assert.Single(result);
+        Assert.Equal("S2", property.Area);
+    }
+
+    [Fact]
+    public async Task ListPublicRentalsAsync_WhenFilteredByType_ReturnsMatchingType()
+    {
+        var store = new InMemoryPropertyStore();
+        store.Properties.Add(CreateProperty("OP-0101", type: PropertyType.TwoBedroom));
+        store.Properties.Add(CreateProperty("OR-0202", type: PropertyType.Studio));
+        var service = new PropertyService(store, new FixedClock());
+
+        var result = await service.ListPublicRentalsAsync(new PublicPropertyFilterQuery(Type: PropertyType.Studio));
+
+        var property = Assert.Single(result);
+        Assert.Equal(PropertyType.Studio, property.Type);
+    }
+
+    [Fact]
+    public async Task ListPublicRentalsAsync_WhenFilteredByStatus_ReturnsMatchingStatus()
+    {
+        var store = new InMemoryPropertyStore();
+        store.Properties.Add(CreateProperty("OP-0101", status: PropertyStatus.Available));
+        store.Properties.Add(CreateProperty("OR-0202", status: PropertyStatus.SoonAvailable));
+        var service = new PropertyService(store, new FixedClock());
+
+        var result = await service.ListPublicRentalsAsync(new PublicPropertyFilterQuery(Status: PropertyStatus.SoonAvailable));
+
+        var property = Assert.Single(result);
+        Assert.Equal(PropertyStatus.SoonAvailable, property.Status);
+    }
+
+    [Fact]
+    public async Task ListPublicRentalsAsync_WhenFilteredByRentRange_ReturnsMatchingPrices()
+    {
+        var store = new InMemoryPropertyStore();
+        store.Properties.Add(CreateProperty("OP-0101", monthlyPrice: 12_000_000));
+        store.Properties.Add(CreateProperty("OR-0202", monthlyPrice: 18_000_000));
+        store.Properties.Add(CreateProperty("GH-0303", monthlyPrice: 25_000_000));
+        var service = new PropertyService(store, new FixedClock());
+
+        var result = await service.ListPublicRentalsAsync(new PublicPropertyFilterQuery(MinPrice: 15_000_000, MaxPrice: 20_000_000));
+
+        var property = Assert.Single(result);
+        Assert.Equal(18_000_000, property.MonthlyPrice);
+    }
+
+    [Fact]
+    public async Task ListPublicSalesAsync_WhenFilteredBySaleRange_ReturnsMatchingPrices()
+    {
+        var store = new InMemoryPropertyStore();
+        store.Properties.Add(CreateProperty("OP-0101", salePrice: 4_000_000_000));
+        store.Properties.Add(CreateProperty("OR-0202", salePrice: 5_500_000_000));
+        store.Properties.Add(CreateProperty("GH-0303", salePrice: 7_000_000_000));
+        var service = new PropertyService(store, new FixedClock());
+
+        var result = await service.ListPublicSalesAsync(new PublicPropertyFilterQuery(MinPrice: 5_000_000_000, MaxPrice: 6_000_000_000));
+
+        var property = Assert.Single(result);
+        Assert.Equal(5_500_000_000, property.SalePrice);
+    }
+
+    [Fact]
+    public async Task ListPublicSalesAsync_WhenSortedByPrice_ReturnsExpectedOrder()
+    {
+        var store = new InMemoryPropertyStore();
+        store.Properties.Add(CreateProperty("OP-0101", salePrice: 6_000_000_000));
+        store.Properties.Add(CreateProperty("OR-0202", salePrice: 4_500_000_000));
+        var service = new PropertyService(store, new FixedClock());
+
+        var result = await service.ListPublicSalesAsync(new PublicPropertyFilterQuery(SortBy: PublicPropertySortOptions.PriceAsc));
+
+        Assert.Equal(["OR-***02", "OP-***01"], result.Select(property => property.MaskedCode));
+    }
+
+    [Fact]
+    public async Task PublicPropertyDtos_MaskCodeAndDoNotExposeAdminOnlyFields()
+    {
+        var store = new InMemoryPropertyStore();
+        var property = CreateProperty("OP-0101", salePrice: 5_000_000_000);
+        store.Properties.Add(property);
+        var service = new PropertyService(store, new FixedClock());
+
+        var result = await service.GetPublicSaleDetailAsync(property.Id);
+
+        Assert.NotNull(result);
+        Assert.Equal("OP-***01", result.MaskedCode);
+        var publicFields = typeof(PublicPropertyDetailDto).GetProperties().Select(info => info.Name).ToHashSet();
+        Assert.DoesNotContain("Notes", publicFields);
+        Assert.DoesNotContain("InputPrice", publicFields);
+        Assert.DoesNotContain("LandlordName", publicFields);
+        Assert.DoesNotContain("TenantName", publicFields);
+        Assert.DoesNotContain("PassCode", publicFields);
+    }
+
+    [Fact]
+    public async Task GetPublicRentalDetailAsync_WhenMissing_ReturnsNull()
+    {
+        var service = new PropertyService(new InMemoryPropertyStore(), new FixedClock());
+
+        var result = await service.GetPublicRentalDetailAsync(Guid.NewGuid());
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task GetPublicSaleDetailAsync_WhenPropertyHasNoSalePrice_ReturnsNull()
+    {
+        var store = new InMemoryPropertyStore();
+        var property = CreateProperty("OP-0101", salePrice: null);
+        store.Properties.Add(property);
+        var service = new PropertyService(store, new FixedClock());
+
+        var result = await service.GetPublicSaleDetailAsync(property.Id);
+
+        Assert.Null(result);
     }
 
     [Fact]
@@ -126,15 +298,15 @@ public sealed class PropertyServiceTests
             2,
             monthlyPrice,
             salePrice,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
+            "Đông Nam",
+            "Hỗ trợ vay theo chính sách ngân hàng.",
+            "Sổ hồng",
+            "Nội thất cơ bản",
+            "Căn hộ sáng, view nội khu.",
+            "https://example.com/video.mp4",
             status,
-            null,
-            null,
+            new DateOnly(2026, 8, 1),
+            "Ghi chú nội bộ không được public.",
             Now);
 
     private sealed class FixedClock : ISystemClock
@@ -204,7 +376,7 @@ public sealed class PropertyServiceTests
         }
 
         public Task<PropertyDetailDto?> GetPropertyDetailAsync(Guid id, CancellationToken cancellationToken)
-            => Task.FromResult<PropertyDetailDto?>(null);
+            => Task.FromResult(Properties.FirstOrDefault(property => property.Id == id) is { } property ? ToDetail(property) : null);
 
         public Task<Property?> GetPropertyForUpdateAsync(Guid id, CancellationToken cancellationToken)
             => Task.FromResult(Properties.FirstOrDefault(property => property.Id == id));
@@ -242,7 +414,33 @@ public sealed class PropertyServiceTests
                 property.SalePrice,
                 property.Status,
                 property.AvailableFromDate,
-                null,
+                property.Images.OrderBy(image => image.SortOrder).FirstOrDefault(image => image.IsPrimary)?.Url,
                 property.CreatedAtUtc);
+
+        private static PropertyDetailDto ToDetail(Property property)
+            => new(
+                property.Id,
+                property.Code,
+                property.Project,
+                property.Area,
+                property.Type,
+                property.AreaSize,
+                property.Bathrooms,
+                property.MonthlyPrice,
+                property.SalePrice,
+                property.Direction,
+                property.LoanInfo,
+                property.LegalStatus,
+                property.FurniturePackage,
+                property.Description,
+                property.VideoUrl,
+                property.Status,
+                property.AvailableFromDate,
+                property.Notes,
+                property.CreatedAtUtc,
+                property.UpdatedAtUtc,
+                property.Images.Select(image => new PropertyImageDto(image.Id, image.Url, image.AltText, image.SortOrder, image.IsPrimary)).ToArray(),
+                property.FurnitureItems.Select(item => new PropertyFurnitureItemDto(item.Id, item.Name, item.Quantity, item.Notes)).ToArray(),
+                property.Amenities.Select(amenity => new PropertyAmenityDto(amenity.Id, amenity.Name)).ToArray());
     }
 }

@@ -1,16 +1,28 @@
 ﻿using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using RealEstateManagement.Application.Leads;
+using RealEstateManagement.Application.Properties;
+using RealEstateManagement.Domain.Properties;
 using RealEstateManagement.Web.Models;
 using RealEstateManagement.Web.ViewModels;
 
 namespace RealEstateManagement.Web.Controllers;
 
-public class HomeController(ILeadService leadService) : Controller
+public class HomeController(
+    IPropertyService propertyService,
+    ILeadService leadService) : Controller
 {
-    public IActionResult Index()
+    public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {
-        return View();
+        var rentals = await propertyService.ListPublicRentalsAsync(new PublicPropertyFilterQuery(SortBy: PublicPropertySortOptions.Newest), cancellationToken);
+        var sales = await propertyService.ListPublicSalesAsync(new PublicPropertyFilterQuery(SortBy: PublicPropertySortOptions.Newest), cancellationToken);
+
+        ViewData["Title"] = "An Phú Real Estate";
+        return View(new HomePageViewModel
+        {
+            FeaturedRentals = rentals.Take(3).Select(PublicPropertyDisplay.ToRentalCard).ToArray(),
+            FeaturedSales = sales.Take(3).Select(PublicPropertyDisplay.ToSaleCard).ToArray()
+        });
     }
 
     public IActionResult Privacy()
@@ -21,6 +33,7 @@ public class HomeController(ILeadService leadService) : Controller
     [HttpGet("/contact")]
     public IActionResult Contact()
     {
+        ViewData["Title"] = "Liên hệ tư vấn";
         return View(new PublicContactViewModel());
     }
 
@@ -28,6 +41,7 @@ public class HomeController(ILeadService leadService) : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Contact(PublicContactViewModel model, CancellationToken cancellationToken)
     {
+        ViewData["Title"] = "Liên hệ tư vấn";
         if (!ModelState.IsValid)
         {
             return View(model);

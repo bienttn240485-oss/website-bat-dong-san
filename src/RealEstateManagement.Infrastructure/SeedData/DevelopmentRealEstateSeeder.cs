@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using RealEstateManagement.Application.Common.Time;
 using RealEstateManagement.Domain.Contracts;
 using RealEstateManagement.Domain.Leads;
@@ -127,7 +127,7 @@ public sealed class DevelopmentRealEstateSeeder(ApplicationDbContext dbContext, 
                 "Tây Bắc",
                 "Pháp lý đầy đủ",
                 "Nội thất cơ bản",
-                "Căn sáng, phù hợp gia đình nhỏ hoặc chuyên gia làm việc tại TP Thủ Đức.",
+                "Căn sáng, phù hợp gia đình nhỏ hoặc chuyên gia làm việc tại TP. Thủ Đức.",
                 new DateOnly(2026, 8, 1),
                 now),
             CreateProperty(

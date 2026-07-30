@@ -1,0 +1,117 @@
+﻿@model RealEstateManagement.Web.ViewModels.PublicPropertyListViewModel
+@using RealEstateManagement.Web.ViewModels
+@using RealEstateManagement.Web.ViewModels.Shared
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<section class="border-b border-line bg-white">
+    <div class="fb-container py-8">
+        <p class="text-sm font-semibold uppercase text-brand-700">An Phú Real Estate</p>
+        <div class="mt-2 grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
+            <div>
+                <h1 class="text-3xl font-semibold text-ink">@Model.Title</h1>
+                <p class="mt-2 max-w-2xl text-sm text-muted">@Model.Subtitle</p>
+            </div>
+            <a class="fb-button fb-button-primary" href="/contact">Gửi nhu cầu tư vấn</a>
+        </div>
+    </div>
+</section>
+
+<section class="fb-container grid gap-5 py-6 lg:grid-cols-[320px_1fr]">
+    <aside class="h-max rounded-ui border border-line bg-white p-4 shadow-sm">
+        <h2 class="text-base font-semibold text-ink">Bộ lọc</h2>
+        <form class="mt-4 grid gap-4" method="get" action="@Model.FormAction">
+            <div>
+                <label class="fb-label" asp-for="Filter.Keyword"></label>
+                <input class="fb-input" asp-for="Filter.Keyword" name="Keyword" type="search" />
+            </div>
+            <div>
+                <label class="fb-label" asp-for="Filter.Project"></label>
+                <select class="fb-input" asp-for="Filter.Project" name="Project" asp-items="Model.ProjectOptions"></select>
+            </div>
+            <div>
+                <label class="fb-label" asp-for="Filter.Area"></label>
+                <input class="fb-input" asp-for="Filter.Area" name="Area" />
+            </div>
+            <div>
+                <label class="fb-label" asp-for="Filter.Type"></label>
+                <select class="fb-input" asp-for="Filter.Type" name="Type" asp-items="Model.TypeOptions"></select>
+            </div>
+            @if (!Model.IsSaleMode)
+            {
+                <div>
+                    <label class="fb-label" asp-for="Filter.Status"></label>
+                    <select class="fb-input" asp-for="Filter.Status" name="Status" asp-items="Model.StatusOptions"></select>
+                </div>
+            }
+            <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+                <div>
+                    <label class="fb-label" asp-for="Filter.MinPrice"></label>
+                    <input class="fb-input" asp-for="Filter.MinPrice" name="MinPrice" inputmode="numeric" />
+                </div>
+                <div>
+                    <label class="fb-label" asp-for="Filter.MaxPrice"></label>
+                    <input class="fb-input" asp-for="Filter.MaxPrice" name="MaxPrice" inputmode="numeric" />
+                </div>
+            </div>
+            <div>
+                <label class="fb-label" asp-for="Filter.SortBy"></label>
+                <select class="fb-input" asp-for="Filter.SortBy" name="SortBy" asp-items="PublicPropertyDisplay.SortOptions(Model.Filter.SortBy)"></select>
+            </div>
+            <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-1">
+                <button class="fb-button fb-button-primary justify-center" type="submit">Áp dụng</button>
+                <a class="fb-button fb-button-secondary justify-center" href="@Model.FormAction">Xóa lọc</a>
+            </div>
+        </form>
+    </aside>
+
+    <div class="grid gap-4">
+        <div class="flex items-center justify-between gap-3">
+            <p class="text-sm text-muted">Tìm thấy <span class="font-semibold text-ink">@Model.Properties.Count</span> căn phù hợp</p>
+        </div>
+
+        @if (Model.Properties.Count == 0)
+        {
+            <partial name="~/Views/Shared/Partials/_EmptyState.cshtml" model='new EmptyStateViewModel("Chưa có căn phù hợp", "Thử đổi bộ lọc hoặc gửi nhu cầu để đội ngũ tư vấn kiểm tra thêm.", "Gửi yêu cầu", "/contact", "building-office")' />
+        }
+        else
+        {
+            <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                @foreach (var property in Model.Properties)
+                {
+                    <article class="fb-card overflow-hidden">
+                        <img class="aspect-[16/10] w-full object-cover" src="@property.ImageUrl" alt="Căn hộ @property.MaskedCode" />
+                        <div class="grid gap-3 p-4">
+                            <div class="flex items-start justify-between gap-3">
+                                <div>
+                                    <h2 class="font-semibold text-ink">@property.MaskedCode</h2>
+                                    <p class="text-sm text-muted">@property.ProjectLabel · @property.Area</p>
+                                </div>
+                                @if (!Model.IsSaleMode)
+                                {
+                                    <partial name="~/Views/Shared/Partials/_StatusBadge.cshtml" model='new StatusBadgeViewModel(property.StatusLabel, property.StatusTone)' />
+                                }
+                            </div>
+                            <p class="text-sm text-muted">@property.TypeLabel · @property.AreaText · @property.BathroomText</p>
+                            @if (!string.IsNullOrWhiteSpace(property.AvailableFromText))
+                            {
+                                <p class="text-xs font-medium text-brand-800">Có thể vào ở từ @property.AvailableFromText</p>
+                            }
+                            <div class="flex items-center justify-between gap-3">
+                                <div>
+                                    <p class="font-semibold text-brand-800">@property.PriceText</p>
+                                    @if (!string.IsNullOrWhiteSpace(property.SecondaryPriceText))
+                                    {
+                                        <p class="text-xs text-muted">@property.SecondaryPriceText</p>
+                                    }
+                                </div>
+                                <a class="fb-button fb-button-secondary" href="@property.DetailUrl">Xem chi tiết</a>
+                            </div>
+                        </div>
+                    </article>
+                }
+            </div>
+        }
+    </div>
+</section>

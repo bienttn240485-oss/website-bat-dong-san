@@ -1,0 +1,174 @@
+﻿@model RealEstateManagement.Web.ViewModels.PublicPropertyDetailViewModel
+@using RealEstateManagement.Web.ViewModels
+@using RealEstateManagement.Web.ViewModels.Shared
+@{
+    ViewData["Title"] = Model.Title;
+    var property = Model.Property;
+    var images = property.Images.Count > 0 ? property.Images : new[] { new RealEstateManagement.Application.Properties.PublicPropertyImageDto(PublicPropertyDisplay.FallbackImage, $"Căn hộ {property.MaskedCode}", 0, true) };
+    var videoUrl = PublicPropertyDisplay.SafeExternalUrl(property.VideoUrl);
+    var postUrl = Model.IsSaleMode ? $"/properties/{property.Id}/inquiry?intent=sale" : $"/properties/{property.Id}/inquiry";
+}
+
+<section class="border-b border-line bg-white">
+    <div class="fb-container py-6">
+        <a class="text-sm font-semibold text-brand-800 hover:text-brand-900" href="@Model.BackUrl">@Model.BackLabel</a>
+        <div class="mt-4 grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
+            <div>
+                <p class="text-sm font-semibold uppercase text-brand-700">@Model.Title</p>
+                <h1 class="mt-2 text-3xl font-semibold text-ink">Căn hộ @property.MaskedCode</h1>
+                <p class="mt-2 text-sm text-muted">@PublicPropertyDisplay.ProjectLabel(property.Project) · @property.Area · @PublicPropertyDisplay.TypeLabel(property.Type)</p>
+            </div>
+            <div class="rounded-ui border border-line bg-slate-50 px-4 py-3">
+                <p class="text-xs text-muted">Giá công khai</p>
+                <p class="text-xl font-semibold text-brand-800">@Model.PriceText</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="fb-container grid gap-6 py-6 lg:grid-cols-[1fr_360px]">
+    <div class="grid gap-6">
+        <div class="grid gap-3">
+            <img class="aspect-[16/9] w-full rounded-ui border border-line object-cover" src="@PublicPropertyDisplay.ImageUrl(images.First().Url)" alt="@images.First().AltText" />
+            @if (images.Count() > 1)
+            {
+                <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    @foreach (var image in images.Skip(1).Take(4))
+                    {
+                        <img class="aspect-[4/3] w-full rounded-ui border border-line object-cover" src="@PublicPropertyDisplay.ImageUrl(image.Url)" alt="@image.AltText" />
+                    }
+                </div>
+            }
+        </div>
+
+        <section class="rounded-ui border border-line bg-white p-5 shadow-sm">
+            <h2 class="text-lg font-semibold text-ink">Thông tin căn hộ</h2>
+            <dl class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div><dt class="text-xs text-muted">Dự án</dt><dd class="mt-1 font-medium text-ink">@PublicPropertyDisplay.ProjectLabel(property.Project)</dd></div>
+                <div><dt class="text-xs text-muted">Phân khu</dt><dd class="mt-1 font-medium text-ink">@property.Area</dd></div>
+                <div><dt class="text-xs text-muted">Loại căn</dt><dd class="mt-1 font-medium text-ink">@PublicPropertyDisplay.TypeLabel(property.Type)</dd></div>
+                <div><dt class="text-xs text-muted">Diện tích</dt><dd class="mt-1 font-medium text-ink">@PublicPropertyDisplay.AreaText(property.AreaSize)</dd></div>
+                <div><dt class="text-xs text-muted">Số WC</dt><dd class="mt-1 font-medium text-ink">@PublicPropertyDisplay.BathroomText(property.Bathrooms)</dd></div>
+                <div><dt class="text-xs text-muted">Trạng thái</dt><dd class="mt-1 font-medium text-ink">@PublicPropertyDisplay.StatusLabel(property.Status)</dd></div>
+                @if (!string.IsNullOrWhiteSpace(property.Direction))
+                {
+                    <div><dt class="text-xs text-muted">Hướng</dt><dd class="mt-1 font-medium text-ink">@property.Direction</dd></div>
+                }
+                @if (!string.IsNullOrWhiteSpace(property.LegalStatus))
+                {
+                    <div><dt class="text-xs text-muted">Pháp lý</dt><dd class="mt-1 font-medium text-ink">@property.LegalStatus</dd></div>
+                }
+                @if (property.AvailableFromDate is not null)
+                {
+                    <div><dt class="text-xs text-muted">Ngày có thể vào ở</dt><dd class="mt-1 font-medium text-ink">@PublicPropertyDisplay.DateText(property.AvailableFromDate)</dd></div>
+                }
+            </dl>
+        </section>
+
+        @if (!string.IsNullOrWhiteSpace(property.Description))
+        {
+            <section class="rounded-ui border border-line bg-white p-5 shadow-sm">
+                <h2 class="text-lg font-semibold text-ink">Mô tả</h2>
+                <p class="mt-3 whitespace-pre-line text-sm leading-6 text-muted">@property.Description</p>
+            </section>
+        }
+
+        <section class="grid gap-4 md:grid-cols-2">
+            <div class="rounded-ui border border-line bg-white p-5 shadow-sm">
+                <h2 class="text-lg font-semibold text-ink">Nội thất</h2>
+                @if (!string.IsNullOrWhiteSpace(property.FurniturePackage))
+                {
+                    <p class="mt-2 text-sm text-muted">@property.FurniturePackage</p>
+                }
+                @if (property.FurnitureItems.Count == 0)
+                {
+                    <p class="mt-2 text-sm text-muted">Đang cập nhật.</p>
+                }
+                else
+                {
+                    <ul class="mt-3 grid gap-2 text-sm text-muted">
+                        @foreach (var item in property.FurnitureItems)
+                        {
+                            <li>@item.Name@if (item.Quantity > 0) { <span> · @item.Quantity</span> }</li>
+                        }
+                    </ul>
+                }
+            </div>
+            <div class="rounded-ui border border-line bg-white p-5 shadow-sm">
+                <h2 class="text-lg font-semibold text-ink">Tiện ích</h2>
+                @if (property.Amenities.Count == 0)
+                {
+                    <p class="mt-2 text-sm text-muted">Đang cập nhật.</p>
+                }
+                else
+                {
+                    <div class="mt-3 flex flex-wrap gap-2">
+                        @foreach (var amenity in property.Amenities)
+                        {
+                            <span class="rounded-ui bg-slate-100 px-3 py-1 text-sm text-ink">@amenity.Name</span>
+                        }
+                    </div>
+                }
+            </div>
+        </section>
+
+        @if (Model.IsSaleMode && !string.IsNullOrWhiteSpace(property.LoanInfo))
+        {
+            <section class="rounded-ui border border-line bg-white p-5 shadow-sm">
+                <h2 class="text-lg font-semibold text-ink">Thông tin vay</h2>
+                <p class="mt-3 whitespace-pre-line text-sm leading-6 text-muted">@property.LoanInfo</p>
+            </section>
+        }
+
+        @if (videoUrl is not null)
+        {
+            <section class="rounded-ui border border-line bg-white p-5 shadow-sm">
+                <h2 class="text-lg font-semibold text-ink">Video căn hộ</h2>
+                <a class="mt-3 inline-flex text-sm font-semibold text-brand-800 hover:text-brand-900" href="@videoUrl" target="_blank" rel="noopener">Mở video căn hộ</a>
+            </section>
+        }
+    </div>
+
+    <aside class="h-max rounded-ui border border-line bg-white p-5 shadow-sm">
+        <h2 class="text-lg font-semibold text-ink">@Model.CtaText</h2>
+        <p class="mt-2 text-sm text-muted">Bạn không cần đăng nhập. Thông tin chỉ dùng để đội ngũ tư vấn liên hệ lại.</p>
+        @if (TempData["SuccessMessage"] is string success)
+        {
+            <div class="mt-4">
+                <partial name="~/Views/Shared/Partials/_Alert.cshtml" model='new AlertViewModel("Đã nhận yêu cầu", success, "success")' />
+            </div>
+        }
+        @if (TempData["ErrorMessage"] is string error)
+        {
+            <div class="mt-4">
+                <partial name="~/Views/Shared/Partials/_Alert.cshtml" model='new AlertViewModel("Không thể gửi yêu cầu", error, "danger")' />
+            </div>
+        }
+        <form class="mt-4 grid gap-4" method="post" action="@postUrl">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="text-sm text-danger"></div>
+            <input type="hidden" name="Language" value="vi" />
+            <div>
+                <label class="fb-label" for="Name">Họ tên</label>
+                <input class="fb-input" id="Name" name="Name" value="@Model.Inquiry.Name" autocomplete="name" />
+                <span class="mt-1 block text-xs text-danger">@Html.ValidationMessage("Name")</span>
+            </div>
+            <div>
+                <label class="fb-label" for="Contact">Liên hệ</label>
+                <input class="fb-input" id="Contact" name="Contact" value="@Model.Inquiry.Contact" autocomplete="email tel" />
+                <span class="mt-1 block text-xs text-danger">@Html.ValidationMessage("Contact")</span>
+            </div>
+            <div>
+                <label class="fb-label" for="Message">Tin nhắn</label>
+                <textarea class="fb-input min-h-28" id="Message" name="Message">@Model.Inquiry.Message</textarea>
+                <span class="mt-1 block text-xs text-danger">@Html.ValidationMessage("Message")</span>
+            </div>
+            <button class="fb-button fb-button-primary justify-center" type="submit">Gửi yêu cầu</button>
+            <div class="grid gap-2 text-sm">
+                <a class="font-semibold text-brand-800 hover:text-brand-900" href="mailto:hello@anphu.realestate?subject=@Uri.EscapeDataString(Model.InquirySubject)">Gửi email</a>
+                <a class="font-semibold text-brand-800 hover:text-brand-900" href="https://wa.me/84901111222" rel="noopener">Nhắn WhatsApp</a>
+                <a class="font-semibold text-brand-800 hover:text-brand-900" href="https://zalo.me/0901111222" rel="noopener">Nhắn Zalo</a>
+            </div>
+        </form>
+    </aside>
+</section>

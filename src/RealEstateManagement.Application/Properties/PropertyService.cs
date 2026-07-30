@@ -5,11 +5,58 @@ namespace RealEstateManagement.Application.Properties;
 
 public sealed class PropertyService(IPropertyStore store, ISystemClock clock) : IPropertyService
 {
+    private static readonly PropertyStatus[] PublicRentalStatuses =
+    [
+        PropertyStatus.Available,
+        PropertyStatus.SoonAvailable,
+        PropertyStatus.Reserved
+    ];
+
     public Task<IReadOnlyList<PropertySummaryDto>> ListPropertiesAsync(PropertyFilterQuery query, CancellationToken cancellationToken = default)
         => store.ListPropertiesAsync(NormalizeQuery(query), cancellationToken);
 
     public Task<PropertyDetailDto?> GetPropertyDetailAsync(Guid id, CancellationToken cancellationToken = default)
         => store.GetPropertyDetailAsync(id, cancellationToken);
+
+    public async Task<IReadOnlyList<PublicPropertyCardDto>> ListPublicRentalsAsync(PublicPropertyFilterQuery query, CancellationToken cancellationToken = default)
+    {
+        var properties = await store.ListPropertiesAsync(ToRentalQuery(query), cancellationToken);
+        var visible = properties
+            .Where(property => property.MonthlyPrice is > 0)
+            .Where(property => PublicRentalStatuses.Contains(property.Status));
+
+        return SortCards(visible.Select(ToPublicCard), query.SortBy, priceSelector: card => card.MonthlyPrice).ToArray();
+    }
+
+    public async Task<IReadOnlyList<PublicPropertyCardDto>> ListPublicSalesAsync(PublicPropertyFilterQuery query, CancellationToken cancellationToken = default)
+    {
+        var properties = await store.ListPropertiesAsync(ToSaleQuery(query), cancellationToken);
+        var visible = properties.Where(property => property.SalePrice is > 0);
+
+        return SortCards(visible.Select(ToPublicCard), query.SortBy, priceSelector: card => card.SalePrice).ToArray();
+    }
+
+    public async Task<PublicPropertyDetailDto?> GetPublicRentalDetailAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var property = await store.GetPropertyDetailAsync(id, cancellationToken);
+        if (property is null || property.MonthlyPrice is not > 0 || !PublicRentalStatuses.Contains(property.Status))
+        {
+            return null;
+        }
+
+        return ToPublicDetail(property);
+    }
+
+    public async Task<PublicPropertyDetailDto?> GetPublicSaleDetailAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var property = await store.GetPropertyDetailAsync(id, cancellationToken);
+        if (property is null || property.SalePrice is not > 0)
+        {
+            return null;
+        }
+
+        return ToPublicDetail(property);
+    }
 
     public async Task<PropertyCommandResult> CreatePropertyAsync(PropertyEditorCommand command, CancellationToken cancellationToken = default)
     {
@@ -185,6 +232,95 @@ public sealed class PropertyService(IPropertyStore store, ISystemClock clock) : 
             Keyword = NormalizeOptional(query.Keyword),
             Area = NormalizeOptional(query.Area)
         };
+
+    private static PropertyFilterQuery ToRentalQuery(PublicPropertyFilterQuery query)
+        => new(
+            NormalizeOptional(query.Keyword),
+            query.Project,
+            NormalizeOptional(query.Area),
+            query.Type,
+            query.Status,
+            query.MinPrice,
+            query.MaxPrice);
+
+    private static PropertyFilterQuery ToSaleQuery(PublicPropertyFilterQuery query)
+        => new(
+            NormalizeOptional(query.Keyword),
+            query.Project,
+            NormalizeOptional(query.Area),
+            query.Type,
+            null,
+            MinSalePrice: query.MinPrice,
+            MaxSalePrice: query.MaxPrice,
+            SalesOnly: true);
+
+    private static IEnumerable<PublicPropertyCardDto> SortCards(
+        IEnumerable<PublicPropertyCardDto> cards,
+        string? sortBy,
+        Func<PublicPropertyCardDto, long?> priceSelector)
+        => sortBy switch
+        {
+            PublicPropertySortOptions.PriceAsc => cards.OrderBy(card => priceSelector(card) ?? long.MaxValue).ThenBy(card => card.MaskedCode),
+            PublicPropertySortOptions.PriceDesc => cards.OrderByDescending(card => priceSelector(card) ?? 0).ThenBy(card => card.MaskedCode),
+            PublicPropertySortOptions.Code => cards.OrderBy(card => card.MaskedCode),
+            _ => cards.OrderByDescending(card => card.CreatedAtUtc).ThenBy(card => card.MaskedCode)
+        };
+
+    private static PublicPropertyCardDto ToPublicCard(PropertySummaryDto property)
+        => new(
+            property.Id,
+            MaskCode(property.Code),
+            property.Project,
+            property.Area,
+            property.Type,
+            property.AreaSize,
+            property.Bathrooms,
+            property.MonthlyPrice,
+            property.SalePrice,
+            property.Status,
+            property.AvailableFromDate,
+            property.PrimaryImageUrl,
+            property.CreatedAtUtc);
+
+    private static PublicPropertyDetailDto ToPublicDetail(PropertyDetailDto property)
+        => new(
+            property.Id,
+            MaskCode(property.Code),
+            property.Project,
+            property.Area,
+            property.Type,
+            property.AreaSize,
+            property.Bathrooms,
+            property.MonthlyPrice,
+            property.SalePrice,
+            property.Direction,
+            property.LoanInfo,
+            property.LegalStatus,
+            property.FurniturePackage,
+            property.Description,
+            property.VideoUrl,
+            property.Status,
+            property.AvailableFromDate,
+            property.Images.Select(image => new PublicPropertyImageDto(image.Url, image.AltText ?? MaskCode(property.Code), image.SortOrder, image.IsPrimary)).ToArray(),
+            property.FurnitureItems,
+            property.Amenities);
+
+    private static string MaskCode(string code)
+    {
+        var trimmed = code.Trim().ToUpperInvariant();
+        if (trimmed.Length <= 4)
+        {
+            return $"{trimmed[..1]}***";
+        }
+
+        var separatorIndex = trimmed.IndexOf('-');
+        if (separatorIndex >= 0 && separatorIndex < trimmed.Length - 1)
+        {
+            return $"{trimmed[..(separatorIndex + 1)]}***{trimmed[^2..]}";
+        }
+
+        return $"{trimmed[..Math.Min(3, trimmed.Length)]}***{trimmed[^2..]}";
+    }
 
     private static string NormalizeCode(string code) => code.Trim().ToUpperInvariant();
 

@@ -66,8 +66,9 @@ public sealed class AdminRoutesTests
         var content = await response.Content.ReadAsStringAsync();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Contains("Đặt sân ngay", content);
-        Assert.Contains("Sân bóng An Phú", content);
+        Assert.Contains("An Phú Real Estate", content);
+        Assert.Contains("Căn cho thuê", content);
+        Assert.DoesNotContain("Đặt sân ngay", content);
         Assert.DoesNotContain("/lib/bootstrap", content);
     }
 
