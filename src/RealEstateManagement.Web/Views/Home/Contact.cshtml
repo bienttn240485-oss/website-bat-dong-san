@@ -1,56 +1,78 @@
+﻿@model RealEstateManagement.Web.ViewModels.PublicContactViewModel
+@using RealEstateManagement.Web.ViewModels.Shared
+
 @{
-    ViewData["Title"] = "Liên hệ";
+    ViewData["Title"] = "Liên hệ tư vấn";
 }
 
 <section class="border-b border-line bg-white">
     <div class="fb-container grid gap-6 py-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
         <div>
-            <p class="text-sm font-semibold uppercase text-brand-700">Liên hệ sân bóng</p>
-            <h1 class="mt-2 text-3xl font-semibold text-ink">Sân bóng An Phú luôn sẵn sàng hỗ trợ lịch chơi</h1>
-            <p class="mt-3 text-sm text-muted">Gọi trực tiếp để hỏi khung giờ trống, dịch vụ đi kèm hoặc cần hỗ trợ tra cứu lượt đặt sân.</p>
+            <p class="text-sm font-semibold uppercase text-brand-700">Tư vấn bất động sản</p>
+            <h1 class="mt-2 text-3xl font-semibold text-ink">Liên hệ An Phú để tìm căn hộ phù hợp</h1>
+            <p class="mt-3 text-sm text-muted">Gửi nhu cầu thuê, mua hoặc xem căn. Đội ngũ phụ trách sẽ liên hệ lại theo thông tin bạn để lại.</p>
             <div class="mt-5 grid gap-3 text-sm text-ink">
                 <div class="fb-card p-4">
-                    <p class="font-semibold">Địa chỉ</p>
-                    <p class="mt-1 text-muted">12 đường D5, Phường 25, Quận Bình Thạnh, Thành phố Hồ Chí Minh</p>
+                    <p class="font-semibold">Khu vực tư vấn</p>
+                    <p class="mt-1 text-muted">Vinhomes Grand Park, Origami, Glory Heights, Beverly và các phân khu lân cận.</p>
                 </div>
                 <div class="grid gap-3 sm:grid-cols-2">
                     <div class="fb-card p-4">
-                        <p class="font-semibold">Điện thoại</p>
-                        <p class="mt-1 text-muted">0901 234 567</p>
+                        <p class="font-semibold">Liên hệ nhanh</p>
+                        <p class="mt-1 text-muted">Điện thoại, Zalo, WhatsApp hoặc email đều được hỗ trợ.</p>
                     </div>
                     <div class="fb-card p-4">
-                        <p class="font-semibold">Giờ mở cửa</p>
-                        <p class="mt-1 text-muted">06:00 - 23:00 mỗi ngày</p>
+                        <p class="font-semibold">Thời gian phản hồi</p>
+                        <p class="mt-1 text-muted">Trong giờ làm việc hằng ngày.</p>
                     </div>
                 </div>
             </div>
         </div>
         <div class="overflow-hidden rounded-ui border border-line bg-white shadow-sm">
-            <img class="h-72 w-full object-cover" src="https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=1200&q=80" alt="Sân bóng cỏ nhân tạo có đèn chiếu sáng" />
+            <img class="h-72 w-full object-cover" src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80" alt="Phòng khách căn hộ hiện đại" />
         </div>
     </div>
 </section>
 
 <section class="fb-container grid gap-5 py-8 lg:grid-cols-[0.8fr_1.2fr]">
     <div>
-        <h2 class="fb-section-title">Gửi yêu cầu hỗ trợ</h2>
-        <p class="fb-muted mt-2">Biểu mẫu này là khung giao diện để tiếp nhận thông tin liên hệ trong phiên bản phát triển.</p>
+        <h2 class="fb-section-title">Gửi yêu cầu tư vấn</h2>
+        <p class="fb-muted mt-2">Bạn không cần đăng nhập. Thông tin này chỉ dùng để đội ngũ tư vấn liên hệ lại.</p>
     </div>
-    <form class="fb-card grid gap-4 p-4">
+    <form class="fb-card grid gap-4 p-4" method="post" action="/contact">
+        @Html.AntiForgeryToken()
+        @if (TempData["SuccessMessage"] is string success)
+        {
+            <partial name="~/Views/Shared/Partials/_Alert.cshtml" model='new AlertViewModel("Đã nhận thông tin", success, "success")' />
+        }
+        @if (TempData["ErrorMessage"] is string error)
+        {
+            <partial name="~/Views/Shared/Partials/_Alert.cshtml" model='new AlertViewModel("Không thể gửi yêu cầu", error, "danger")' />
+        }
+        <div asp-validation-summary="ModelOnly" class="text-sm text-danger"></div>
+        <input asp-for="Language" type="hidden" value="vi" />
         <div class="grid gap-4 sm:grid-cols-2">
             <div>
-                <label class="fb-label" for="contact-name">Họ và tên</label>
-                <input class="fb-input" id="contact-name" type="text" value="Nguyễn Minh Tuấn" />
+                <label class="fb-label" asp-for="Name"></label>
+                <input class="fb-input" asp-for="Name" autocomplete="name" />
+                <span class="mt-1 block text-xs text-danger" asp-validation-for="Name"></span>
             </div>
             <div>
-                <label class="fb-label" for="contact-phone">Số điện thoại</label>
-                <input class="fb-input" id="contact-phone" type="tel" value="0901 234 567" />
+                <label class="fb-label" asp-for="Contact"></label>
+                <input class="fb-input" asp-for="Contact" autocomplete="email tel" />
+                <span class="mt-1 block text-xs text-danger" asp-validation-for="Contact"></span>
             </div>
         </div>
         <div>
-            <label class="fb-label" for="contact-message">Nội dung cần hỗ trợ</label>
-            <textarea class="fb-input min-h-28" id="contact-message">Tôi muốn hỏi khung giờ trống cho sân 5 người tối nay.</textarea>
+            <label class="fb-label" asp-for="Subject"></label>
+            <input class="fb-input" asp-for="Subject" />
+            <span class="mt-1 block text-xs text-danger" asp-validation-for="Subject"></span>
         </div>
-        <button class="fb-button fb-button-primary justify-center" type="button">Gửi yêu cầu</button>
+        <div>
+            <label class="fb-label" asp-for="Message"></label>
+            <textarea class="fb-input min-h-32" asp-for="Message"></textarea>
+            <span class="mt-1 block text-xs text-danger" asp-validation-for="Message"></span>
+        </div>
+        <button class="fb-button fb-button-primary justify-center" type="submit">Gửi yêu cầu</button>
     </form>
 </section>

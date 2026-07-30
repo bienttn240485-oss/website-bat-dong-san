@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using RealEstateManagement.Application.Common.Security;
 using RealEstateManagement.Application.Common.Time;
 using RealEstateManagement.Application.Contracts;
+using RealEstateManagement.Application.Leads;
 using RealEstateManagement.Application.Properties;
 using RealEstateManagement.Domain.Contracts;
 using RealEstateManagement.Web.Areas.Admin.ViewModels;
@@ -17,6 +18,7 @@ public sealed class PropertiesController(
     IPropertyService propertyService,
     ILandlordContractService landlordContractService,
     ITenantContractService tenantContractService,
+    ILeadService leadService,
     ISystemClock clock) : Controller
 {
     [HttpGet("")]
@@ -90,6 +92,7 @@ public sealed class PropertiesController(
 
         var landlordContract = await landlordContractService.GetLandlordContractForPropertyAsync(id, cancellationToken);
         var tenantContracts = await tenantContractService.ListTenantContractsForPropertyAsync(id, cancellationToken);
+        var leads = await leadService.ListLeadsAsync(new LeadFilterQuery(PropertyId: id), cancellationToken);
         var today = Today();
         var activeTenantContract = tenantContracts
             .Where(contract => contract.Status == ContractStatus.Active && contract.ExpiryDate > today)
@@ -109,6 +112,10 @@ public sealed class PropertiesController(
                 monthlyMargin,
                 monthlyMargin * 12,
                 ContractDisplay.PropertyWarnings(property.Status, landlordContract, activeTenantContract, monthlyMargin, today)),
+            Leads = new PropertyLeadSummaryViewModel(
+                leads.Count,
+                leads.Count(lead => lead.Status == Domain.Leads.LeadStatus.New),
+                leads.OrderByDescending(lead => lead.CreatedAtUtc).Take(5).ToArray()),
             CanDelete = CanDeleteProperties()
         });
     }

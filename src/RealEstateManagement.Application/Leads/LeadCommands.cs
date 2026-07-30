@@ -18,9 +18,17 @@ public sealed record LeadUpdateCommand(
     string? Message,
     string? Language);
 
-public sealed record LeadStatusCommand(Guid LeadId, LeadStatus Status);
+public sealed record LeadStatusCommand(
+    Guid LeadId,
+    LeadStatus Status,
+    Guid? ActorUserId = null,
+    bool ActorCanManageAll = true);
 
-public sealed record LeadAssignmentCommand(Guid LeadId, Guid SaleUserId);
+public sealed record LeadAssignmentCommand(
+    Guid LeadId,
+    Guid SaleUserId,
+    Guid? ActorUserId = null,
+    bool ActorCanManageAll = true);
 
 public sealed record LeadCommandResult(bool Succeeded, Guid? LeadId, IReadOnlyList<string> Errors)
 {

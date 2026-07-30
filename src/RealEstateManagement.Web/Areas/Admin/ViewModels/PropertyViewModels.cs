@@ -253,6 +253,7 @@ public sealed class PropertyDetailViewModel
 {
     public required PropertyDetailDto Property { get; init; }
     public PropertyContractSummaryViewModel Contracts { get; init; } = new(null, null, [], null, null, []);
+    public PropertyLeadSummaryViewModel Leads { get; init; } = new(0, 0, []);
     public bool CanDelete { get; init; }
 }
 

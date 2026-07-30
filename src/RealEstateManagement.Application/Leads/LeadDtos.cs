@@ -1,4 +1,5 @@
 using RealEstateManagement.Domain.Leads;
+using RealEstateManagement.Domain.Properties;
 
 namespace RealEstateManagement.Application.Leads;
 
@@ -8,7 +9,12 @@ public sealed record LeadFilterQuery(
     Guid? AssignedToUserId = null,
     DateOnly? CreatedFrom = null,
     DateOnly? CreatedTo = null,
-    string? Keyword = null);
+    string? Keyword = null,
+    PropertyProject? Project = null,
+    string? Area = null,
+    string? Language = null,
+    bool UnassignedOnly = false,
+    bool NewestFirst = true);
 
 public sealed record LeadDto(
     Guid Id,
@@ -21,4 +27,13 @@ public sealed record LeadDto(
     LeadStatus Status,
     Guid? AssignedToUserId,
     DateTimeOffset CreatedAtUtc,
-    DateTimeOffset UpdatedAtUtc);
+    DateTimeOffset UpdatedAtUtc,
+    string? PropertyCode = null,
+    PropertyProject? PropertyProject = null,
+    string? PropertyArea = null,
+    PropertyType? PropertyType = null,
+    long? PropertyMonthlyPrice = null,
+    long? PropertySalePrice = null,
+    PropertyStatus? PropertyStatus = null,
+    string? AssignedToDisplayName = null,
+    string? AssignedToEmail = null);

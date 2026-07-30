@@ -1,0 +1,98 @@
+@model LeadDetailViewModel
+@using RealEstateManagement.Web.ViewModels.Shared
+
+@{
+    var lead = Model.Lead;
+    var contactHref = LeadDisplay.ContactHref(lead.Contact);
+}
+
+<div class="space-y-5">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+            <h2 class="text-2xl font-semibold text-ink">@lead.Name</h2>
+            <p class="mt-1 text-sm text-muted">Lead tạo lúc @LeadDisplay.DateTimeText(lead.CreatedAtUtc)</p>
+        </div>
+        <a class="fb-button fb-button-secondary" href="/admin/leads">Danh sách</a>
+    </div>
+
+    @if (TempData["SuccessMessage"] is string success)
+    {
+        <partial name="~/Views/Shared/Partials/_Alert.cshtml" model='new AlertViewModel("Thành công", success, "success")' />
+    }
+    @if (TempData["ErrorMessage"] is string error)
+    {
+        <partial name="~/Views/Shared/Partials/_Alert.cshtml" model='new AlertViewModel("Không thể thực hiện", error, "danger")' />
+    }
+
+    <section class="grid gap-5 lg:grid-cols-[1fr_0.8fr]">
+        <article class="fb-card p-4">
+            <div class="flex flex-wrap items-center gap-3">
+                <partial name="~/Views/Shared/Partials/_StatusBadge.cshtml" model='new StatusBadgeViewModel(LeadDisplay.StatusLabel(lead.Status), LeadDisplay.StatusTone(lead.Status))' />
+                <span class="text-sm text-muted">Cập nhật @LeadDisplay.DateTimeText(lead.UpdatedAtUtc)</span>
+            </div>
+            <dl class="mt-4 grid gap-4 md:grid-cols-2">
+                <div><dt class="fb-muted">Tên khách</dt><dd class="font-medium text-ink">@lead.Name</dd></div>
+                <div><dt class="fb-muted">Liên hệ</dt><dd class="font-medium text-ink">@lead.Contact</dd></div>
+                <div><dt class="fb-muted">Chủ đề</dt><dd class="font-medium text-ink">@(lead.Subject ?? "Chưa có")</dd></div>
+                <div><dt class="fb-muted">Ngôn ngữ</dt><dd class="font-medium text-ink">@LeadDisplay.LanguageLabel(lead.Language)</dd></div>
+                <div><dt class="fb-muted">Sale phụ trách</dt><dd class="font-medium text-ink">@(lead.AssignedToDisplayName ?? "Chưa phân công")</dd></div>
+                <div><dt class="fb-muted">Ngày tạo</dt><dd class="font-medium text-ink">@LeadDisplay.DateTimeText(lead.CreatedAtUtc)</dd></div>
+            </dl>
+            <div class="mt-4">
+                <h3 class="font-semibold text-ink">Nội dung</h3>
+                <p class="mt-2 whitespace-pre-line text-sm text-ink">@(lead.Message ?? "Chưa có nội dung.")</p>
+            </div>
+            <div class="mt-4 flex flex-wrap gap-2">
+                @if (!string.IsNullOrWhiteSpace(contactHref))
+                {
+                    <a class="fb-button fb-button-secondary" href="@contactHref" rel="noopener noreferrer" target="_blank">Liên hệ nhanh</a>
+                }
+            </div>
+        </article>
+
+        <aside class="grid gap-5">
+            <section class="fb-card p-4">
+                <h3 class="font-semibold text-ink">Cập nhật trạng thái</h3>
+                <form class="mt-3 grid gap-3" method="post" action="/admin/leads/@lead.Id/status">
+                    @Html.AntiForgeryToken()
+                    <label class="fb-label" asp-for="StatusForm.Status"></label>
+                    <select class="fb-input" asp-for="StatusForm.Status" asp-items="Model.StatusOptions" name="Status"></select>
+                    <button class="fb-button fb-button-primary justify-center" type="submit">Cập nhật</button>
+                </form>
+            </section>
+
+            @if (Model.CanAssign)
+            {
+                <section class="fb-card p-4">
+                    <h3 class="font-semibold text-ink">Phân công Sale</h3>
+                    <form class="mt-3 grid gap-3" method="post" action="/admin/leads/@lead.Id/assign">
+                        @Html.AntiForgeryToken()
+                        <label class="fb-label" asp-for="AssignmentForm.SaleUserId"></label>
+                        <select class="fb-input" asp-for="AssignmentForm.SaleUserId" asp-items="Model.AssignedUserOptions" name="SaleUserId"></select>
+                        <button class="fb-button fb-button-primary justify-center" type="submit">Phân công</button>
+                    </form>
+                </section>
+            }
+        </aside>
+    </section>
+
+    <section class="fb-card p-4">
+        <h3 class="font-semibold text-ink">Property quan tâm</h3>
+        @if (Model.Property is null)
+        {
+            <p class="mt-3 text-sm text-muted">Lead này chưa gắn với căn hộ cụ thể.</p>
+        }
+        else
+        {
+            <dl class="mt-4 grid gap-4 md:grid-cols-3">
+                <div><dt class="fb-muted">Mã căn</dt><dd class="font-medium text-ink">@Model.Property.Code</dd></div>
+                <div><dt class="fb-muted">Phân khu</dt><dd class="font-medium text-ink">@(Model.Property.Area ?? "Chưa có")</dd></div>
+                <div><dt class="fb-muted">Loại căn</dt><dd class="font-medium text-ink">@Model.Property.TypeLabel</dd></div>
+                <div><dt class="fb-muted">Giá thuê</dt><dd class="font-medium text-ink">@Model.Property.MonthlyPrice</dd></div>
+                <div><dt class="fb-muted">Giá bán</dt><dd class="font-medium text-ink">@Model.Property.SalePrice</dd></div>
+                <div><dt class="fb-muted">Trạng thái</dt><dd class="font-medium text-ink">@Model.Property.StatusLabel</dd></div>
+            </dl>
+            <a class="mt-4 inline-flex font-semibold text-brand-700" href="/admin/properties/@Model.Property.Id">Xem căn hộ</a>
+        }
+    </section>
+</div>
