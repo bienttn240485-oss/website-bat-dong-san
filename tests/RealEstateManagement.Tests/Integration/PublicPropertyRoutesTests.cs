@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using RealEstateManagement.Domain.Leads;
+using RealEstateManagement.Domain.Properties;
 using RealEstateManagement.Infrastructure.Data;
 using RealEstateManagement.Infrastructure.SeedData;
 
@@ -60,6 +61,38 @@ public sealed class PublicPropertyRoutesTests
         Assert.DoesNotContain("GH-***12", content);
     }
 
+    [Theory]
+    [InlineData("/")]
+    [InlineData("/properties")]
+    [InlineData("/sales")]
+    public async Task PublicPropertyPages_RenderPropertyImagesWithSafeFallbackAttributes(string path)
+    {
+        await using var factory = await PublicRouteFactory.CreateAsync();
+        using var client = factory.CreateClient();
+
+        var response = await client.GetAsync(path);
+        var content = await ReadDecodedContentAsync(response);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains("data-property-image", content);
+        Assert.Contains("data-fallback-src=\"/images/properties/property-placeholder.svg\"", content);
+        Assert.Contains("loading=\"lazy\"", content);
+        Assert.Contains("alt=\"Căn hộ", content);
+        Assert.DoesNotContain("src=\"\"", content);
+        Assert.DoesNotContain("javascript:", content, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("/images/fields/", content, StringComparison.OrdinalIgnoreCase);
+
+        var propertyImageTags = Regex.Matches(content, "<img[^>]+data-property-image[^>]*>");
+        Assert.NotEmpty(propertyImageTags);
+        Assert.All(propertyImageTags, tag =>
+        {
+            var source = Regex.Match(tag.Value, "\\ssrc=\"([^\"]+)\"");
+            Assert.True(source.Success);
+            Assert.StartsWith("/images/properties/demo/", source.Groups[1].Value);
+            Assert.NotEqual("/images/properties/property-placeholder.svg", source.Groups[1].Value);
+        });
+    }
+
     [Fact]
     public async Task RentalDetail_WhenExists_RendersPublicFields()
     {
@@ -75,6 +108,22 @@ public sealed class PublicPropertyRoutesTests
         Assert.Contains("Căn hộ", content);
         Assert.Contains("18.000.000", content);
         Assert.Contains("/tháng", content);
+    }
+
+    [Fact]
+    public async Task RentalDetail_WhenPropertyHasNoImages_RendersLocalFallback()
+    {
+        await using var factory = await PublicRouteFactory.CreateAsync();
+        var propertyId = await factory.CreatePropertyWithoutImagesAsync();
+        using var client = factory.CreateClient();
+
+        var response = await client.GetAsync($"/properties/{propertyId}");
+        var content = await ReadDecodedContentAsync(response);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains("src=\"/images/properties/property-placeholder.svg\"", content);
+        Assert.Contains("alt=\"Căn hộ", content);
+        Assert.DoesNotContain("src=\"\"", content);
     }
 
     [Fact]
@@ -217,6 +266,7 @@ public sealed class PublicPropertyRoutesTests
             Path.Combine(PublicRouteFactory.ContentRoot, "Views", "Properties", "Details.cshtml"),
             Path.Combine(PublicRouteFactory.ContentRoot, "Views", "Sales", "Index.cshtml"),
             Path.Combine(PublicRouteFactory.ContentRoot, "Views", "Sales", "Details.cshtml"),
+            Path.Combine(PublicRouteFactory.ContentRoot, "Views", "Shared", "Partials", "_PublicPropertyImage.cshtml"),
             Path.Combine(PublicRouteFactory.ContentRoot, "Views", "Shared", "Partials", "_PublicNavbar.cshtml"),
             Path.Combine(PublicRouteFactory.ContentRoot, "Views", "Shared", "Partials", "_PublicFooter.cshtml")
         })
@@ -269,6 +319,36 @@ public sealed class PublicPropertyRoutesTests
             await using var scope = Services.CreateAsyncScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             return await dbContext.Properties.Where(property => property.Code == code).Select(property => property.Id).SingleAsync();
+        }
+
+        public async Task<Guid> CreatePropertyWithoutImagesAsync()
+        {
+            await using var scope = Services.CreateAsyncScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var now = new DateTimeOffset(2026, 7, 30, 0, 0, 0, TimeSpan.Zero);
+            var property = new Property(
+                Guid.NewGuid(),
+                $"NF-{Guid.NewGuid():N}"[..10],
+                PropertyProject.Origami,
+                "Origami S9",
+                PropertyType.OneBedroom,
+                45.5m,
+                1,
+                13_000_000,
+                null,
+                "Đông",
+                null,
+                "Sổ hồng",
+                "Nội thất cơ bản",
+                "Căn hộ dùng để kiểm tra fallback ảnh.",
+                null,
+                PropertyStatus.Available,
+                new DateOnly(2026, 8, 15),
+                null,
+                now);
+            dbContext.Properties.Add(property);
+            await dbContext.SaveChangesAsync();
+            return property.Id;
         }
 
         protected override void ConfigureWebHost(IWebHostBuilder builder)

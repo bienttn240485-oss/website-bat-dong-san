@@ -25,6 +25,11 @@ public sealed class DevelopmentRealEstateSeeder(ApplicationDbContext dbContext, 
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
+        dbContext.ChangeTracker.Clear();
+        await EnsureSeedPropertyImagesAsync(cancellationToken);
+        dbContext.ChangeTracker.Clear();
+        await EnsureDevelopmentPlaceholderImagesAsync(cancellationToken);
+        dbContext.ChangeTracker.Clear();
 
         var opus = await dbContext.Properties.FirstOrDefaultAsync(property => property.Code == "OP-0101", cancellationToken);
         var origami = await dbContext.Properties.FirstOrDefaultAsync(property => property.Code == "ORI-1808", cancellationToken);
@@ -94,6 +99,7 @@ public sealed class DevelopmentRealEstateSeeder(ApplicationDbContext dbContext, 
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
+        dbContext.ChangeTracker.Clear();
     }
 
     private static IReadOnlyList<Property> BuildProperties(DateTimeOffset now)
@@ -203,9 +209,7 @@ public sealed class DevelopmentRealEstateSeeder(ApplicationDbContext dbContext, 
             "Dữ liệu mẫu phát triển.",
             now);
 
-        property.ReplaceImages([
-            new PropertyImage(Guid.NewGuid(), propertyId, $"/images/properties/{code.ToLowerInvariant()}.jpg", $"Ảnh căn {code}", 1, true)
-        ]);
+        property.ReplaceImages(BuildImages(propertyId, code));
         property.ReplaceFurnitureItems([
             new PropertyFurnitureItem(Guid.NewGuid(), propertyId, "Sofa", 1, null),
             new PropertyFurnitureItem(Guid.NewGuid(), propertyId, "Giường", type is PropertyType.Studio ? 1 : 2, null)
@@ -217,4 +221,178 @@ public sealed class DevelopmentRealEstateSeeder(ApplicationDbContext dbContext, 
 
         return property;
     }
+
+    private async Task EnsureSeedPropertyImagesAsync(CancellationToken cancellationToken)
+    {
+        foreach (var code in SeedImageUrlsByCode.Keys)
+        {
+            var property = await dbContext.Properties
+                .AsNoTracking()
+                .Where(item => item.Code == code)
+                .Select(item => new { item.Id, item.Code })
+                .FirstOrDefaultAsync(cancellationToken);
+            if (property is null)
+            {
+                continue;
+            }
+
+            var existingImages = await dbContext.PropertyImages
+                .Where(image => image.PropertyId == property.Id)
+                .OrderBy(image => image.SortOrder)
+                .ToListAsync(cancellationToken);
+            var desiredUrls = ResolveDemoImageUrls(property.Code);
+
+            if (existingImages.Select(image => image.Url).SequenceEqual(desiredUrls, StringComparer.Ordinal))
+            {
+                continue;
+            }
+
+            if (existingImages.Count > 0 && existingImages.Any(image => !IsReplaceableDevelopmentImage(image.Url, property.Code)))
+            {
+                continue;
+            }
+
+            dbContext.PropertyImages.RemoveRange(existingImages);
+            await dbContext.PropertyImages.AddRangeAsync(BuildImages(property.Id, property.Code), cancellationToken);
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+        dbContext.ChangeTracker.Clear();
+    }
+
+    private async Task EnsureDevelopmentPlaceholderImagesAsync(CancellationToken cancellationToken)
+    {
+        var properties = await dbContext.Properties
+            .AsNoTracking()
+            .Select(item => new { item.Id, item.Code })
+            .ToListAsync(cancellationToken);
+
+        foreach (var property in properties)
+        {
+            if (SeedImageUrlsByCode.ContainsKey(property.Code))
+            {
+                continue;
+            }
+
+            var existingImages = await dbContext.PropertyImages
+                .Where(image => image.PropertyId == property.Id)
+                .OrderBy(image => image.SortOrder)
+                .ToListAsync(cancellationToken);
+
+            if (existingImages.Count >= 3 && existingImages.All(image => IsRealEstateDemoImage(image.Url)))
+            {
+                continue;
+            }
+
+            if (existingImages.Count > 0 && existingImages.Any(image => !IsReplaceableDevelopmentImage(image.Url, property.Code)))
+            {
+                continue;
+            }
+
+            dbContext.PropertyImages.RemoveRange(existingImages);
+            await dbContext.PropertyImages.AddRangeAsync(BuildImages(property.Id, property.Code), cancellationToken);
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private static IReadOnlyList<PropertyImage> BuildImages(Guid propertyId, string code)
+        => ResolveDemoImageUrls(code)
+            .Select((url, index) => new PropertyImage(
+                Guid.NewGuid(),
+                propertyId,
+                url,
+                BuildImageAltText(code, index),
+                index + 1,
+                index == 0)).ToArray();
+
+    private static string BuildImageAltText(string code, int index)
+        => index switch
+        {
+            0 => $"Phòng khách căn hộ {code}",
+            1 => $"Phòng ngủ căn hộ {code}",
+            2 => $"Bếp căn hộ {code}",
+            3 => $"Ban công căn hộ {code}",
+            _ => $"Tiện ích căn hộ {code}"
+        };
+
+    private static bool IsReplaceableDevelopmentImage(string url, string code)
+        => string.Equals(url, $"/images/properties/{code.ToLowerInvariant()}.jpg", StringComparison.Ordinal)
+            || string.Equals(url, "/images/properties/test.jpg", StringComparison.Ordinal)
+            || string.Equals(url, PublicFallbackImage, StringComparison.Ordinal)
+            || IsOldAbstractDemoImage(url)
+            || IsRealEstateDemoImage(url);
+
+    private static bool IsOldAbstractDemoImage(string url)
+        => url is "/images/properties/apartment-living-room-01.svg"
+            or "/images/properties/apartment-bedroom-01.svg"
+            or "/images/properties/apartment-kitchen-01.svg"
+            or "/images/properties/apartment-balcony-01.svg"
+            or "/images/properties/apartment-amenity-01.svg";
+
+    private static bool IsRealEstateDemoImage(string url)
+        => url.StartsWith("/images/properties/demo/", StringComparison.Ordinal)
+            && url.EndsWith(".webp", StringComparison.Ordinal);
+
+    private static string[] ResolveDemoImageUrls(string code)
+        => SeedImageUrlsByCode.TryGetValue(code, out var urls)
+            ? urls
+            : DemoImageSets[(int)((uint)StringComparer.OrdinalIgnoreCase.GetHashCode(code) % DemoImageSets.Length)];
+
+    private const string PublicFallbackImage = "/images/properties/property-placeholder.svg";
+
+    private static readonly IReadOnlyDictionary<string, string[]> SeedImageUrlsByCode = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase)
+    {
+        ["OP-0101"] =
+        [
+            "/images/properties/demo/living-room-01.webp",
+            "/images/properties/demo/bedroom-01.webp",
+            "/images/properties/demo/kitchen-01.webp",
+            "/images/properties/demo/balcony-01.webp"
+        ],
+        ["ORI-1808"] =
+        [
+            "/images/properties/demo/living-room-02.webp",
+            "/images/properties/demo/bedroom-02.webp",
+            "/images/properties/demo/kitchen-02.webp"
+        ],
+        ["GH-2312"] =
+        [
+            "/images/properties/demo/living-room-03.webp",
+            "/images/properties/demo/bedroom-03.webp",
+            "/images/properties/demo/apartment-exterior-01.webp"
+        ],
+        ["BEV-0906"] =
+        [
+            "/images/properties/demo/balcony-01.webp",
+            "/images/properties/demo/living-room-01.webp",
+            "/images/properties/demo/bedroom-02.webp",
+            "/images/properties/demo/kitchen-02.webp"
+        ]
+    };
+
+    private static readonly string[][] DemoImageSets =
+    [
+        [
+            "/images/properties/demo/living-room-01.webp",
+            "/images/properties/demo/bedroom-01.webp",
+            "/images/properties/demo/kitchen-01.webp"
+        ],
+        [
+            "/images/properties/demo/living-room-02.webp",
+            "/images/properties/demo/bedroom-02.webp",
+            "/images/properties/demo/balcony-01.webp"
+        ],
+        [
+            "/images/properties/demo/living-room-03.webp",
+            "/images/properties/demo/bedroom-03.webp",
+            "/images/properties/demo/kitchen-02.webp"
+        ],
+        [
+            "/images/properties/demo/apartment-exterior-01.webp",
+            "/images/properties/demo/living-room-01.webp",
+            "/images/properties/demo/bedroom-02.webp",
+            "/images/properties/demo/balcony-01.webp"
+        ]
+    ];
 }

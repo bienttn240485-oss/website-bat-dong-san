@@ -158,7 +158,7 @@ public sealed class EfPropertyStore(ApplicationDbContext dbContext) : IPropertyS
 
     private static PropertySummaryDto ToSummaryDto(Property property)
     {
-        var primaryImage = property.Images.OrderByDescending(image => image.IsPrimary).ThenBy(image => image.SortOrder).FirstOrDefault();
+        var primaryImage = property.Images.OrderBy(image => image.SortOrder).FirstOrDefault();
         return new PropertySummaryDto(
             property.Id,
             property.Code,

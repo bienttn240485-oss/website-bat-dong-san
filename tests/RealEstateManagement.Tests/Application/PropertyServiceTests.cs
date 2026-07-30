@@ -159,6 +159,54 @@ public sealed class PropertyServiceTests
     }
 
     [Fact]
+    public async Task ListPublicRentalsAsync_WhenImagesExist_UsesFirstImageBySortOrder()
+    {
+        var store = new InMemoryPropertyStore();
+        var property = CreateProperty("OP-0101");
+        property.ReplaceImages([
+            new PropertyImage(Guid.NewGuid(), property.Id, "/images/properties/second.svg", "Ảnh thứ hai", 2, true),
+            new PropertyImage(Guid.NewGuid(), property.Id, "/images/properties/first.svg", "Ảnh đầu tiên", 1, false)
+        ]);
+        store.Properties.Add(property);
+        var service = new PropertyService(store, new FixedClock());
+
+        var result = await service.ListPublicRentalsAsync(new PublicPropertyFilterQuery());
+
+        var card = Assert.Single(result);
+        Assert.Equal("/images/properties/first.svg", card.PrimaryImageUrl);
+    }
+
+    [Fact]
+    public void PublicPropertyDisplay_ImageUrl_WhenMissingOrUnsafe_ReturnsLocalFallback()
+    {
+        Assert.Equal("/images/properties/property-placeholder.svg", RealEstateManagement.Web.ViewModels.PublicPropertyDisplay.ImageUrl(null));
+        Assert.Equal("/images/properties/property-placeholder.svg", RealEstateManagement.Web.ViewModels.PublicPropertyDisplay.ImageUrl(""));
+        Assert.Equal("/images/properties/property-placeholder.svg", RealEstateManagement.Web.ViewModels.PublicPropertyDisplay.ImageUrl("javascript:alert(1)"));
+        Assert.Equal("/images/properties/property-placeholder.svg", RealEstateManagement.Web.ViewModels.PublicPropertyDisplay.ImageUrl("data:image/svg+xml;base64,abc"));
+    }
+
+    [Fact]
+    public void PublicPropertyDisplay_ImageUrl_WhenSafe_ReturnsTrimmedUrl()
+    {
+        Assert.Equal("/images/properties/apartment.svg", RealEstateManagement.Web.ViewModels.PublicPropertyDisplay.ImageUrl(" /images/properties/apartment.svg "));
+        Assert.Equal("https://example.test/apartment.jpg", RealEstateManagement.Web.ViewModels.PublicPropertyDisplay.ImageUrl("https://example.test/apartment.jpg"));
+    }
+
+    [Fact]
+    public async Task CreatePropertyAsync_WhenImageUrlUnsafe_ReturnsFailure()
+    {
+        var service = new PropertyService(new InMemoryPropertyStore(), new FixedClock());
+
+        var result = await service.CreatePropertyAsync(ValidCommand() with
+        {
+            Images = [new PropertyImageCommand("javascript:alert(1)", "Bad", 1, true)]
+        });
+
+        Assert.False(result.Succeeded);
+        Assert.Contains("URL ảnh phải là đường dẫn cục bộ bắt đầu bằng / hoặc URL HTTPS hợp lệ.", result.Errors);
+    }
+
+    [Fact]
     public async Task PublicPropertyDtos_MaskCodeAndDoNotExposeAdminOnlyFields()
     {
         var store = new InMemoryPropertyStore();
@@ -414,7 +462,7 @@ public sealed class PropertyServiceTests
                 property.SalePrice,
                 property.Status,
                 property.AvailableFromDate,
-                property.Images.OrderBy(image => image.SortOrder).FirstOrDefault(image => image.IsPrimary)?.Url,
+                property.Images.OrderBy(image => image.SortOrder).FirstOrDefault()?.Url,
                 property.CreatedAtUtc);
 
         private static PropertyDetailDto ToDetail(Property property)

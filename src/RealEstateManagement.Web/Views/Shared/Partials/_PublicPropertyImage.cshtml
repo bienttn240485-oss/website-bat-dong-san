@@ -1,0 +1,10 @@
+@model RealEstateManagement.Web.ViewModels.PublicPropertyImageViewModel
+@using RealEstateManagement.Web.ViewModels
+<img class="@Model.CssClass"
+     src="@PublicPropertyDisplay.ImageUrl(Model.ImageUrl)"
+     alt="@Model.AltText"
+     loading="@Model.Loading"
+     width="@Model.Width"
+     height="@Model.Height"
+     data-property-image
+     data-fallback-src="@PublicPropertyDisplay.FallbackImage" />

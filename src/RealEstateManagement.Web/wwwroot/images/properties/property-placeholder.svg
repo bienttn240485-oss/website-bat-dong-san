@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="750" viewBox="0 0 1200 750" role="img" aria-labelledby="title desc">
+  <title id="title">Ảnh căn hộ đang cập nhật</title>
+  <desc id="desc">Minh họa căn hộ trung tính dùng khi chưa có ảnh.</desc>
+  <rect width="1200" height="750" fill="#eef3ef"/>
+  <rect x="90" y="90" width="1020" height="570" rx="28" fill="#ffffff" stroke="#d8e2da" stroke-width="4"/>
+  <rect x="155" y="150" width="430" height="300" rx="18" fill="#dfe9e1"/>
+  <path d="M155 395 L305 270 L395 345 L475 285 L585 395 Z" fill="#9db9a6"/>
+  <circle cx="500" cy="215" r="42" fill="#d8b56d"/>
+  <rect x="650" y="168" width="360" height="54" rx="10" fill="#cfdad2"/>
+  <rect x="650" y="252" width="290" height="32" rx="8" fill="#e3ebe5"/>
+  <rect x="650" y="310" width="320" height="32" rx="8" fill="#e3ebe5"/>
+  <rect x="165" y="505" width="860" height="76" rx="18" fill="#edf4ef" stroke="#d8e2da" stroke-width="3"/>
+  <path d="M245 545 H945" stroke="#b8c9bd" stroke-width="12" stroke-linecap="round"/>
+</svg>

@@ -202,9 +202,24 @@ public sealed class RealEstatePersistenceTests
         Assert.Equal(1, await dbContext.LandlordContracts.CountAsync());
         Assert.Equal(1, await dbContext.TenantContracts.CountAsync());
         Assert.Equal(2, await dbContext.Leads.CountAsync());
+        Assert.Equal(14, await dbContext.PropertyImages.CountAsync());
+        Assert.All(
+            await dbContext.Properties.Include(property => property.Images).ToListAsync(),
+            property =>
+            {
+                Assert.True(property.Images.Count >= 3);
+                Assert.All(property.Images, image =>
+                {
+                    Assert.StartsWith("/images/properties/demo/", image.Url);
+                    Assert.EndsWith(".webp", image.Url);
+                    Assert.NotEqual("/images/properties/property-placeholder.svg", image.Url);
+                });
+            });
         Assert.Contains(await dbContext.Properties.ToListAsync(), property => property.Status == PropertyStatus.Available && property.SalePrice is not null);
         Assert.Contains(await dbContext.Properties.ToListAsync(), property => property.Status == PropertyStatus.Occupied);
         Assert.Contains(await dbContext.Properties.ToListAsync(), property => property.Status == PropertyStatus.SoonAvailable);
+        Assert.DoesNotContain(await dbContext.PropertyImages.ToListAsync(), image => image.Url.Contains("/images/fields/", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(await dbContext.PropertyImages.ToListAsync(), image => image.Url.Contains("san-", StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]

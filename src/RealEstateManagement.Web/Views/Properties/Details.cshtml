@@ -4,7 +4,7 @@
 @{
     ViewData["Title"] = Model.Title;
     var property = Model.Property;
-    var images = property.Images.Count > 0 ? property.Images : new[] { new RealEstateManagement.Application.Properties.PublicPropertyImageDto(PublicPropertyDisplay.FallbackImage, $"Căn hộ {property.MaskedCode}", 0, true) };
+    var images = property.Images.Count > 0 ? property.Images : new[] { new RealEstateManagement.Application.Properties.PublicPropertyImageDto(PublicPropertyDisplay.FallbackImage, $"Căn hộ {PublicPropertyDisplay.ProjectLabel(property.Project)} tại {property.Area}", 0, true) };
     var videoUrl = PublicPropertyDisplay.SafeExternalUrl(property.VideoUrl);
     var postUrl = Model.IsSaleMode ? $"/properties/{property.Id}/inquiry?intent=sale" : $"/properties/{property.Id}/inquiry";
 }
@@ -29,13 +29,13 @@
 <section class="fb-container grid gap-6 py-6 lg:grid-cols-[1fr_360px]">
     <div class="grid gap-6">
         <div class="grid gap-3">
-            <img class="aspect-[16/9] w-full rounded-ui border border-line object-cover" src="@PublicPropertyDisplay.ImageUrl(images.First().Url)" alt="@images.First().AltText" />
+            <partial name="~/Views/Shared/Partials/_PublicPropertyImage.cshtml" model='new PublicPropertyImageViewModel(images.First().Url, images.First().AltText, "aspect-[16/9] w-full rounded-ui border border-line object-cover", "eager", 1200, 675)' />
             @if (images.Count() > 1)
             {
                 <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
                     @foreach (var image in images.Skip(1).Take(4))
                     {
-                        <img class="aspect-[4/3] w-full rounded-ui border border-line object-cover" src="@PublicPropertyDisplay.ImageUrl(image.Url)" alt="@image.AltText" />
+                        <partial name="~/Views/Shared/Partials/_PublicPropertyImage.cshtml" model='new PublicPropertyImageViewModel(image.Url, image.AltText, "aspect-[4/3] w-full rounded-ui border border-line object-cover", "lazy", 600, 450)' />
                     }
                 </div>
             }

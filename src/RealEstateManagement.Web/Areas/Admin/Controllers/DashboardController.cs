@@ -1,26 +1,41 @@
-﻿using RealEstateManagement.Application.Common.Security;
-using RealEstateManagement.Application.Reports;
-using RealEstateManagement.Web.Areas.Admin.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using RealEstateManagement.Application.Common.Security;
+using RealEstateManagement.Application.Dashboard;
+using RealEstateManagement.Application.Reports;
+using RealEstateManagement.Web.Areas.Admin.ViewModels;
 
 namespace RealEstateManagement.Web.Areas.Admin.Controllers;
 
 [Area("Admin")]
 [Route("admin/dashboard")]
 [Authorize(Policy = "InternalUser")]
-public sealed class DashboardController(IReportService reportService) : Controller
+public sealed class DashboardController(IDashboardService dashboardService, IReportService reportService) : Controller
 {
     [HttpGet("")]
     public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {
-        var isOwner = User.IsInRole(ApplicationRoles.Owner);
-        var model = isOwner
-            ? new AdminDashboardViewModel(true, await reportService.GetOwnerDashboardAsync(cancellationToken), null)
-            : new AdminDashboardViewModel(false, null, await reportService.GetStaffDashboardAsync(cancellationToken));
-
-        return View(model);
+        var snapshot = await dashboardService.GetDashboardAsync(cancellationToken);
+        var canViewFinancials = User.IsInRole(ApplicationRoles.Owner);
+        return View(AdminDashboardViewModel.FromSnapshot(snapshot, canViewFinancials));
     }
+
+    [HttpGet("/admin/api/dashboard/gmv")]
+    [Authorize(Policy = "OwnerOnly")]
+    public async Task<IActionResult> Gmv(CancellationToken cancellationToken)
+        => Json((await dashboardService.GetDashboardAsync(cancellationToken)).Charts.GmvLast12Months);
+
+    [HttpGet("/admin/api/dashboard/contracts")]
+    public async Task<IActionResult> Contracts(CancellationToken cancellationToken)
+        => Json((await dashboardService.GetDashboardAsync(cancellationToken)).Charts.ContractsSignedLast12Months);
+
+    [HttpGet("/admin/api/dashboard/property-status")]
+    public async Task<IActionResult> PropertyStatus(CancellationToken cancellationToken)
+        => Json((await dashboardService.GetDashboardAsync(cancellationToken)).Charts.PropertyStatusDistribution);
+
+    [HttpGet("/admin/api/dashboard/lead-status")]
+    public async Task<IActionResult> LeadStatus(CancellationToken cancellationToken)
+        => Json((await dashboardService.GetDashboardAsync(cancellationToken)).Charts.LeadStatusDistribution);
 
     [HttpGet("/admin/api/dashboard/revenue")]
     [Authorize(Policy = "OwnerOnly")]
@@ -54,4 +69,3 @@ public sealed class DashboardController(IReportService reportService) : Controll
         return fromDate <= toDate ? (fromDate, toDate) : (toDate, fromDate);
     }
 }
-

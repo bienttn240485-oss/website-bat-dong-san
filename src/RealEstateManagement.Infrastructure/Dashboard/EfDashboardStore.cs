@@ -1,9 +1,6 @@
-using RealEstateManagement.Application.Dashboard;
-using RealEstateManagement.Domain.Contracts;
-using RealEstateManagement.Domain.Leads;
-using RealEstateManagement.Domain.Properties;
-using RealEstateManagement.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using RealEstateManagement.Application.Dashboard;
+using RealEstateManagement.Infrastructure.Data;
 
 namespace RealEstateManagement.Infrastructure.Dashboard;
 
@@ -11,35 +8,64 @@ public sealed class EfDashboardStore(ApplicationDbContext dbContext) : IDashboar
 {
     public async Task<DashboardSourceDto> GetDashboardSourceAsync(DateOnly today, int expiringWithinDays, CancellationToken cancellationToken)
     {
-        var totalProperties = await dbContext.Properties.CountAsync(cancellationToken);
-        var availableProperties = await dbContext.Properties.CountAsync(property => property.Status == PropertyStatus.Available, cancellationToken);
-        var occupiedProperties = await dbContext.Properties.CountAsync(property => property.Status == PropertyStatus.Occupied, cancellationToken);
-        var soonAvailableProperties = await dbContext.Properties.CountAsync(property => property.Status == PropertyStatus.SoonAvailable, cancellationToken);
-        var activeTenantContracts = await dbContext.TenantContracts.CountAsync(contract => contract.Status == ContractStatus.Active, cancellationToken);
-        var expiringUntil = today.AddDays(expiringWithinDays);
-        var expiringTenantContracts = await dbContext.TenantContracts.CountAsync(
-            contract => contract.Status == ContractStatus.Active && contract.ExpiryDate <= expiringUntil,
-            cancellationToken);
-
-        var leadGroups = await dbContext.Leads
-            .GroupBy(lead => lead.Status)
-            .Select(group => new { Status = group.Key, Count = group.Count() })
+        var properties = await dbContext.Properties
+            .AsNoTracking()
+            .Select(property => new DashboardPropertySourceDto(
+                property.Id,
+                property.Code,
+                property.Project,
+                property.Area,
+                property.Type,
+                property.Status,
+                property.MonthlyPrice,
+                property.SalePrice,
+                property.AvailableFromDate))
             .ToListAsync(cancellationToken);
 
-        var monthlyInputTotal = await dbContext.LandlordContracts.SumAsync(contract => (long?)contract.InputPrice, cancellationToken) ?? 0;
-        var monthlyRentTotal = await dbContext.TenantContracts
-            .Where(contract => contract.Status == ContractStatus.Active)
-            .SumAsync(contract => (long?)contract.RentalPrice, cancellationToken) ?? 0;
+        var landlordContracts = await dbContext.LandlordContracts
+            .AsNoTracking()
+            .Join(
+                dbContext.Properties.AsNoTracking(),
+                contract => contract.PropertyId,
+                property => property.Id,
+                (contract, property) => new DashboardLandlordContractSourceDto(
+                contract.Id,
+                contract.PropertyId,
+                property.Code,
+                contract.InputPrice,
+                contract.SignedDate,
+                contract.ExpiryDate))
+            .ToListAsync(cancellationToken);
 
-        return new DashboardSourceDto(
-            totalProperties,
-            availableProperties,
-            occupiedProperties,
-            soonAvailableProperties,
-            activeTenantContracts,
-            expiringTenantContracts,
-            leadGroups.ToDictionary(group => group.Status, group => group.Count),
-            monthlyInputTotal,
-            monthlyRentTotal);
+        var tenantContracts = await dbContext.TenantContracts
+            .AsNoTracking()
+            .Join(
+                dbContext.Properties.AsNoTracking(),
+                contract => contract.PropertyId,
+                property => property.Id,
+                (contract, property) => new DashboardTenantContractSourceDto(
+                contract.Id,
+                contract.PropertyId,
+                property.Code,
+                contract.RentalPrice,
+                contract.SignedDate,
+                contract.TermMonths,
+                contract.ExpiryDate,
+                contract.DepositReturnDate,
+                contract.Status))
+            .ToListAsync(cancellationToken);
+
+        var leads = await dbContext.Leads
+            .AsNoTracking()
+            .Select(lead => new DashboardLeadSourceDto(
+                lead.Id,
+                lead.PropertyId,
+                lead.Status,
+                lead.AssignedToUserId,
+                lead.CreatedAtUtc,
+                lead.UpdatedAtUtc))
+            .ToListAsync(cancellationToken);
+
+        return new DashboardSourceDto(properties, landlordContracts, tenantContracts, leads);
     }
 }

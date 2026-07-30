@@ -124,7 +124,16 @@ public sealed record PublicPropertyCardViewModel(
     string StatusTone,
     string? AvailableFromText,
     string ImageUrl,
+    string ImageAltText,
     string DetailUrl);
+
+public sealed record PublicPropertyImageViewModel(
+    string ImageUrl,
+    string AltText,
+    string CssClass,
+    string Loading = "lazy",
+    int Width = 1200,
+    int Height = 750);
 
 public sealed class PublicPropertyDetailViewModel
 {
@@ -141,7 +150,7 @@ public sealed class PublicPropertyDetailViewModel
 
 public static class PublicPropertyDisplay
 {
-    public const string FallbackImage = "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80";
+    public const string FallbackImage = "/images/properties/property-placeholder.svg";
 
     public static PublicPropertyCardViewModel ToRentalCard(PublicPropertyCardDto property)
         => ToCard(property, $"/properties/{property.Id}", MoneyPerMonth(property.MonthlyPrice), property.SalePrice is > 0 ? Money(property.SalePrice) : null);
@@ -219,7 +228,10 @@ public static class PublicPropertyDisplay
         => date?.ToString("dd/MM/yyyy") ?? "Đang cập nhật";
 
     public static string ImageUrl(string? url)
-        => IsSafeHttpUrl(url) || IsSafeLocalPath(url) ? url! : FallbackImage;
+    {
+        var trimmed = string.IsNullOrWhiteSpace(url) ? null : url.Trim();
+        return IsSafeHttpUrl(trimmed) || IsSafeLocalPath(trimmed) ? trimmed! : FallbackImage;
+    }
 
     public static string? SafeExternalUrl(string? url)
         => IsSafeHttpUrl(url) ? url : null;
@@ -266,12 +278,17 @@ public static class PublicPropertyDisplay
             StatusTone(property.Status),
             property.Status == PropertyStatus.SoonAvailable ? DateText(property.AvailableFromDate) : null,
             ImageUrl(property.PrimaryImageUrl),
+            $"Căn hộ {ProjectLabel(property.Project)} tại {property.Area}",
             detailUrl);
 
     private static bool IsSafeHttpUrl(string? url)
         => Uri.TryCreate(url, UriKind.Absolute, out var uri)
-            && uri.Scheme is "http" or "https";
+            && uri.Scheme is "https";
 
     private static bool IsSafeLocalPath(string? url)
-        => !string.IsNullOrWhiteSpace(url) && url.StartsWith("/", StringComparison.Ordinal) && !url.StartsWith("//", StringComparison.Ordinal);
+        => !string.IsNullOrWhiteSpace(url)
+            && url.Length <= 500
+            && url.StartsWith("/", StringComparison.Ordinal)
+            && !url.StartsWith("//", StringComparison.Ordinal)
+            && !url.Any(char.IsControl);
 }

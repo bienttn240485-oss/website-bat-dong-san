@@ -62,7 +62,7 @@
             @foreach (var property in Model.FeaturedRentals)
             {
                 <article class="fb-card overflow-hidden">
-                    <img class="aspect-[16/10] w-full object-cover" src="@property.ImageUrl" alt="Căn hộ @property.MaskedCode" />
+                    <partial name="~/Views/Shared/Partials/_PublicPropertyImage.cshtml" model='new RealEstateManagement.Web.ViewModels.PublicPropertyImageViewModel(property.ImageUrl, property.ImageAltText, "aspect-[16/10] w-full object-cover")' />
                     <div class="grid gap-3 p-4">
                         <div class="flex items-start justify-between gap-3">
                             <div>
@@ -116,7 +116,7 @@
             @foreach (var property in Model.FeaturedSales)
             {
                 <article class="fb-card overflow-hidden">
-                    <img class="aspect-[16/10] w-full object-cover" src="@property.ImageUrl" alt="Căn hộ @property.MaskedCode" />
+                    <partial name="~/Views/Shared/Partials/_PublicPropertyImage.cshtml" model='new RealEstateManagement.Web.ViewModels.PublicPropertyImageViewModel(property.ImageUrl, property.ImageAltText, "aspect-[16/10] w-full object-cover")' />
                     <div class="grid gap-3 p-4">
                         <h3 class="font-semibold text-ink">@property.MaskedCode</h3>
                         <p class="text-sm text-muted">@property.ProjectLabel · @property.Area · @property.TypeLabel</p>

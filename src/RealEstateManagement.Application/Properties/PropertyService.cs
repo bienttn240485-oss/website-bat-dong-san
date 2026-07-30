@@ -201,7 +201,7 @@ public sealed class PropertyService(IPropertyStore store, ISystemClock clock) : 
 
     private static void ReplaceChildren(Property property, PropertyEditorCommand command, Guid propertyId)
     {
-        property.ReplaceImages(command.Images.Select(image => new PropertyImage(Guid.NewGuid(), propertyId, image.Url, image.AltText, image.SortOrder, image.IsPrimary)));
+        property.ReplaceImages(command.Images.Select(image => new PropertyImage(Guid.NewGuid(), propertyId, NormalizeImageUrl(image.Url), image.AltText, image.SortOrder, image.IsPrimary)));
         property.ReplaceFurnitureItems(command.FurnitureItems.Select(item => new PropertyFurnitureItem(Guid.NewGuid(), propertyId, item.Name, item.Quantity, item.Notes)));
         property.ReplaceAmenities(command.Amenities
             .Select(amenity => amenity.Trim())
@@ -216,7 +216,34 @@ public sealed class PropertyService(IPropertyStore store, ISystemClock clock) : 
         {
             errors.Add("Mỗi căn hộ chỉ được có một ảnh đại diện.");
         }
+        foreach (var image in images)
+        {
+            var url = image.Url.Trim();
+            if (url.Length > 500)
+            {
+                errors.Add("URL ảnh không được vượt quá 500 ký tự.");
+                continue;
+            }
+
+            if (!IsSafeImageUrl(url))
+            {
+                errors.Add("URL ảnh phải là đường dẫn cục bộ bắt đầu bằng / hoặc URL HTTPS hợp lệ.");
+            }
+        }
     }
+
+    private static string NormalizeImageUrl(string url) => url.Trim();
+
+    private static bool IsSafeImageUrl(string url)
+        => IsSafeLocalPath(url) || IsSafeHttpsUrl(url);
+
+    private static bool IsSafeHttpsUrl(string url)
+        => Uri.TryCreate(url, UriKind.Absolute, out var uri) && uri.Scheme == Uri.UriSchemeHttps;
+
+    private static bool IsSafeLocalPath(string url)
+        => url.StartsWith("/", StringComparison.Ordinal)
+            && !url.StartsWith("//", StringComparison.Ordinal)
+            && !url.Any(char.IsControl);
 
     private static void ValidateFurniture(IReadOnlyList<PropertyFurnitureItemCommand> furnitureItems, List<string> errors)
     {
