@@ -63,24 +63,6 @@ public sealed class BookingServiceSelectionViewModel
     public long LineTotal => UnitPrice * Math.Max(0, Quantity);
 }
 
-public sealed class BookingSuccessViewModel
-{
-    public required BookingDetailDto Booking { get; init; }
-}
-
-public sealed class BookingLookupViewModel
-{
-    [Required(ErrorMessage = "Vui lòng nhập mã booking.")]
-    public string BookingCode { get; set; } = string.Empty;
-
-    [Required(ErrorMessage = "Vui lòng nhập số điện thoại.")]
-    public string CustomerPhone { get; set; } = string.Empty;
-
-    public BookingDetailDto? Result { get; set; }
-    public bool HasSearched { get; set; }
-    public string? CancellationReason { get; set; }
-}
-
 public sealed class AdminBookingListViewModel
 {
     public IReadOnlyList<BookingSummaryDto> Bookings { get; set; } = [];

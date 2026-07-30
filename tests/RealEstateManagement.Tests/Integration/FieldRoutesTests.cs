@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using RealEstateManagement.Application.Common.Time;
 using RealEstateManagement.Infrastructure.Data;
 using RealEstateManagement.Infrastructure.SeedData;
@@ -16,22 +16,21 @@ namespace RealEstateManagement.Tests.Integration;
 
 public sealed class FieldRoutesTests
 {
-    [Fact]
-    public async Task PublicFields_WhenSeeded_RendersFieldListAndDetails()
+    [Theory]
+    [InlineData("/fields")]
+    [InlineData("/fields/san-5a")]
+    [InlineData("/booking")]
+    [InlineData("/booking/lookup")]
+    [InlineData("/services")]
+    [InlineData("/promotions")]
+    public async Task PublicLegacyFootballRoutes_WhenRequested_ReturnNotFound(string path)
     {
         await using var factory = await CreateSeededFactoryAsync();
-        using var client = factory.CreateClient();
+        using var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
 
-        var listResponse = await client.GetAsync("/fields");
-        var listContent = await listResponse.Content.ReadAsStringAsync();
-        var detailResponse = await client.GetAsync("/fields/san-5a");
-        var detailContent = await detailResponse.Content.ReadAsStringAsync();
+        var response = await client.GetAsync(path);
 
-        Assert.Equal(HttpStatusCode.OK, listResponse.StatusCode);
-        Assert.Contains("san-5a", listContent);
-        Assert.Contains("san-7a", listContent);
-        Assert.Equal(HttpStatusCode.OK, detailResponse.StatusCode);
-        Assert.Contains("Bảng giá tham khảo", detailContent);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
     [Fact]
@@ -44,40 +43,6 @@ public sealed class FieldRoutesTests
 
         Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
         Assert.Equal("/admin/login", response.Headers.Location?.AbsolutePath);
-    }
-
-    [Fact]
-    public async Task BookingRoutes_WhenSeeded_RenderPublicBookingAndLookup()
-    {
-        await using var factory = await CreateSeededFactoryAsync();
-        using var client = factory.CreateClient();
-
-        var bookingResponse = await client.GetAsync("/booking");
-        var bookingContent = await bookingResponse.Content.ReadAsStringAsync();
-        var lookupResponse = await client.GetAsync("/booking/lookup");
-        var lookupContent = await lookupResponse.Content.ReadAsStringAsync();
-
-        Assert.Equal(HttpStatusCode.OK, bookingResponse.StatusCode);
-        Assert.Contains("Xác nhận đặt sân", bookingContent);
-        Assert.Equal(HttpStatusCode.OK, lookupResponse.StatusCode);
-        Assert.Contains("Tra cứu đặt sân", lookupContent);
-    }
-
-    [Fact]
-    public async Task CommerceRoutes_WhenSeeded_RenderServicesAndPromotions()
-    {
-        await using var factory = await CreateSeededFactoryAsync();
-        using var client = factory.CreateClient();
-
-        var servicesResponse = await client.GetAsync("/services");
-        var servicesContent = await servicesResponse.Content.ReadAsStringAsync();
-        var promotionsResponse = await client.GetAsync("/promotions");
-        var promotionsContent = await promotionsResponse.Content.ReadAsStringAsync();
-
-        Assert.Equal(HttpStatusCode.OK, servicesResponse.StatusCode);
-        Assert.Contains("Dịch vụ đi kèm", servicesContent);
-        Assert.Equal(HttpStatusCode.OK, promotionsResponse.StatusCode);
-        Assert.Contains("ANPHU50", promotionsContent);
     }
 
     [Fact]
@@ -177,4 +142,3 @@ public sealed class FieldRoutesTests
         public DateTimeOffset UtcNow => new(2026, 7, 25, 0, 0, 0, TimeSpan.Zero);
     }
 }
-

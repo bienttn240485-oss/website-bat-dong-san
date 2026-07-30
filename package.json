@@ -1,18 +1,18 @@
 {
-  "name": "footballbooking",
+  "name": "real-estate-management",
   "version": "1.0.0",
-  "description": "He thong quan ly va dat san bong mini dung ASP.NET Core MVC.",
+  "description": "Real estate management ASP.NET Core MVC application.",
   "main": "index.js",
   "directories": {
     "doc": "docs",
     "test": "tests"
   },
   "scripts": {
-    "css:dev": "tailwindcss -i ./src/FootballBooking.Web/Styles/input.css -o ./src/FootballBooking.Web/wwwroot/css/site.css --watch",
-    "js:dev": "esbuild ./src/FootballBooking.Web/Scripts/site.js ./src/FootballBooking.Web/Scripts/admin-schedule.js ./src/FootballBooking.Web/Scripts/admin-reports.js --bundle --format=iife --sourcemap --outdir=./src/FootballBooking.Web/wwwroot/js --watch",
+    "css:dev": "tailwindcss -i ./src/RealEstateManagement.Web/Styles/input.css -o ./src/RealEstateManagement.Web/wwwroot/css/site.css --watch",
+    "js:dev": "esbuild ./src/RealEstateManagement.Web/Scripts/site.js ./src/RealEstateManagement.Web/Scripts/admin-schedule.js ./src/RealEstateManagement.Web/Scripts/admin-reports.js --bundle --format=iife --sourcemap --outdir=./src/RealEstateManagement.Web/wwwroot/js --watch",
     "dev": "concurrently \"npm:css:dev\" \"npm:js:dev\"",
-    "css:build": "tailwindcss -i ./src/FootballBooking.Web/Styles/input.css -o ./src/FootballBooking.Web/wwwroot/css/site.css --minify",
-    "js:build": "esbuild ./src/FootballBooking.Web/Scripts/site.js ./src/FootballBooking.Web/Scripts/admin-schedule.js ./src/FootballBooking.Web/Scripts/admin-reports.js --bundle --format=iife --minify --outdir=./src/FootballBooking.Web/wwwroot/js",
+    "css:build": "tailwindcss -i ./src/RealEstateManagement.Web/Styles/input.css -o ./src/RealEstateManagement.Web/wwwroot/css/site.css --minify",
+    "js:build": "esbuild ./src/RealEstateManagement.Web/Scripts/site.js ./src/RealEstateManagement.Web/Scripts/admin-schedule.js ./src/RealEstateManagement.Web/Scripts/admin-reports.js --bundle --format=iife --minify --outdir=./src/RealEstateManagement.Web/wwwroot/js",
     "build": "npm run css:build && npm run js:build"
   },
   "keywords": [],
