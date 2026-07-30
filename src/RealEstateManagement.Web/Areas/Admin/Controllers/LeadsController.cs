@@ -14,7 +14,7 @@ namespace RealEstateManagement.Web.Areas.Admin.Controllers;
 
 [Area("Admin")]
 [Route("admin/leads")]
-[Authorize(Policy = "InternalUser")]
+[Authorize(Policy = AuthorizationPolicies.RequireAdminOrSale)]
 public sealed class LeadsController(
     ILeadService leadService,
     UserManager<ApplicationUser> userManager) : Controller
@@ -70,6 +70,7 @@ public sealed class LeadsController(
     }
 
     [HttpPost("{id:guid}/status")]
+    [Authorize(Policy = AuthorizationPolicies.CanUpdateAssignedLead)]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Status(Guid id, LeadStatusFormViewModel model, CancellationToken cancellationToken)
     {
@@ -101,7 +102,7 @@ public sealed class LeadsController(
     }
 
     [HttpPost("{id:guid}/assign")]
-    [Authorize(Policy = "OwnerOnly")]
+    [Authorize(Policy = AuthorizationPolicies.CanAssignLeads)]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Assign(Guid id, LeadAssignmentFormViewModel model, CancellationToken cancellationToken)
     {

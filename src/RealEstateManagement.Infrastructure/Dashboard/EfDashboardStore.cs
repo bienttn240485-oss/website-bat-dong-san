@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using RealEstateManagement.Application.Dashboard;
+using RealEstateManagement.Domain.Leads;
 using RealEstateManagement.Infrastructure.Data;
 
 namespace RealEstateManagement.Infrastructure.Dashboard;
@@ -7,6 +8,9 @@ namespace RealEstateManagement.Infrastructure.Dashboard;
 public sealed class EfDashboardStore(ApplicationDbContext dbContext) : IDashboardStore
 {
     public async Task<DashboardSourceDto> GetDashboardSourceAsync(DateOnly today, int expiringWithinDays, CancellationToken cancellationToken)
+        => await GetDashboardSourceAsync(today, expiringWithinDays, new DashboardScope(), cancellationToken);
+
+    public async Task<DashboardSourceDto> GetDashboardSourceAsync(DateOnly today, int expiringWithinDays, DashboardScope scope, CancellationToken cancellationToken)
     {
         var properties = await dbContext.Properties
             .AsNoTracking()
@@ -55,8 +59,11 @@ public sealed class EfDashboardStore(ApplicationDbContext dbContext) : IDashboar
                 contract.Status))
             .ToListAsync(cancellationToken);
 
-        var leads = await dbContext.Leads
+        var leadQuery = dbContext.Leads
             .AsNoTracking()
+            .Where(lead => scope.AssignedToUserId == null || lead.AssignedToUserId == scope.AssignedToUserId);
+
+        var leads = await leadQuery
             .Select(lead => new DashboardLeadSourceDto(
                 lead.Id,
                 lead.PropertyId,

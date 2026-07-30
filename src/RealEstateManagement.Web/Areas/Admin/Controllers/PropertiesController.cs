@@ -13,7 +13,7 @@ namespace RealEstateManagement.Web.Areas.Admin.Controllers;
 
 [Area("Admin")]
 [Route("admin/properties")]
-[Authorize(Policy = "InternalUser")]
+[Authorize(Policy = AuthorizationPolicies.RequireAdminOrSale)]
 public sealed class PropertiesController(
     IPropertyService propertyService,
     ILandlordContractService landlordContractService,
@@ -41,6 +41,7 @@ public sealed class PropertiesController(
         {
             Filter = filter,
             Properties = properties.Select(ToListItem).ToArray(),
+            CanManage = CanManageProperties(),
             CanDelete = CanDeleteProperties(),
             ProjectOptions = PropertyDisplay.ProjectOptions(filter.Project),
             TypeOptions = PropertyDisplay.TypeOptions(filter.Type),
@@ -51,6 +52,7 @@ public sealed class PropertiesController(
     }
 
     [HttpGet("create")]
+    [Authorize(Policy = AuthorizationPolicies.CanManageProperties)]
     public IActionResult Create()
     {
         PrepareFormView("Thêm căn hộ mới");
@@ -58,6 +60,7 @@ public sealed class PropertiesController(
     }
 
     [HttpPost("create")]
+    [Authorize(Policy = AuthorizationPolicies.CanManageProperties)]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(PropertyFormViewModel model, CancellationToken cancellationToken)
     {
@@ -116,11 +119,13 @@ public sealed class PropertiesController(
                 leads.Count,
                 leads.Count(lead => lead.Status == Domain.Leads.LeadStatus.New),
                 leads.OrderByDescending(lead => lead.CreatedAtUtc).Take(5).ToArray()),
+            CanManage = CanManageProperties(),
             CanDelete = CanDeleteProperties()
         });
     }
 
     [HttpGet("{id:guid}/edit")]
+    [Authorize(Policy = AuthorizationPolicies.CanManageProperties)]
     public async Task<IActionResult> Edit(Guid id, CancellationToken cancellationToken)
     {
         var property = await propertyService.GetPropertyDetailAsync(id, cancellationToken);
@@ -134,6 +139,7 @@ public sealed class PropertiesController(
     }
 
     [HttpPost("{id:guid}/edit")]
+    [Authorize(Policy = AuthorizationPolicies.CanManageProperties)]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(Guid id, PropertyFormViewModel model, CancellationToken cancellationToken)
     {
@@ -157,7 +163,7 @@ public sealed class PropertiesController(
     }
 
     [HttpPost("{id:guid}/delete")]
-    [Authorize(Policy = "OwnerOnly")]
+    [Authorize(Policy = AuthorizationPolicies.CanManageProperties)]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
@@ -223,6 +229,9 @@ public sealed class PropertiesController(
     }
 
     private bool CanDeleteProperties()
+        => User.IsInRole(ApplicationRoles.Owner);
+
+    private bool CanManageProperties()
         => User.IsInRole(ApplicationRoles.Owner);
 
     private DateOnly Today()

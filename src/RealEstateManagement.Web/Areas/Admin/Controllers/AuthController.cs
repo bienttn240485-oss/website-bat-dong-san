@@ -1,4 +1,4 @@
-using RealEstateManagement.Application.Common.Security;
+﻿using RealEstateManagement.Application.Common.Security;
 using RealEstateManagement.Infrastructure.Identity;
 using RealEstateManagement.Web.Areas.Admin.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -50,7 +50,7 @@ public sealed class AuthController(
             || await userManager.IsInRoleAsync(user, ApplicationRoles.Staff);
         if (!isInternalUser)
         {
-            ModelState.AddModelError(string.Empty, "TÃ i khoản nÃ y không có quyá»n truy cập khu vực quản trị.");
+            ModelState.AddModelError(string.Empty, "Tài khoản này không có quyền truy cập khu vực quản trị.");
             return View(model);
         }
 
@@ -74,7 +74,7 @@ public sealed class AuthController(
     }
 
     [HttpPost("logout")]
-    [Authorize(Policy = "InternalUser")]
+    [Authorize(Policy = AuthorizationPolicies.RequireAdminOrSale)]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Logout()
     {
@@ -82,4 +82,5 @@ public sealed class AuthController(
         return RedirectToAction(nameof(Login));
     }
 }
+
 

@@ -12,7 +12,7 @@ namespace RealEstateManagement.Web.Areas.Admin.Controllers;
 
 [Area("Admin")]
 [Route("admin/landlord-contracts")]
-[Authorize(Policy = "InternalUser")]
+[Authorize(Policy = AuthorizationPolicies.RequireAdminOrSale)]
 public sealed class LandlordContractsController(
     ILandlordContractService landlordContractService,
     IPropertyService propertyService,
@@ -46,6 +46,7 @@ public sealed class LandlordContractsController(
                 ContractDisplay.LandlordWarnings(contract, today))).ToArray(),
             ProjectOptions = PropertyDisplay.ProjectOptions(filter.Project),
             DepositStatusOptions = ContractDisplay.DepositStatusOptions(filter.DepositStatus),
+            CanManage = CanManage(),
             CanDelete = CanDelete()
         };
 
@@ -53,6 +54,7 @@ public sealed class LandlordContractsController(
     }
 
     [HttpGet("create")]
+    [Authorize(Policy = AuthorizationPolicies.CanManageContracts)]
     public async Task<IActionResult> Create(Guid? propertyId, CancellationToken cancellationToken)
     {
         PrepareView("Thêm hợp đồng chủ nhà");
@@ -60,6 +62,7 @@ public sealed class LandlordContractsController(
     }
 
     [HttpPost("create")]
+    [Authorize(Policy = AuthorizationPolicies.CanManageContracts)]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(LandlordContractFormViewModel model, CancellationToken cancellationToken)
     {
@@ -90,10 +93,11 @@ public sealed class LandlordContractsController(
         }
 
         PrepareView($"Hợp đồng chủ nhà {contract.PropertyCode}");
-        return View(new LandlordContractDetailViewModel(contract, ContractDisplay.LandlordWarnings(contract, Today()), CanDelete()));
+        return View(new LandlordContractDetailViewModel(contract, ContractDisplay.LandlordWarnings(contract, Today()), CanManage(), CanDelete()));
     }
 
     [HttpGet("{id:guid}/edit")]
+    [Authorize(Policy = AuthorizationPolicies.CanManageContracts)]
     public async Task<IActionResult> Edit(Guid id, CancellationToken cancellationToken)
     {
         var contract = await landlordContractService.GetLandlordContractAsync(id, cancellationToken);
@@ -107,6 +111,7 @@ public sealed class LandlordContractsController(
     }
 
     [HttpPost("{id:guid}/edit")]
+    [Authorize(Policy = AuthorizationPolicies.CanManageContracts)]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(Guid id, LandlordContractFormViewModel model, CancellationToken cancellationToken)
     {
@@ -130,7 +135,7 @@ public sealed class LandlordContractsController(
     }
 
     [HttpPost("{id:guid}/delete")]
-    [Authorize(Policy = "OwnerOnly")]
+    [Authorize(Policy = AuthorizationPolicies.CanManageContracts)]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
@@ -184,6 +189,9 @@ public sealed class LandlordContractsController(
     }
 
     private bool CanDelete()
+        => User.IsInRole(ApplicationRoles.Owner);
+
+    private bool CanManage()
         => User.IsInRole(ApplicationRoles.Owner);
 
     private void AddErrors(IEnumerable<string> errors)

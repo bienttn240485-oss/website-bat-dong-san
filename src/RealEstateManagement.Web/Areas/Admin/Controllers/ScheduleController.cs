@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using RealEstateManagement.Application.Bookings;
+using RealEstateManagement.Application.Common.Security;
 using RealEstateManagement.Application.Fields;
 using RealEstateManagement.Domain.Bookings;
 using RealEstateManagement.Web.ViewModels.Bookings;
@@ -11,7 +12,7 @@ namespace RealEstateManagement.Web.Areas.Admin.Controllers;
 
 [Area("Admin")]
 [Route("admin/schedule")]
-[Authorize(Policy = "InternalUser")]
+[Authorize(Policy = AuthorizationPolicies.RequireAdminOrSale)]
 public sealed class ScheduleController(IBookingService bookingService, IFieldService fieldService) : Controller
 {
     [HttpGet("")]
@@ -122,4 +123,5 @@ public sealed class ScheduleController(IBookingService bookingService, IFieldSer
         }
     }
 }
+
 

@@ -1,18 +1,18 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using RealEstateManagement.Application.Common.Security;
 using RealEstateManagement.Domain.Users;
 using RealEstateManagement.Infrastructure.Identity;
 using RealEstateManagement.Web.Areas.Admin.ViewModels;
 using RealEstateManagement.Web.ViewModels.Shared;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace RealEstateManagement.Web.Areas.Admin.Controllers;
 
 [Area("Admin")]
 [Route("admin/staff")]
-[Authorize(Policy = "OwnerOnly")]
+[Authorize(Policy = AuthorizationPolicies.CanManageStaff)]
 public sealed class StaffController(UserManager<ApplicationUser> userManager) : Controller
 {
     [HttpGet("")]
@@ -62,7 +62,7 @@ public sealed class StaffController(UserManager<ApplicationUser> userManager) : 
         var email = model.Email.Trim();
         if (await userManager.FindByEmailAsync(email) is not null)
         {
-            ModelState.AddModelError(nameof(model.Email), "Email nÃ y đã được sử dụng.");
+            ModelState.AddModelError(nameof(model.Email), "Email này đã được sử dụng.");
             PrepareForm("Thêm nhân viên");
             return View("~/Areas/Admin/Views/Shared/StaffForm.cshtml", model);
         }
@@ -146,7 +146,7 @@ public sealed class StaffController(UserManager<ApplicationUser> userManager) : 
         var existing = await userManager.FindByEmailAsync(email);
         if (existing is not null && existing.Id != id)
         {
-            ModelState.AddModelError(nameof(model.Email), "Email nÃ y đã được sử dụng.");
+            ModelState.AddModelError(nameof(model.Email), "Email này đã được sử dụng.");
             PrepareForm("Cập nhật nhân viên");
             return View("~/Areas/Admin/Views/Shared/StaffForm.cshtml", model);
         }
@@ -234,4 +234,3 @@ public sealed class StaffController(UserManager<ApplicationUser> userManager) : 
                 : "Không thể lưu tài khoản nhân viên. Vui lòng kiểm tra lại thông tin.");
     }
 }
-

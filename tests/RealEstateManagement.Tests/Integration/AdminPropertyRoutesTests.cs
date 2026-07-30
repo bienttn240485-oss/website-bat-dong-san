@@ -193,8 +193,7 @@ public sealed class AdminPropertyRoutesTests
             ("__RequestVerificationToken", token)
         ]));
 
-        Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
-        Assert.Equal("/admin/login", response.Headers.Location?.AbsolutePath);
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
     [Fact]

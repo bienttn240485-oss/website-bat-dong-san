@@ -10,6 +10,7 @@ public sealed class PropertyListViewModel
 {
     public PropertyFilterViewModel Filter { get; set; } = new();
     public IReadOnlyList<PropertyListItemViewModel> Properties { get; set; } = [];
+    public bool CanManage { get; set; }
     public bool CanDelete { get; set; }
     [ValidateNever]
     public IReadOnlyList<SelectListItem> ProjectOptions { get; set; } = [];
@@ -254,6 +255,7 @@ public sealed class PropertyDetailViewModel
     public required PropertyDetailDto Property { get; init; }
     public PropertyContractSummaryViewModel Contracts { get; init; } = new(null, null, [], null, null, []);
     public PropertyLeadSummaryViewModel Leads { get; init; } = new(0, 0, []);
+    public bool CanManage { get; init; }
     public bool CanDelete { get; init; }
 }
 

@@ -10,3 +10,18 @@ public static class ApplicationRoles
     public static readonly string[] Internal = [Owner, Staff];
 }
 
+public static class AuthorizationPolicies
+{
+    public const string RequireAdmin = nameof(RequireAdmin);
+    public const string RequireAdminOrSale = nameof(RequireAdminOrSale);
+    public const string CanManageProperties = nameof(CanManageProperties);
+    public const string CanManageContracts = nameof(CanManageContracts);
+    public const string CanViewFinancialDashboard = nameof(CanViewFinancialDashboard);
+    public const string CanManageStaff = nameof(CanManageStaff);
+    public const string CanAssignLeads = nameof(CanAssignLeads);
+    public const string CanUpdateAssignedLead = nameof(CanUpdateAssignedLead);
+
+    public const string LegacyInternalUser = "InternalUser";
+    public const string LegacyOwnerOnly = "OwnerOnly";
+}
+

@@ -1,4 +1,5 @@
-using RealEstateManagement.Application.Bookings;
+﻿using RealEstateManagement.Application.Bookings;
+using RealEstateManagement.Application.Common.Security;
 using RealEstateManagement.Application.Fields;
 using RealEstateManagement.Web.ViewModels.Bookings;
 using RealEstateManagement.Web.ViewModels.Shared;
@@ -9,17 +10,17 @@ namespace RealEstateManagement.Web.Areas.Admin.Controllers;
 
 [Area("Admin")]
 [Route("admin/payments")]
-[Authorize(Policy = "InternalUser")]
+[Authorize(Policy = AuthorizationPolicies.RequireAdminOrSale)]
 public sealed class PaymentsController(IBookingService bookingService) : Controller
 {
     [HttpGet("")]
     public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {
-        ViewData["Title"] = "Thanh toán";
+        ViewData["Title"] = "Thanh toÃ¡n";
         ViewData["Breadcrumbs"] = new List<BreadcrumbItemViewModel>
         {
-            new("Quản trị", "/admin/dashboard"),
-            new("Thanh toán")
+            new("Quáº£n trá»‹", "/admin/dashboard"),
+            new("Thanh toÃ¡n")
         };
 
         return View(new PaymentListViewModel
@@ -28,4 +29,6 @@ public sealed class PaymentsController(IBookingService bookingService) : Control
         });
     }
 }
+
+
 

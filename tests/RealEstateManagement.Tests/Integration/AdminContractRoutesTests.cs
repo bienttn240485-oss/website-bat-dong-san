@@ -203,8 +203,7 @@ public sealed class AdminContractRoutesTests
             ("status", ContractStatus.Cancelled.ToString())
         ]));
 
-        Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
-        Assert.Equal("/admin/login", response.Headers.Location?.AbsolutePath);
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
     [Fact]

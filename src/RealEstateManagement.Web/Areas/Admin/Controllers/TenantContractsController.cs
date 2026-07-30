@@ -13,7 +13,7 @@ namespace RealEstateManagement.Web.Areas.Admin.Controllers;
 
 [Area("Admin")]
 [Route("admin/tenant-contracts")]
-[Authorize(Policy = "InternalUser")]
+[Authorize(Policy = AuthorizationPolicies.RequireAdminOrSale)]
 public sealed class TenantContractsController(
     ITenantContractService tenantContractService,
     IPropertyService propertyService,
@@ -51,6 +51,7 @@ public sealed class TenantContractsController(
                 ContractDisplay.TenantWarnings(contract, today))).ToArray(),
             ProjectOptions = PropertyDisplay.ProjectOptions(filter.Project),
             StatusOptions = ContractDisplay.ContractStatusOptions(filter.Status),
+            CanManage = CanManage(),
             CanDelete = CanDelete()
         };
 
@@ -58,6 +59,7 @@ public sealed class TenantContractsController(
     }
 
     [HttpGet("create")]
+    [Authorize(Policy = AuthorizationPolicies.CanManageContracts)]
     public async Task<IActionResult> Create(Guid? propertyId, CancellationToken cancellationToken)
     {
         PrepareView("Thêm hợp đồng khách thuê");
@@ -65,6 +67,7 @@ public sealed class TenantContractsController(
     }
 
     [HttpPost("create")]
+    [Authorize(Policy = AuthorizationPolicies.CanManageContracts)]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(TenantContractFormViewModel model, CancellationToken cancellationToken)
     {
@@ -95,10 +98,11 @@ public sealed class TenantContractsController(
         }
 
         PrepareView($"Hợp đồng khách thuê {contract.PropertyCode}");
-        return View(new TenantContractDetailViewModel(contract, ContractDisplay.TenantWarnings(contract, Today()), CanDelete()));
+        return View(new TenantContractDetailViewModel(contract, ContractDisplay.TenantWarnings(contract, Today()), CanManage(), CanDelete()));
     }
 
     [HttpGet("{id:guid}/edit")]
+    [Authorize(Policy = AuthorizationPolicies.CanManageContracts)]
     public async Task<IActionResult> Edit(Guid id, CancellationToken cancellationToken)
     {
         var contract = await tenantContractService.GetTenantContractAsync(id, cancellationToken);
@@ -112,6 +116,7 @@ public sealed class TenantContractsController(
     }
 
     [HttpPost("{id:guid}/edit")]
+    [Authorize(Policy = AuthorizationPolicies.CanManageContracts)]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(Guid id, TenantContractFormViewModel model, CancellationToken cancellationToken)
     {
@@ -135,7 +140,7 @@ public sealed class TenantContractsController(
     }
 
     [HttpPost("{id:guid}/status")]
-    [Authorize(Policy = "OwnerOnly")]
+    [Authorize(Policy = AuthorizationPolicies.CanManageContracts)]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Status(Guid id, ContractStatus status, CancellationToken cancellationToken)
     {
@@ -147,7 +152,7 @@ public sealed class TenantContractsController(
     }
 
     [HttpPost("{id:guid}/delete")]
-    [Authorize(Policy = "OwnerOnly")]
+    [Authorize(Policy = AuthorizationPolicies.CanManageContracts)]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
@@ -202,6 +207,9 @@ public sealed class TenantContractsController(
     }
 
     private bool CanDelete()
+        => User.IsInRole(ApplicationRoles.Owner);
+
+    private bool CanManage()
         => User.IsInRole(ApplicationRoles.Owner);
 
     private void AddErrors(IEnumerable<string> errors)

@@ -11,7 +11,10 @@
             <h2 class="text-2xl font-semibold text-ink">Căn hộ</h2>
             <p class="mt-1 text-sm text-muted">Quản lý thông tin căn hộ cho thuê và bán trong hệ thống bất động sản.</p>
         </div>
-        <a class="fb-button fb-button-primary" href="/admin/properties/create">Thêm căn hộ</a>
+        @if (Model.CanManage)
+        {
+            <a class="fb-button fb-button-primary" href="/admin/properties/create">Thêm căn hộ</a>
+        }
     </div>
 
     @if (TempData["SuccessMessage"] is string success)
@@ -88,7 +91,10 @@
         <section class="fb-card p-6 text-center">
             <h3 class="text-lg font-semibold text-ink">Chưa có căn hộ phù hợp</h3>
             <p class="mt-2 text-sm text-muted">Thử đổi bộ lọc hoặc thêm căn hộ mới từ dữ liệu thực tế.</p>
-            <a class="fb-button fb-button-primary mt-4" href="/admin/properties/create">Thêm căn hộ</a>
+            @if (Model.CanManage)
+            {
+                <a class="fb-button fb-button-primary mt-4" href="/admin/properties/create">Thêm căn hộ</a>
+            }
         </section>
     }
     else
@@ -126,7 +132,10 @@
                                 <td class="text-right">
                                     <div class="flex justify-end gap-2">
                                         <a class="fb-button fb-button-secondary min-h-9 px-3" href="/admin/properties/@property.Id">Xem</a>
-                                        <a class="fb-button fb-button-secondary min-h-9 px-3" href="/admin/properties/@property.Id/edit">Sửa</a>
+                                        @if (Model.CanManage)
+                                        {
+                                            <a class="fb-button fb-button-secondary min-h-9 px-3" href="/admin/properties/@property.Id/edit">Sửa</a>
+                                        }
                                         @if (Model.CanDelete)
                                         {
                                             <form method="post" action="/admin/properties/@property.Id/delete" onsubmit="return confirm('Bạn chắc chắn muốn xóa căn hộ @property.Code?');">
@@ -161,7 +170,10 @@
                         </dl>
                         <div class="mt-3 flex flex-wrap gap-2">
                             <a class="fb-button fb-button-secondary min-h-9 px-3" href="/admin/properties/@property.Id">Xem</a>
-                            <a class="fb-button fb-button-secondary min-h-9 px-3" href="/admin/properties/@property.Id/edit">Sửa</a>
+                            @if (Model.CanManage)
+                            {
+                                <a class="fb-button fb-button-secondary min-h-9 px-3" href="/admin/properties/@property.Id/edit">Sửa</a>
+                            }
                             @if (Model.CanDelete)
                             {
                                 <form method="post" action="/admin/properties/@property.Id/delete" onsubmit="return confirm('Bạn chắc chắn muốn xóa căn hộ @property.Code?');">

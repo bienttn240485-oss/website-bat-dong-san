@@ -1,4 +1,5 @@
 using RealEstateManagement.Application.Bookings;
+using RealEstateManagement.Application.Common.Security;
 using RealEstateManagement.Web.ViewModels.Bookings;
 using RealEstateManagement.Web.ViewModels.Shared;
 using Microsoft.AspNetCore.Authorization;
@@ -8,7 +9,7 @@ namespace RealEstateManagement.Web.Areas.Admin.Controllers;
 
 [Area("Admin")]
 [Route("admin/services")]
-[Authorize(Policy = "OwnerOnly")]
+[Authorize(Policy = AuthorizationPolicies.RequireAdmin)]
 public sealed class ServicesController(IBookingService bookingService) : Controller
 {
     [HttpGet("")]
@@ -136,4 +137,3 @@ public sealed class ServicesController(IBookingService bookingService) : Control
         }
     }
 }
-

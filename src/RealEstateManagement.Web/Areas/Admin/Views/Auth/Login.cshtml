@@ -12,7 +12,7 @@
                 <partial name="~/Views/Shared/Partials/_HeroIcon.cshtml" model='new HeroIconViewModel("user")' />
             </div>
             <h1 class="text-2xl font-semibold text-ink">Đăng nhập quản trị</h1>
-            <p class="mt-2 text-sm text-muted">Chỉ tài khoản Chủ sân hoặc Nhân viên được truy cập khu vực nội bộ.</p>
+            <p class="mt-2 text-sm text-muted">Chỉ tài khoản Admin hoặc Sale được truy cập khu vực nội bộ.</p>
         </div>
 
         <form class="fb-card grid gap-4 p-5" asp-area="Admin" asp-controller="Auth" asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post">

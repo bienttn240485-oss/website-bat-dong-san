@@ -12,9 +12,12 @@ public sealed class DashboardService(IDashboardStore store, ISystemClock clock) 
     private const int TimelineMonths = 12;
 
     public async Task<DashboardSnapshotDto> GetDashboardAsync(CancellationToken cancellationToken = default)
+        => await GetDashboardAsync(new DashboardScope(), cancellationToken);
+
+    public async Task<DashboardSnapshotDto> GetDashboardAsync(DashboardScope scope, CancellationToken cancellationToken = default)
     {
         var today = DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(clock.UtcNow, BusinessTimeZone()).DateTime);
-        var source = await store.GetDashboardSourceAsync(today, ExpiringWithinDays, cancellationToken);
+        var source = await store.GetDashboardSourceAsync(today, ExpiringWithinDays, scope, cancellationToken);
 
         return new DashboardSnapshotDto(
             BuildOverview(source),

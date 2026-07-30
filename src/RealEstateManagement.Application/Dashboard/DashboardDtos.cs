@@ -11,6 +11,8 @@ public sealed record DashboardSnapshotDto(
     IReadOnlyList<DashboardTimelineItemDto> Timeline,
     DashboardChartsDto Charts);
 
+public sealed record DashboardScope(Guid? AssignedToUserId = null);
+
 public sealed record DashboardOverviewDto(
     int TotalProperties,
     int AvailableProperties,

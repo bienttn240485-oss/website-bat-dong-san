@@ -16,13 +16,26 @@ builder.Services.AddInfrastructure(builder.Configuration, builder.Environment.Co
 builder.Services.AddControllersWithViews();
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("InternalUser", policy => policy.RequireRole(ApplicationRoles.Internal));
-    options.AddPolicy("OwnerOnly", policy => policy.RequireRole(ApplicationRoles.Owner));
+    options.AddPolicy(AuthorizationPolicies.RequireAdmin, policy => policy.RequireRole(ApplicationRoles.Owner));
+    options.AddPolicy(AuthorizationPolicies.RequireAdminOrSale, policy => policy.RequireRole(ApplicationRoles.Internal));
+    options.AddPolicy(AuthorizationPolicies.CanManageProperties, policy => policy.RequireRole(ApplicationRoles.Owner));
+    options.AddPolicy(AuthorizationPolicies.CanManageContracts, policy => policy.RequireRole(ApplicationRoles.Owner));
+    options.AddPolicy(AuthorizationPolicies.CanViewFinancialDashboard, policy => policy.RequireRole(ApplicationRoles.Owner));
+    options.AddPolicy(AuthorizationPolicies.CanManageStaff, policy => policy.RequireRole(ApplicationRoles.Owner));
+    options.AddPolicy(AuthorizationPolicies.CanAssignLeads, policy => policy.RequireRole(ApplicationRoles.Owner));
+    options.AddPolicy(AuthorizationPolicies.CanUpdateAssignedLead, policy => policy.RequireRole(ApplicationRoles.Internal));
+    options.AddPolicy(AuthorizationPolicies.LegacyInternalUser, policy => policy.RequireRole(ApplicationRoles.Internal));
+    options.AddPolicy(AuthorizationPolicies.LegacyOwnerOnly, policy => policy.RequireRole(ApplicationRoles.Owner));
 });
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/admin/login";
     options.AccessDeniedPath = "/admin/login";
+    options.Events.OnRedirectToAccessDenied = context =>
+    {
+        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+        return Task.CompletedTask;
+    };
 });
 
 var app = builder.Build();

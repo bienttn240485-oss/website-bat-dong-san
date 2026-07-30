@@ -12,7 +12,10 @@
         </div>
         <div class="flex flex-wrap gap-2">
             <a class="fb-button fb-button-secondary" href="/admin/tenant-contracts">Danh sách</a>
-            <a class="fb-button fb-button-primary" href="/admin/tenant-contracts/@contract.Id/edit">Sửa</a>
+            @if (Model.CanManage)
+            {
+                <a class="fb-button fb-button-primary" href="/admin/tenant-contracts/@contract.Id/edit">Sửa</a>
+            }
             @if (Model.CanDelete)
             {
                 <form method="post" action="/admin/tenant-contracts/@contract.Id/delete" onsubmit="return confirm('Bạn chắc chắn muốn xóa hợp đồng khách thuê @contract.PropertyCode?');">
@@ -52,7 +55,7 @@
             <div><dt class="fb-muted">Mã PE</dt><dd class="font-medium text-ink">@(contract.PeCode ?? "Chưa có")</dd></div>
             <div><dt class="fb-muted">Pass cửa</dt><dd class="font-medium text-ink">@(contract.PassCode ?? "Chưa có")</dd></div>
         </dl>
-        @if (Model.CanDelete)
+        @if (Model.CanManage)
         {
             <form class="mt-4 flex flex-wrap items-end gap-2" method="post" action="/admin/tenant-contracts/@contract.Id/status">
                 @Html.AntiForgeryToken()

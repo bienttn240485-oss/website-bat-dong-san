@@ -6,7 +6,10 @@
             <h2 class="text-2xl font-semibold text-ink">Hợp đồng chủ nhà</h2>
             <p class="mt-1 text-sm text-muted">Theo dõi giá vào, kỳ thanh toán và cảnh báo hết hạn.</p>
         </div>
-        <a class="fb-button fb-button-primary" href="/admin/landlord-contracts/create">Thêm hợp đồng</a>
+        @if (Model.CanManage)
+        {
+            <a class="fb-button fb-button-primary" href="/admin/landlord-contracts/create">Thêm hợp đồng</a>
+        }
     </div>
 
     <form class="fb-card grid gap-3 p-4 md:grid-cols-4" method="get">
@@ -92,7 +95,10 @@
                             <td class="px-4 py-3">
                                 <div class="flex flex-wrap gap-2">
                                     <a class="fb-button fb-button-secondary px-3 py-1 text-xs" href="/admin/landlord-contracts/@contract.Id">Xem</a>
-                                    <a class="fb-button fb-button-secondary px-3 py-1 text-xs" href="/admin/landlord-contracts/@contract.Id/edit">Sửa</a>
+                                    @if (Model.CanManage)
+                                    {
+                                        <a class="fb-button fb-button-secondary px-3 py-1 text-xs" href="/admin/landlord-contracts/@contract.Id/edit">Sửa</a>
+                                    }
                                 </div>
                             </td>
                         </tr>

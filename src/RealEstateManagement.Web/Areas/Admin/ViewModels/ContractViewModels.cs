@@ -15,6 +15,7 @@ public sealed class LandlordContractListViewModel
     public IReadOnlyList<SelectListItem> ProjectOptions { get; set; } = [];
     [ValidateNever]
     public IReadOnlyList<SelectListItem> DepositStatusOptions { get; set; } = [];
+    public bool CanManage { get; set; }
     public bool CanDelete { get; set; }
 }
 
@@ -26,6 +27,7 @@ public sealed class TenantContractListViewModel
     public IReadOnlyList<SelectListItem> ProjectOptions { get; set; } = [];
     [ValidateNever]
     public IReadOnlyList<SelectListItem> StatusOptions { get; set; } = [];
+    public bool CanManage { get; set; }
     public bool CanDelete { get; set; }
 }
 
@@ -282,11 +284,13 @@ public sealed class TenantContractFormViewModel : IValidatableObject
 public sealed record LandlordContractDetailViewModel(
     LandlordContractDto Contract,
     IReadOnlyList<ContractWarningViewModel> Warnings,
+    bool CanManage,
     bool CanDelete);
 
 public sealed record TenantContractDetailViewModel(
     TenantContractDto Contract,
     IReadOnlyList<ContractWarningViewModel> Warnings,
+    bool CanManage,
     bool CanDelete);
 
 public sealed record ContractWarningViewModel(string Message, string Tone);

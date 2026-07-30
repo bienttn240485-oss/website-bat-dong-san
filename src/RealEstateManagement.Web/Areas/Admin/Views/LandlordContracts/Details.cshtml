@@ -12,7 +12,10 @@
         </div>
         <div class="flex flex-wrap gap-2">
             <a class="fb-button fb-button-secondary" href="/admin/landlord-contracts">Danh sách</a>
-            <a class="fb-button fb-button-primary" href="/admin/landlord-contracts/@contract.Id/edit">Sửa</a>
+            @if (Model.CanManage)
+            {
+                <a class="fb-button fb-button-primary" href="/admin/landlord-contracts/@contract.Id/edit">Sửa</a>
+            }
             @if (Model.CanDelete)
             {
                 <form method="post" action="/admin/landlord-contracts/@contract.Id/delete" onsubmit="return confirm('Bạn chắc chắn muốn xóa hợp đồng chủ nhà @contract.PropertyCode?');">

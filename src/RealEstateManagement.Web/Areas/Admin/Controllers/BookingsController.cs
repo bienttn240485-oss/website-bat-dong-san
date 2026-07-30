@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Security.Claims;
 using RealEstateManagement.Application.Bookings;
 using RealEstateManagement.Application.Common.Security;
@@ -13,7 +13,7 @@ namespace RealEstateManagement.Web.Areas.Admin.Controllers;
 
 [Area("Admin")]
 [Route("admin/bookings")]
-[Authorize(Policy = "InternalUser")]
+[Authorize(Policy = AuthorizationPolicies.RequireAdminOrSale)]
 public sealed class BookingsController(IBookingService bookingService, IFieldService fieldService) : Controller
 {
     [HttpGet("")]
@@ -29,7 +29,7 @@ public sealed class BookingsController(IBookingService bookingService, IFieldSer
             Bookings = await bookingService.ListAdminBookingsAsync(bookingDate, fieldId, status, cancellationToken)
         };
 
-        PrepareBreadcrumb("Lịch đặt sân");
+        PrepareBreadcrumb("Lá»‹ch Ä‘áº·t sÃ¢n");
         return View(model);
     }
 
@@ -42,7 +42,7 @@ public sealed class BookingsController(IBookingService bookingService, IFieldSer
         };
         await PopulateCreateModelAsync(model, cancellationToken);
         await PopulateAvailabilityAndQuoteAsync(model, cancellationToken);
-        PrepareBreadcrumb("Tạo booking");
+        PrepareBreadcrumb("Táº¡o booking");
         return View(model);
     }
 
@@ -54,13 +54,13 @@ public sealed class BookingsController(IBookingService bookingService, IFieldSer
         var bookingDate = model.ParseBookingDate();
         if (bookingDate is null)
         {
-            ModelState.AddModelError(nameof(model.BookingDateText), "NgÃ y đặt sân cần nhập theo định dạng dd/MM/yyyy.");
+            ModelState.AddModelError(nameof(model.BookingDateText), "NgÃƒÂ y Ä‘áº·t sÃ¢n cáº§n nháº­p theo Ä‘á»‹nh dáº¡ng dd/MM/yyyy.");
         }
 
         if (!ModelState.IsValid || bookingDate is null)
         {
             await PopulateAvailabilityAndQuoteAsync(model, cancellationToken);
-            PrepareBreadcrumb("Tạo booking");
+            PrepareBreadcrumb("Táº¡o booking");
             return View(model);
         }
 
@@ -92,11 +92,11 @@ public sealed class BookingsController(IBookingService bookingService, IFieldSer
             }
 
             await PopulateAvailabilityAndQuoteAsync(model, cancellationToken);
-            PrepareBreadcrumb("Tạo booking");
+            PrepareBreadcrumb("Táº¡o booking");
             return View(model);
         }
 
-        TempData["SuccessMessage"] = "ÄÃ£ tạo booking cho khách.";
+        TempData["SuccessMessage"] = "Ã„ÂÃƒÂ£ táº¡o booking cho khÃ¡ch.";
         return RedirectToAction(nameof(Details), new { id = result.BookingId });
     }
 
@@ -122,13 +122,13 @@ public sealed class BookingsController(IBookingService bookingService, IFieldSer
             return NotFound();
         }
 
-        ViewData["Title"] = "Quyết toán";
+        ViewData["Title"] = "Quyáº¿t toÃ¡n";
         ViewData["Breadcrumbs"] = new List<BreadcrumbItemViewModel>
         {
-            new("Quản trị", "/admin/dashboard"),
-            new("Lịch đặt sân", "/admin/bookings"),
+            new("Quáº£n trá»‹", "/admin/dashboard"),
+            new("Lá»‹ch Ä‘áº·t sÃ¢n", "/admin/bookings"),
             new(booking.BookingCode, $"/admin/bookings/{booking.Id}"),
-            new("Quyết toán")
+            new("Quyáº¿t toÃ¡n")
         };
 
         return View(new AdminBookingSettlementViewModel
@@ -149,7 +149,7 @@ public sealed class BookingsController(IBookingService bookingService, IFieldSer
     {
         var result = await RecordPaymentInternalAsync(id, model, cancellationToken);
         TempData[result.Succeeded ? "SuccessMessage" : "ErrorMessage"] = result.Succeeded
-            ? "ÄÃ£ ghi nhận thanh toán quyết toán."
+            ? "Ã„ÂÃƒÂ£ ghi nháº­n thanh toÃ¡n quyáº¿t toÃ¡n."
             : string.Join(" ", result.Errors);
 
         return result.Succeeded
@@ -163,7 +163,7 @@ public sealed class BookingsController(IBookingService bookingService, IFieldSer
     {
         var result = await bookingService.ChangeStatusAsync(id, BookingStatus.Completed, cancellationToken);
         TempData[result.Succeeded ? "SuccessMessage" : "ErrorMessage"] = result.Succeeded
-            ? "ÄÃ£ xác nhận hoÃ n thÃ nh lượt đặt sân."
+            ? "Ã„ÂÃƒÂ£ xÃ¡c nháº­n hoÃƒÂ n thÃƒÂ nh lÆ°á»£t Ä‘áº·t sÃ¢n."
             : string.Join(" ", result.Errors);
 
         return RedirectToAction(nameof(Settlement), new { id });
@@ -203,7 +203,7 @@ public sealed class BookingsController(IBookingService bookingService, IFieldSer
     {
         var result = await bookingService.ChangeStatusAsync(id, targetStatus, cancellationToken);
         TempData[result.Succeeded ? "SuccessMessage" : "ErrorMessage"] = result.Succeeded
-            ? "ÄÃ£ cập nhật trạng thái booking."
+            ? "Ã„ÂÃƒÂ£ cáº­p nháº­t tráº¡ng thÃ¡i booking."
             : string.Join(" ", result.Errors);
 
         return RedirectToAction(nameof(Details), new { id });
@@ -226,7 +226,7 @@ public sealed class BookingsController(IBookingService bookingService, IFieldSer
             cancellationToken);
 
         TempData[result.Succeeded ? "SuccessMessage" : "ErrorMessage"] = result.Succeeded
-            ? "ÄÃ£ ghi nhận thanh toán cho booking. Số đã thu vÃ  trạng thái thanh toán đã được cập nhật."
+            ? "Ã„ÂÃƒÂ£ ghi nháº­n thanh toÃ¡n cho booking. Sá»‘ Ä‘Ã£ thu vÃƒÂ  tráº¡ng thÃ¡i thanh toÃ¡n Ä‘Ã£ Ä‘Æ°á»£c cáº­p nháº­t."
             : string.Join(" ", result.Errors);
 
         return Redirect($"/admin/bookings/{id}#next-step");
@@ -253,13 +253,13 @@ public sealed class BookingsController(IBookingService bookingService, IFieldSer
     {
         if (!ModelState.IsValid)
         {
-            TempData["ErrorMessage"] = "Vui lòng nhập lý do hủy booking.";
+            TempData["ErrorMessage"] = "Vui lÃ²ng nháº­p lÃ½ do há»§y booking.";
             return RedirectToAction(nameof(Details), new { id });
         }
 
         var result = await bookingService.CancelBookingAsync(new BookingCancellationCommand(id, model.Reason, CurrentUserId()), cancellationToken);
         TempData[result.Succeeded ? "SuccessMessage" : "ErrorMessage"] = result.Succeeded
-            ? "ÄÃ£ hủy booking."
+            ? "Ã„ÂÃƒÂ£ há»§y booking."
             : string.Join(" ", result.Errors);
 
         return RedirectToAction(nameof(Details), new { id });
@@ -292,8 +292,8 @@ public sealed class BookingsController(IBookingService bookingService, IFieldSer
         ViewData["Title"] = title;
         ViewData["Breadcrumbs"] = new List<BreadcrumbItemViewModel>
         {
-            new("Quản trị", "/admin/dashboard"),
-            new("Lịch đặt sân", "/admin/bookings"),
+            new("Quáº£n trá»‹", "/admin/dashboard"),
+            new("Lá»‹ch Ä‘áº·t sÃ¢n", "/admin/bookings"),
             new(title)
         };
     }
@@ -332,4 +332,5 @@ public sealed class BookingsController(IBookingService bookingService, IFieldSer
         return Guid.TryParse(userIdText, out var userId) && userId != Guid.Empty ? userId : null;
     }
 }
+
 

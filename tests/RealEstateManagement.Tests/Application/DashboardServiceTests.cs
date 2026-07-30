@@ -189,10 +189,22 @@ public sealed class DashboardServiceTests
     private sealed class InMemoryDashboardStore(DashboardSourceDto source) : IDashboardStore
     {
         public Task<DashboardSourceDto> GetDashboardSourceAsync(DateOnly today, int expiringWithinDays, CancellationToken cancellationToken)
+            => GetDashboardSourceAsync(today, expiringWithinDays, new DashboardScope(), cancellationToken);
+
+        public Task<DashboardSourceDto> GetDashboardSourceAsync(DateOnly today, int expiringWithinDays, DashboardScope scope, CancellationToken cancellationToken)
         {
             Assert.Equal(new DateOnly(2026, 7, 28), today);
             Assert.Equal(30, expiringWithinDays);
-            return Task.FromResult(source);
+            var scopedSource = scope.AssignedToUserId is null
+                ? source
+                : source with
+                {
+                    Leads = source.Leads
+                        .Where(lead => lead.AssignedToUserId == scope.AssignedToUserId)
+                        .ToArray()
+                };
+
+            return Task.FromResult(scopedSource);
         }
     }
 }

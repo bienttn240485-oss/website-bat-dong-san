@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using RealEstateManagement.Application.Common.Security;
 using RealEstateManagement.Application.Fields;
 using RealEstateManagement.Domain.Fields;
 using RealEstateManagement.Web.Areas.Admin.ViewModels;
@@ -10,7 +11,7 @@ namespace RealEstateManagement.Web.Areas.Admin.Controllers;
 
 [Area("Admin")]
 [Route("admin/fields")]
-[Authorize(Policy = "OwnerOnly")]
+[Authorize(Policy = AuthorizationPolicies.RequireAdmin)]
 public sealed class FieldsController(IFieldService fieldService) : Controller
 {
     [HttpGet("")]
@@ -152,4 +153,3 @@ public sealed class FieldsController(IFieldService fieldService) : Controller
         }
     }
 }
-

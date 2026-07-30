@@ -8,7 +8,7 @@ namespace RealEstateManagement.Web.Areas.Admin.Controllers;
 
 [Area("Admin")]
 [Route("admin/reports")]
-[Authorize(Policy = "OwnerOnly")]
+[Authorize(Policy = AuthorizationPolicies.CanViewFinancialDashboard)]
 public sealed class ReportsController(IReportService reportService) : Controller
 {
     [HttpGet("")]

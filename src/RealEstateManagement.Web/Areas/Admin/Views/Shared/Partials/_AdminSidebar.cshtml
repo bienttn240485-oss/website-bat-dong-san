@@ -2,22 +2,31 @@
 
 @{
     var isOwner = User.IsInRole(ApplicationRoles.Owner);
-    var items = new[]
+    var adminItems = new[]
     {
-        new { Label = "Tổng quan", Url = "/admin/dashboard", Icon = "home", OwnerOnly = false },
-        new { Label = "Căn hộ", Url = "/admin/properties", Icon = "building-office", OwnerOnly = false },
-        new { Label = "Hợp đồng chủ nhà", Url = "/admin/landlord-contracts", Icon = "clipboard-document-list", OwnerOnly = false },
-        new { Label = "Hợp đồng khách thuê", Url = "/admin/tenant-contracts", Icon = "clipboard-document-list", OwnerOnly = false },
-        new { Label = "Lead", Url = "/admin/leads", Icon = "users", OwnerOnly = false },
-        new { Label = "Hệ thống cũ: Lịch sân", Url = "/admin/schedule", Icon = "calendar", OwnerOnly = false },
-        new { Label = "Hệ thống cũ: Lịch đặt sân", Url = "/admin/bookings", Icon = "clipboard-document-list", OwnerOnly = false },
-        new { Label = "Hệ thống cũ: Thanh toán", Url = "/admin/payments", Icon = "credit-card", OwnerOnly = false },
-        new { Label = "Hệ thống cũ: Sân", Url = "/admin/fields", Icon = "building-office", OwnerOnly = true },
-        new { Label = "Hệ thống cũ: Dịch vụ", Url = "/admin/services", Icon = "clipboard-document-list", OwnerOnly = true },
-        new { Label = "Hệ thống cũ: Khuyến mãi", Url = "/admin/promotions", Icon = "tag", OwnerOnly = true },
-        new { Label = "Hệ thống cũ: Báo cáo", Url = "/admin/reports", Icon = "chart-bar", OwnerOnly = true },
-        new { Label = "Nhân viên", Url = "/admin/staff", Icon = "users", OwnerOnly = true }
+        new { Label = "Dashboard", Url = "/admin/dashboard", Icon = "home" },
+        new { Label = "Căn hộ", Url = "/admin/properties", Icon = "building-office" },
+        new { Label = "Hợp đồng chủ nhà", Url = "/admin/landlord-contracts", Icon = "clipboard-document-list" },
+        new { Label = "Hợp đồng khách thuê", Url = "/admin/tenant-contracts", Icon = "clipboard-document-list" },
+        new { Label = "Lead", Url = "/admin/leads", Icon = "users" },
+        new { Label = "Nhân sự", Url = "/admin/staff", Icon = "users" },
+        new { Label = "Hệ thống cũ: Lịch sân", Url = "/admin/schedule", Icon = "calendar" },
+        new { Label = "Hệ thống cũ: Lịch đặt sân", Url = "/admin/bookings", Icon = "clipboard-document-list" },
+        new { Label = "Hệ thống cũ: Thanh toán", Url = "/admin/payments", Icon = "credit-card" },
+        new { Label = "Hệ thống cũ: Sân", Url = "/admin/fields", Icon = "building-office" },
+        new { Label = "Hệ thống cũ: Dịch vụ", Url = "/admin/services", Icon = "clipboard-document-list" },
+        new { Label = "Hệ thống cũ: Khuyến mãi", Url = "/admin/promotions", Icon = "tag" },
+        new { Label = "Hệ thống cũ: Báo cáo", Url = "/admin/reports", Icon = "chart-bar" }
     };
+    var saleItems = new[]
+    {
+        new { Label = "Dashboard", Url = "/admin/dashboard", Icon = "home" },
+        new { Label = "Căn hộ", Url = "/admin/properties", Icon = "building-office" },
+        new { Label = "Lead của tôi", Url = "/admin/leads", Icon = "users" },
+        new { Label = "Hợp đồng chủ nhà", Url = "/admin/landlord-contracts", Icon = "clipboard-document-list" },
+        new { Label = "Hợp đồng khách thuê", Url = "/admin/tenant-contracts", Icon = "clipboard-document-list" }
+    };
+    var items = isOwner ? adminItems : saleItems;
 }
 
 <aside class="hidden h-screen w-64 shrink-0 border-r border-line bg-white lg:sticky lg:top-0 lg:block">
@@ -27,11 +36,6 @@
     <nav class="grid gap-1 p-3 text-sm" aria-label="Điều hướng quản trị">
         @foreach (var item in items)
         {
-            if (item.OwnerOnly && !isOwner)
-            {
-                continue;
-            }
-
             var isActive = Context.Request.Path.Value?.StartsWith(item.Url, StringComparison.OrdinalIgnoreCase) == true;
             <a class="flex items-center gap-3 rounded-ui px-3 py-2 font-medium transition @(isActive ? "bg-brand-50 text-brand-800" : "text-muted hover:bg-slate-50 hover:text-ink")" href="@item.Url">
                 <partial name="~/Views/Shared/Partials/_HeroIcon.cshtml" model="new HeroIconViewModel(item.Icon)" />
@@ -52,11 +56,6 @@
         <nav class="grid gap-1 p-3 text-sm" aria-label="Điều hướng quản trị trên di động">
             @foreach (var item in items)
             {
-                if (item.OwnerOnly && !isOwner)
-                {
-                    continue;
-                }
-
                 <a class="flex items-center gap-3 rounded-ui px-3 py-2 font-medium text-muted hover:bg-slate-50 hover:text-ink" href="@item.Url">
                     <partial name="~/Views/Shared/Partials/_HeroIcon.cshtml" model="new HeroIconViewModel(item.Icon)" />
                     <span>@item.Label</span>

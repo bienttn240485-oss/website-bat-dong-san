@@ -237,6 +237,7 @@ public sealed class DevelopmentRealEstateSeeder(ApplicationDbContext dbContext, 
             }
 
             var existingImages = await dbContext.PropertyImages
+                .AsNoTracking()
                 .Where(image => image.PropertyId == property.Id)
                 .OrderBy(image => image.SortOrder)
                 .ToListAsync(cancellationToken);
@@ -252,7 +253,9 @@ public sealed class DevelopmentRealEstateSeeder(ApplicationDbContext dbContext, 
                 continue;
             }
 
-            dbContext.PropertyImages.RemoveRange(existingImages);
+            await dbContext.PropertyImages
+                .Where(image => image.PropertyId == property.Id)
+                .ExecuteDeleteAsync(cancellationToken);
             await dbContext.PropertyImages.AddRangeAsync(BuildImages(property.Id, property.Code), cancellationToken);
         }
 
@@ -275,6 +278,7 @@ public sealed class DevelopmentRealEstateSeeder(ApplicationDbContext dbContext, 
             }
 
             var existingImages = await dbContext.PropertyImages
+                .AsNoTracking()
                 .Where(image => image.PropertyId == property.Id)
                 .OrderBy(image => image.SortOrder)
                 .ToListAsync(cancellationToken);
@@ -289,7 +293,9 @@ public sealed class DevelopmentRealEstateSeeder(ApplicationDbContext dbContext, 
                 continue;
             }
 
-            dbContext.PropertyImages.RemoveRange(existingImages);
+            await dbContext.PropertyImages
+                .Where(image => image.PropertyId == property.Id)
+                .ExecuteDeleteAsync(cancellationToken);
             await dbContext.PropertyImages.AddRangeAsync(BuildImages(property.Id, property.Code), cancellationToken);
         }
 
