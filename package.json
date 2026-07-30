@@ -9,10 +9,10 @@
   },
   "scripts": {
     "css:dev": "tailwindcss -i ./src/RealEstateManagement.Web/Styles/input.css -o ./src/RealEstateManagement.Web/wwwroot/css/site.css --watch",
-    "js:dev": "esbuild ./src/RealEstateManagement.Web/Scripts/site.js ./src/RealEstateManagement.Web/Scripts/admin-schedule.js ./src/RealEstateManagement.Web/Scripts/admin-reports.js --bundle --format=iife --sourcemap --outdir=./src/RealEstateManagement.Web/wwwroot/js --watch",
+    "js:dev": "esbuild ./src/RealEstateManagement.Web/Scripts/site.js ./src/RealEstateManagement.Web/Scripts/admin-reports.js --bundle --format=iife --sourcemap --outdir=./src/RealEstateManagement.Web/wwwroot/js --watch",
     "dev": "concurrently \"npm:css:dev\" \"npm:js:dev\"",
     "css:build": "tailwindcss -i ./src/RealEstateManagement.Web/Styles/input.css -o ./src/RealEstateManagement.Web/wwwroot/css/site.css --minify",
-    "js:build": "esbuild ./src/RealEstateManagement.Web/Scripts/site.js ./src/RealEstateManagement.Web/Scripts/admin-schedule.js ./src/RealEstateManagement.Web/Scripts/admin-reports.js --bundle --format=iife --minify --outdir=./src/RealEstateManagement.Web/wwwroot/js",
+    "js:build": "esbuild ./src/RealEstateManagement.Web/Scripts/site.js ./src/RealEstateManagement.Web/Scripts/admin-reports.js --bundle --format=iife --minify --outdir=./src/RealEstateManagement.Web/wwwroot/js",
     "build": "npm run css:build && npm run js:build"
   },
   "keywords": [],
@@ -27,10 +27,6 @@
     "tailwindcss": "^4.3.3"
   },
   "dependencies": {
-    "@fullcalendar/core": "^6.1.21",
-    "@fullcalendar/daygrid": "^6.1.21",
-    "@fullcalendar/interaction": "^6.1.21",
-    "@fullcalendar/timegrid": "^6.1.21",
     "chart.js": "^4.5.1",
     "preline": "^4.2.0"
   }

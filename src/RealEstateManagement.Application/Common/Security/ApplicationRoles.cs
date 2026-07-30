@@ -20,8 +20,5 @@ public static class AuthorizationPolicies
     public const string CanManageStaff = nameof(CanManageStaff);
     public const string CanAssignLeads = nameof(CanAssignLeads);
     public const string CanUpdateAssignedLead = nameof(CanUpdateAssignedLead);
-
-    public const string LegacyInternalUser = "InternalUser";
-    public const string LegacyOwnerOnly = "OwnerOnly";
 }
 

@@ -17,7 +17,7 @@
                 <partial name="Partials/_Button" model='new ButtonViewModel("Xóa dữ liệu mẫu", "#", "danger")' />
             </div>
             <div class="mt-5 grid grid-cols-3 gap-3 text-xs font-medium">
-                <div class="rounded-ui bg-brand-700 p-3 text-white">Xanh sân bóng</div>
+                <div class="rounded-ui bg-brand-700 p-3 text-white">Xanh thương hiệu</div>
                 <div class="rounded-ui bg-amber-50 p-3 text-amber-800">Cảnh báo</div>
                 <div class="rounded-ui bg-slate-100 p-3 text-slate-700">Nền trung tính</div>
             </div>
@@ -26,7 +26,7 @@
         <div class="fb-card p-5">
             <h2 class="font-semibold text-ink">Trường nhập liệu</h2>
             <div class="mt-4 grid gap-4">
-                <partial name="Partials/_FormField" model='new FormFieldViewModel("demo-name", "Tên khách", Value: "Nguyễn Minh Tuấn", Hint: "Tên hiển thị trong phiếu đặt sân.", Required: true)' />
+                <partial name="Partials/_FormField" model='new FormFieldViewModel("demo-name", "Tên khách", Value: "Nguyễn Minh Tuấn", Hint: "Tên hiển thị trong hồ sơ tư vấn.", Required: true)' />
                 <partial name="Partials/_FormField" model='new FormFieldViewModel("demo-phone", "Số điện thoại", Type: "tel", Value: "0901 234 567", Required: true)' />
             </div>
         </div>
@@ -34,7 +34,7 @@
 
     <section class="grid gap-4 md:grid-cols-3">
         <partial name="Partials/_Alert" model='new AlertViewModel("Cập nhật thành công", "Thông tin mẫu đã được lưu trong phiên kiểm thử giao diện.", "success")' />
-        <partial name="Partials/_Alert" model='new AlertViewModel("Cần kiểm tra", "Một số lịch đặt sân đang chờ xác nhận trước giờ bóng lăn.", "warning")' />
+        <partial name="Partials/_Alert" model='new AlertViewModel("Cần kiểm tra", "Một số lead mới đang chờ Sale liên hệ.", "warning")' />
         <partial name="Partials/_Alert" model='new AlertViewModel("Thông tin", "Trang này không tạo dữ liệu nghiệp vụ trong hệ thống.", "info")' />
     </section>
 
@@ -54,16 +54,16 @@
                 </thead>
                 <tbody class="divide-y divide-line bg-white">
                     <tr>
-                        <td>BK-20260725-001</td>
+                        <td>LEAD-001</td>
                         <td>Nguyễn Minh Tuấn</td>
-                        <td><partial name="Partials/_StatusBadge" model='new StatusBadgeViewModel("Đã xác nhận", "info")' /></td>
-                        <td>Đã đặt cọc</td>
+                        <td><partial name="Partials/_StatusBadge" model='new StatusBadgeViewModel("Đã liên hệ", "info")' /></td>
+                        <td>Quan tâm thuê căn hộ</td>
                     </tr>
                     <tr>
-                        <td>BK-20260725-002</td>
+                        <td>LEAD-002</td>
                         <td>Trần Quốc Huy</td>
-                        <td><partial name="Partials/_StatusBadge" model='new StatusBadgeViewModel("Chờ thanh toán", "warning")' /></td>
-                        <td>Còn 420.000 đ</td>
+                        <td><partial name="Partials/_StatusBadge" model='new StatusBadgeViewModel("Đang xem căn", "warning")' /></td>
+                        <td>Quan tâm mua căn hộ</td>
                     </tr>
                 </tbody>
             </table>
@@ -73,7 +73,7 @@
         </div>
     </section>
 
-    <partial name="Partials/_EmptyState" model='new EmptyStateViewModel("Chưa có lịch bảo trì", "Khi Chủ sân tạo lịch khóa sân hoặc bảo trì, danh sách sẽ hiển thị tại đây.", "Tạo lịch bảo trì mẫu", "#")' />
+    <partial name="Partials/_EmptyState" model='new EmptyStateViewModel("Chưa có dữ liệu", "Khi Admin tạo dữ liệu mẫu, danh sách sẽ hiển thị tại đây.", "Tạo dữ liệu mẫu", "#")' />
     <button class="fb-button fb-button-danger" type="button" data-hs-overlay="#demo-confirm">Mở hộp xác nhận</button>
     <partial name="Partials/_ConfirmationModal" model='new ConfirmationModalViewModel("demo-confirm", "Xác nhận thao tác", "Đây là hộp xác nhận mẫu cho các thao tác có rủi ro.", "Xác nhận")' />
 </section>

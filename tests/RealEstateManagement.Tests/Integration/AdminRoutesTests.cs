@@ -42,7 +42,7 @@ public sealed class AdminRoutesTests
     [Theory]
     [InlineData("/admin/reports")]
     [InlineData("/admin/api/dashboard/revenue")]
-    public async Task OwnerReportRoutes_WhenAnonymous_RedirectToAdminLogin(string route)
+    public async Task LegacyReportRoutes_WhenRequested_ReturnNotFound(string route)
     {
         await using var factory = CreateFactory();
         using var client = factory.CreateClient(new WebApplicationFactoryClientOptions
@@ -52,8 +52,7 @@ public sealed class AdminRoutesTests
 
         var response = await client.GetAsync(route);
 
-        Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
-        Assert.Equal("/admin/login", response.Headers.Location?.AbsolutePath);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
     [Fact]

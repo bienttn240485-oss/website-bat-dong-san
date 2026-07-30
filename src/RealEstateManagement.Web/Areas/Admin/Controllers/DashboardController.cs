@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using RealEstateManagement.Application.Common.Security;
 using RealEstateManagement.Application.Dashboard;
-using RealEstateManagement.Application.Reports;
 using RealEstateManagement.Web.Areas.Admin.ViewModels;
 
 namespace RealEstateManagement.Web.Areas.Admin.Controllers;
@@ -11,7 +10,7 @@ namespace RealEstateManagement.Web.Areas.Admin.Controllers;
 [Area("Admin")]
 [Route("admin/dashboard")]
 [Authorize(Policy = AuthorizationPolicies.RequireAdminOrSale)]
-public sealed class DashboardController(IDashboardService dashboardService, IReportService reportService) : Controller
+public sealed class DashboardController(IDashboardService dashboardService) : Controller
 {
     [HttpGet("")]
     public async Task<IActionResult> Index(CancellationToken cancellationToken)
@@ -44,36 +43,4 @@ public sealed class DashboardController(IDashboardService dashboardService, IRep
             : Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId)
                 ? new DashboardScope(userId)
                 : new DashboardScope(Guid.Empty);
-
-    [HttpGet("/admin/api/dashboard/revenue")]
-    [Authorize(Policy = AuthorizationPolicies.CanViewFinancialDashboard)]
-    public async Task<IActionResult> Revenue([FromQuery] string? from, [FromQuery] string? to, CancellationToken cancellationToken)
-    {
-        var (fromDate, toDate) = ResolveRange(from, to);
-        return Json(await reportService.GetRevenueChartAsync(fromDate, toDate, cancellationToken));
-    }
-
-    [HttpGet("/admin/api/dashboard/bookings")]
-    public async Task<IActionResult> Bookings([FromQuery] string? from, [FromQuery] string? to, CancellationToken cancellationToken)
-    {
-        var (fromDate, toDate) = ResolveRange(from, to);
-        return Json(await reportService.GetBookingCountChartAsync(fromDate, toDate, cancellationToken));
-    }
-
-    [HttpGet("/admin/api/dashboard/utilization")]
-    [Authorize(Policy = AuthorizationPolicies.CanViewFinancialDashboard)]
-    public async Task<IActionResult> Utilization([FromQuery] string? from, [FromQuery] string? to, CancellationToken cancellationToken)
-    {
-        var (fromDate, toDate) = ResolveRange(from, to);
-        return Json(await reportService.GetUtilizationChartAsync(fromDate, toDate, cancellationToken));
-    }
-
-    private static (DateOnly FromDate, DateOnly ToDate) ResolveRange(string? from, string? to)
-    {
-        var today = DateOnly.FromDateTime(DateTime.UtcNow.AddHours(7));
-        var weekStart = today.AddDays(-6);
-        var fromDate = DateOnly.TryParse(from, out var parsedFrom) ? parsedFrom : weekStart;
-        var toDate = DateOnly.TryParse(to, out var parsedTo) ? parsedTo : today;
-        return fromDate <= toDate ? (fromDate, toDate) : (toDate, fromDate);
-    }
 }

@@ -223,7 +223,7 @@ public sealed class RealEstatePersistenceTests
     }
 
     [Fact]
-    public async Task Migration_WhenAppliedToNewSqliteDatabase_CreatesLegacyAndRealEstateTables()
+    public async Task Migration_WhenAppliedToNewSqliteDatabase_CreatesRealEstateTablesAndRemovesLegacyTables()
     {
         var databasePath = Path.Combine(Path.GetTempPath(), $"real-estate-migration-{Guid.NewGuid():N}.db");
 
@@ -239,12 +239,25 @@ public sealed class RealEstatePersistenceTests
 
                 var tables = await GetTableNamesAsync(dbContext);
 
-                Assert.Contains("Fields", tables);
-                Assert.Contains("Bookings", tables);
                 Assert.Contains("Properties", tables);
+                Assert.Contains("PropertyImages", tables);
+                Assert.Contains("PropertyFurnitureItems", tables);
+                Assert.Contains("PropertyAmenities", tables);
                 Assert.Contains("LandlordContracts", tables);
                 Assert.Contains("TenantContracts", tables);
                 Assert.Contains("Leads", tables);
+                Assert.Contains("AspNetUsers", tables);
+                Assert.DoesNotContain("Fields", tables);
+                Assert.DoesNotContain("FieldImages", tables);
+                Assert.DoesNotContain("FieldOperatingHours", tables);
+                Assert.DoesNotContain("FieldBlocks", tables);
+                Assert.DoesNotContain("PricingRules", tables);
+                Assert.DoesNotContain("Bookings", tables);
+                Assert.DoesNotContain("BookingServices", tables);
+                Assert.DoesNotContain("Services", tables);
+                Assert.DoesNotContain("Payments", tables);
+                Assert.DoesNotContain("PromoCodes", tables);
+                Assert.DoesNotContain("PromoCodeUsages", tables);
                 await dbContext.Database.CloseConnectionAsync();
             }
         }

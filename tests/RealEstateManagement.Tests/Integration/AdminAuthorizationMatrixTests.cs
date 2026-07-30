@@ -146,7 +146,7 @@ public sealed class AdminAuthorizationMatrixTests
         var content = await ReadDecodedContentAsync(dashboard);
 
         Assert.Equal(HttpStatusCode.Forbidden, staffRoute.StatusCode);
-        Assert.Equal(HttpStatusCode.Forbidden, reports.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, reports.StatusCode);
         Assert.Contains("Lead của tôi", content);
         Assert.DoesNotContain("Nhân sự", content);
         Assert.DoesNotContain("Hệ thống cũ:", content);

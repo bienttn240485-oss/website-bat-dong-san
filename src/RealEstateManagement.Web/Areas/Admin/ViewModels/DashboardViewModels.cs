@@ -1,6 +1,5 @@
 using System.Text.Json;
 using RealEstateManagement.Application.Dashboard;
-using RealEstateManagement.Application.Reports;
 
 namespace RealEstateManagement.Web.Areas.Admin.ViewModels;
 
@@ -90,11 +89,3 @@ public sealed record DashboardWarningViewModel(string Title, string Description,
 public sealed record DashboardTimelineItemViewModel(string EventType, string PropertyCode, string DateText, string Description, string Link, string Tone);
 
 public sealed record DashboardChartViewModel(string Id, string Title, string Description, string AriaLabel, string JsonPayload, bool IsFinancial);
-
-public sealed record AdminReportsViewModel(
-    DateOnly FromDate,
-    DateOnly ToDate,
-    IReadOnlyList<SummaryMetricDto> Metrics,
-    IReadOnlyList<FieldUtilizationDto> FieldUtilization,
-    IReadOnlyList<PeakHourDto> PeakHours,
-    IReadOnlyList<ReportBookingRecordDto> PaymentsDue);

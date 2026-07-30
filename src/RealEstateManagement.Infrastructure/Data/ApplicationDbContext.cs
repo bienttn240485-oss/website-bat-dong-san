@@ -1,7 +1,5 @@
-﻿using RealEstateManagement.Infrastructure.Identity;
-using RealEstateManagement.Domain.Bookings;
+using RealEstateManagement.Infrastructure.Identity;
 using RealEstateManagement.Domain.Contracts;
-using RealEstateManagement.Domain.Fields;
 using RealEstateManagement.Domain.Leads;
 using RealEstateManagement.Domain.Properties;
 using Microsoft.AspNetCore.Identity;
@@ -13,17 +11,6 @@ namespace RealEstateManagement.Infrastructure.Data;
 public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
     : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>(options)
 {
-    public DbSet<Field> Fields => Set<Field>();
-    public DbSet<FieldImage> FieldImages => Set<FieldImage>();
-    public DbSet<FieldOperatingHour> FieldOperatingHours => Set<FieldOperatingHour>();
-    public DbSet<FieldBlock> FieldBlocks => Set<FieldBlock>();
-    public DbSet<PricingRule> PricingRules => Set<PricingRule>();
-    public DbSet<Booking> Bookings => Set<Booking>();
-    public DbSet<ServiceItem> Services => Set<ServiceItem>();
-    public DbSet<BookingServiceLine> BookingServices => Set<BookingServiceLine>();
-    public DbSet<PaymentRecord> Payments => Set<PaymentRecord>();
-    public DbSet<PromoCode> PromoCodes => Set<PromoCode>();
-    public DbSet<PromoCodeUsage> PromoCodeUsages => Set<PromoCodeUsage>();
     public DbSet<Property> Properties => Set<Property>();
     public DbSet<PropertyImage> PropertyImages => Set<PropertyImage>();
     public DbSet<PropertyFurnitureItem> PropertyFurnitureItems => Set<PropertyFurnitureItem>();
@@ -55,4 +42,3 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
         });
     }
 }
-

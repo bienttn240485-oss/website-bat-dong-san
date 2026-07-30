@@ -24,8 +24,6 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy(AuthorizationPolicies.CanManageStaff, policy => policy.RequireRole(ApplicationRoles.Owner));
     options.AddPolicy(AuthorizationPolicies.CanAssignLeads, policy => policy.RequireRole(ApplicationRoles.Owner));
     options.AddPolicy(AuthorizationPolicies.CanUpdateAssignedLead, policy => policy.RequireRole(ApplicationRoles.Internal));
-    options.AddPolicy(AuthorizationPolicies.LegacyInternalUser, policy => policy.RequireRole(ApplicationRoles.Internal));
-    options.AddPolicy(AuthorizationPolicies.LegacyOwnerOnly, policy => policy.RequireRole(ApplicationRoles.Owner));
 });
 builder.Services.ConfigureApplicationCookie(options =>
 {
@@ -51,9 +49,6 @@ if (shouldSeedDevelopmentData)
     var identitySeeder = seedScope.ServiceProvider.GetRequiredService<IdentitySeeder>();
     await identitySeeder.SeedDevelopmentOwnerAsync();
     await seedScope.ServiceProvider.GetRequiredService<DevelopmentRealEstateSeeder>().SeedAsync();
-    // await seedScope.ServiceProvider.GetRequiredService<DevelopmentFieldSeeder>().SeedAsync();
-    // await seedScope.ServiceProvider.GetRequiredService<DevelopmentCommerceSeeder>().SeedAsync();
-    // await seedScope.ServiceProvider.GetRequiredService<DevelopmentOperationsSeeder>().SeedAsync();
     return;
 }
 
