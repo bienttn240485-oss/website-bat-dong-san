@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 using RealEstateManagement.Application.Leads;
 using RealEstateManagement.Application.Properties;
+using RealEstateManagement.Domain.Properties;
 using RealEstateManagement.Web.ViewModels;
 
 namespace RealEstateManagement.Web.Controllers;
@@ -12,7 +14,11 @@ public sealed class PropertiesController(
     [HttpGet("/properties")]
     public async Task<IActionResult> Index([FromQuery] PublicPropertyFilterViewModel filter, CancellationToken cancellationToken)
     {
-        var properties = await propertyService.ListPublicRentalsAsync(filter.ToQuery(), cancellationToken);
+        ValidateFilter(filter);
+        var filterOptions = await propertyService.GetPublicRentalFilterOptionsAsync(cancellationToken);
+        var properties = ModelState.IsValid
+            ? await propertyService.ListPublicRentalsAsync(filter.ToRentalQuery(), cancellationToken)
+            : [];
         ViewData["Title"] = "Căn hộ cho thuê";
         return View(new PublicPropertyListViewModel
         {
@@ -23,9 +29,11 @@ public sealed class PropertiesController(
             IsSaleMode = false,
             Filter = filter,
             Properties = properties.Select(PublicPropertyDisplay.ToRentalCard).ToArray(),
-            ProjectOptions = PublicPropertyDisplay.ProjectOptions(filter.Project),
-            TypeOptions = PublicPropertyDisplay.TypeOptions(filter.Type),
-            StatusOptions = PublicPropertyDisplay.RentalStatusOptions(filter.Status)
+            ProjectOptions = PublicPropertyDisplay.ProjectOptions(filter.Project, filterOptions.Projects),
+            TypeOptions = PublicPropertyDisplay.TypeOptions(filter.Type, filterOptions.Types),
+            StatusOptions = PublicPropertyDisplay.RentalStatusOptions(filter.Status, filterOptions.Statuses),
+            AreaOptions = PublicPropertyDisplay.AreaOptions(VisibleAreas(filterOptions.Areas, filter.Project), filter.Area),
+            AreaSuggestions = filterOptions.Areas.Select(area => new PropertyAreaSuggestionViewModel(area.Project?.ToString() ?? string.Empty, area.Area)).ToArray()
         });
     }
 
@@ -38,7 +46,7 @@ public sealed class PropertiesController(
             return NotFound();
         }
 
-        ViewData["Title"] = $"Căn hộ {property.MaskedCode}";
+        ViewData["Title"] = $"Căn hộ {property.PublicReferenceCode}";
         return View(new PublicPropertyDetailViewModel
         {
             Property = property,
@@ -69,7 +77,7 @@ public sealed class PropertiesController(
                 return NotFound();
             }
 
-            ViewData["Title"] = $"Căn hộ {property.MaskedCode}";
+            ViewData["Title"] = $"Căn hộ {property.PublicReferenceCode}";
             var viewModel = new PublicPropertyDetailViewModel
             {
                 Property = property,
@@ -102,5 +110,22 @@ public sealed class PropertiesController(
 
         TempData["SuccessMessage"] = "Đã gửi yêu cầu tư vấn căn hộ.";
         return Redirect(isSaleIntent ? $"/sales/{propertyId}" : $"/properties/{propertyId}");
+    }
+
+    private static IReadOnlyList<PropertyAreaOptionDto> VisibleAreas(
+        IReadOnlyList<PropertyAreaOptionDto> areas,
+        PropertyProject? selectedProject)
+        => selectedProject is null
+            ? areas
+            : areas
+                .Where(area => area.Project == selectedProject)
+                .ToArray();
+
+    private void ValidateFilter(PublicPropertyFilterViewModel filter)
+    {
+        foreach (var result in filter.Validate(new ValidationContext(filter)))
+        {
+            ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Bộ lọc không hợp lệ.");
+        }
     }
 }

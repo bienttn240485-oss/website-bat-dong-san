@@ -24,9 +24,12 @@ public sealed record PropertySummaryDto(
     int? Bathrooms,
     long? MonthlyPrice,
     long? SalePrice,
+    string? Direction,
+    string? FurniturePackage,
     PropertyStatus Status,
     DateOnly? AvailableFromDate,
     string? PrimaryImageUrl,
+    IReadOnlyList<string> Amenities,
     DateTimeOffset CreatedAtUtc);
 
 public sealed record PropertyImageDto(Guid Id, string Url, string? AltText, int SortOrder, bool IsPrimary);

@@ -44,7 +44,12 @@
             </div>
             <div>
                 <label class="fb-label" for="Area">Phân khu</label>
-                <input class="fb-input" id="Area" name="Area" value="@Model.Filter.Area" />
+                <select class="fb-input" id="Area" name="Area">
+                    @foreach (var option in Model.AreaOptions)
+                    {
+                        <option value="@option.Value" selected="@option.Selected">@option.Text</option>
+                    }
+                </select>
             </div>
             <div>
                 <label class="fb-label" for="Type">Loại căn</label>
@@ -105,6 +110,7 @@
                     <thead>
                         <tr>
                             <th>Mã căn</th>
+                            <th>Mã tham chiếu</th>
                             <th>Dự án</th>
                             <th>Phân khu</th>
                             <th>Loại căn</th>
@@ -121,6 +127,7 @@
                         {
                             <tr>
                                 <td class="font-medium">@property.Code</td>
+                                <td>@property.PublicReferenceCode</td>
                                 <td>@property.ProjectLabel</td>
                                 <td>@property.Area</td>
                                 <td>@property.TypeLabel</td>
@@ -158,6 +165,7 @@
                         <div class="flex items-start justify-between gap-3">
                             <div>
                                 <h3 class="font-semibold text-ink">@property.Code</h3>
+                                <p class="text-xs text-muted">Mã công khai: @property.PublicReferenceCode</p>
                                 <p class="text-sm text-muted">@property.ProjectLabel · @property.Area</p>
                             </div>
                             <partial name="~/Views/Shared/Partials/_StatusBadge.cshtml" model='new StatusBadgeViewModel(property.StatusLabel, property.StatusTone)' />

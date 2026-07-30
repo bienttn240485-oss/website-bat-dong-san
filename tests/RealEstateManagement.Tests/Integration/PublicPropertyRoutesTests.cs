@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using RealEstateManagement.Domain.Leads;
 using RealEstateManagement.Domain.Properties;
@@ -41,10 +42,10 @@ public sealed class PublicPropertyRoutesTests
         var response = await client.GetAsync("/properties");
         var content = await ReadDecodedContentAsync(response);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Contains("ORI-***08", content);
-        Assert.Contains("GH-***12", content);
+        Assert.Contains("OR-1002", content);
+        Assert.Contains("GH-2106", content);
         Assert.Contains("Đang trống", content);
-        Assert.Contains("15.000.000 ₫/tháng", content);
+        Assert.Contains("20.000.000 ₫/tháng", content);
     }
 
     [Fact]
@@ -57,8 +58,8 @@ public sealed class PublicPropertyRoutesTests
         var content = await ReadDecodedContentAsync(response);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Contains("OP-***01", content);
-        Assert.DoesNotContain("GH-***12", content);
+        Assert.Contains("OP-0901", content);
+        Assert.DoesNotContain("GH-0908", content);
     }
 
     [Theory]
@@ -97,16 +98,16 @@ public sealed class PublicPropertyRoutesTests
     public async Task RentalDetail_WhenExists_RendersPublicFields()
     {
         await using var factory = await PublicRouteFactory.CreateAsync();
-        var propertyId = await factory.FindPropertyIdAsync("ORI-1808");
+        var propertyId = await factory.FindPropertyIdAsync("OR-S7-1002");
         using var client = factory.CreateClient();
 
         var response = await client.GetAsync($"/properties/{propertyId}");
         var content = await ReadDecodedContentAsync(response);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Contains("ORI-***08", content);
+        Assert.Contains("OR-1002", content);
         Assert.Contains("Căn hộ", content);
-        Assert.Contains("18.000.000", content);
+        Assert.Contains("12.000.000", content);
         Assert.Contains("/tháng", content);
     }
 
@@ -130,7 +131,7 @@ public sealed class PublicPropertyRoutesTests
     public async Task DetailRoutes_WhenMissingOrInvalid_ReturnNotFound()
     {
         await using var factory = await PublicRouteFactory.CreateAsync();
-        var noSaleId = await factory.FindPropertyIdAsync("GH-2312");
+        var noSaleId = await factory.FindPropertyIdAsync("GH-C1-0908");
         using var client = factory.CreateClient();
 
         var missingRental = await client.GetAsync($"/properties/{Guid.NewGuid()}");
@@ -146,7 +147,7 @@ public sealed class PublicPropertyRoutesTests
     public async Task PublicInquiry_WhenValid_CreatesLeadWithoutSensitiveBinding()
     {
         await using var factory = await PublicRouteFactory.CreateAsync();
-        var propertyId = await factory.FindPropertyIdAsync("ORI-1808");
+        var propertyId = await factory.FindPropertyIdAsync("OR-S7-1002");
         using var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
         var token = await GetAntiforgeryTokenAsync(client, $"/properties/{propertyId}");
         var contact = $"0912{Random.Shared.Next(100000, 999999)}";
@@ -174,7 +175,7 @@ public sealed class PublicPropertyRoutesTests
     public async Task PublicInquiry_WhenInvalid_ShowsValidation()
     {
         await using var factory = await PublicRouteFactory.CreateAsync();
-        var propertyId = await factory.FindPropertyIdAsync("ORI-1808");
+        var propertyId = await factory.FindPropertyIdAsync("OR-S7-1002");
         using var client = factory.CreateClient();
         var token = await GetAntiforgeryTokenAsync(client, $"/properties/{propertyId}");
 
@@ -222,7 +223,7 @@ public sealed class PublicPropertyRoutesTests
     public async Task PublicPages_DoNotExposeSensitiveContractData()
     {
         await using var factory = await PublicRouteFactory.CreateAsync();
-        var propertyId = await factory.FindPropertyIdAsync("OP-0101");
+        var propertyId = await factory.FindPropertyIdAsync("OP-A-0901");
         using var client = factory.CreateClient();
 
         var response = await client.GetAsync($"/sales/{propertyId}");
@@ -231,7 +232,7 @@ public sealed class PublicPropertyRoutesTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.DoesNotContain("Nguyễn Minh An", content);
         Assert.DoesNotContain("Lê Hoàng Nam", content);
-        Assert.DoesNotContain("PE-OP-0101", content);
+        Assert.DoesNotContain("PE-OP-A-0901", content);
         Assert.DoesNotContain("2407", content);
         Assert.DoesNotContain("Giá nhập", content);
         Assert.DoesNotContain("Chủ nhà", content);
@@ -367,6 +368,8 @@ public sealed class PublicPropertyRoutesTests
             {
                 var keysPath = Path.Combine(Path.GetTempPath(), "RealEstateManagement.Tests.DataProtectionKeys");
                 Directory.CreateDirectory(keysPath);
+                services.RemoveAll<DbContextOptions<ApplicationDbContext>>();
+                services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite($"Data Source={databasePath};Pooling=False"));
                 services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo(keysPath));
             });
         }
@@ -389,3 +392,4 @@ public sealed class PublicPropertyRoutesTests
         }
     }
 }
+

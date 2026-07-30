@@ -18,6 +18,8 @@ public sealed class PropertyListViewModel
     public IReadOnlyList<SelectListItem> TypeOptions { get; set; } = [];
     [ValidateNever]
     public IReadOnlyList<SelectListItem> StatusOptions { get; set; } = [];
+    [ValidateNever]
+    public IReadOnlyList<SelectListItem> AreaOptions { get; set; } = [];
 }
 
 public sealed class PropertyFilterViewModel
@@ -56,6 +58,7 @@ public static class PropertySortOptions
 public sealed record PropertyListItemViewModel(
     Guid Id,
     string Code,
+    string PublicReferenceCode,
     string ProjectLabel,
     string Area,
     string TypeLabel,
@@ -290,14 +293,14 @@ public static class PropertyDisplay
         {
             PropertyType.Studio => "Studio",
             PropertyType.OneBedroom => "1 phòng ngủ",
-            PropertyType.OneBedroomPlus => "1 phòng ngủ + 1",
+            PropertyType.OneBedroomPlus => "1 phòng ngủ+",
             PropertyType.TwoBedroom => "2 phòng ngủ",
-            PropertyType.TwoBedroomPlus => "2 phòng ngủ + 1",
+            PropertyType.TwoBedroomPlus => "2 phòng ngủ+",
             PropertyType.TwoBedroomOneBathroom => "2 phòng ngủ, 1 WC",
             PropertyType.TwoBedroomTwoBathrooms => "2 phòng ngủ, 2 WC",
             PropertyType.ThreeBedroom => "3 phòng ngủ",
             PropertyType.ThreeBedroomTwoBathrooms => "3 phòng ngủ, 2 WC",
-            PropertyType.ThreeBedroomPlus => "3 phòng ngủ + 1",
+            PropertyType.ThreeBedroomPlus => "3 phòng ngủ+",
             _ => type.ToString()
         };
 
@@ -327,19 +330,35 @@ public static class PropertyDisplay
     public static string FormatArea(decimal? areaSize)
         => areaSize is null ? "Chưa có" : $"{areaSize:0.##} m²";
 
-    public static IReadOnlyList<SelectListItem> ProjectOptions(PropertyProject? selected = null)
-        => Enum.GetValues<PropertyProject>()
+    public static string PublicReferenceCode(string code)
+        => PropertyReferenceCode.FromInternalCode(code);
+
+    public static IReadOnlyList<SelectListItem> ProjectOptions(PropertyProject? selected = null, IEnumerable<PropertyProject>? projects = null)
+        => (projects ?? Enum.GetValues<PropertyProject>())
+            .Distinct()
             .Select(project => new SelectListItem(ProjectLabel(project), project.ToString(), project == selected))
             .Prepend(new SelectListItem("Chưa chọn", string.Empty, selected is null))
             .ToArray();
 
-    public static IReadOnlyList<SelectListItem> TypeOptions(PropertyType? selected = null)
-        => Enum.GetValues<PropertyType>()
+    public static IReadOnlyList<SelectListItem> TypeOptions(PropertyType? selected = null, IEnumerable<PropertyType>? types = null)
+        => (types ?? Enum.GetValues<PropertyType>())
+            .Distinct()
             .Select(type => new SelectListItem(TypeLabel(type), type.ToString(), type == selected))
             .ToArray();
 
-    public static IReadOnlyList<SelectListItem> StatusOptions(PropertyStatus? selected = null)
-        => Enum.GetValues<PropertyStatus>()
+    public static IReadOnlyList<SelectListItem> StatusOptions(PropertyStatus? selected = null, IEnumerable<PropertyStatus>? statuses = null)
+        => (statuses ?? Enum.GetValues<PropertyStatus>())
+            .Distinct()
             .Select(status => new SelectListItem(StatusLabel(status), status.ToString(), status == selected))
+            .ToArray();
+
+    public static IReadOnlyList<SelectListItem> AreaOptions(IEnumerable<PropertyAreaOptionDto> areas, string? selected = null)
+        => areas
+            .Select(area => area.Area.Trim())
+            .Where(area => area.Length > 0)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(area => area)
+            .Select(area => new SelectListItem(area, area, string.Equals(area, selected, StringComparison.OrdinalIgnoreCase)))
+            .Prepend(new SelectListItem("Tất cả", string.Empty, string.IsNullOrWhiteSpace(selected)))
             .ToArray();
 }

@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using RealEstateManagement.Application.Common.Security;
 using RealEstateManagement.Domain.Leads;
@@ -59,8 +60,8 @@ public sealed class AdminLeadRoutesTests
         var content = await ReadDecodedContentAsync(response);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Contains("Vui lòng nhập tên của bạn.", content);
-        Assert.Contains("Vui lòng nhập thông tin liên hệ.", content);
+        Assert.Contains("Vui l\u00f2ng nh\u1eadp t\u00ean c\u1ee7a b\u1ea1n.", content);
+        Assert.Contains("Vui l\u00f2ng nh\u1eadp th\u00f4ng tin li\u00ean h\u1ec7.", content);
     }
 
     [Fact]
@@ -116,7 +117,7 @@ public sealed class AdminLeadRoutesTests
         Assert.Contains("Lead Admin", listContent);
         Assert.Equal(HttpStatusCode.OK, detail.StatusCode);
         Assert.Contains("Lead Admin", detailContent);
-        Assert.Contains("Mới", detailContent);
+        Assert.Contains("M\u1edbi", detailContent);
     }
 
     [Fact]
@@ -192,7 +193,7 @@ public sealed class AdminLeadRoutesTests
     public async Task PropertyDetail_WhenLeadExists_RendersRelatedLead()
     {
         await using var factory = await AdminLeadFactory.CreateAsync();
-        var propertyId = await factory.FindPropertyIdAsync("OP-0101");
+        var propertyId = await factory.FindPropertyIdAsync("OR-S7-1002");
         await factory.CreateLeadAsync("Lead Property", "lead-property@example.test", propertyId);
         using var client = factory.CreateClient();
         await LoginAsync(client, "owner@example.test", AdminLeadFactory.Password);
@@ -201,7 +202,7 @@ public sealed class AdminLeadRoutesTests
         var content = await ReadDecodedContentAsync(response);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Contains("Lead quan tâm", content);
+        Assert.Contains("Lead quan t\u00e2m", content);
         Assert.Contains("Lead Property", content);
     }
 
@@ -318,6 +319,8 @@ public sealed class AdminLeadRoutesTests
             {
                 var keysPath = Path.Combine(Path.GetTempPath(), "RealEstateManagement.Tests.DataProtectionKeys");
                 Directory.CreateDirectory(keysPath);
+                services.RemoveAll<DbContextOptions<ApplicationDbContext>>();
+                services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite($"Data Source={databasePath};Pooling=False"));
                 services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo(keysPath));
             });
         }
@@ -354,7 +357,7 @@ public sealed class AdminLeadRoutesTests
 
         private static async Task CreateUserAsync(UserManager<ApplicationUser> userManager, string email, string role)
         {
-            var user = await userManager.FindByEmailAsync(email);
+            var user = await userManager.FindByEmailAsync(email) ?? await userManager.FindByNameAsync(email);
             if (user is null)
             {
                 user = new ApplicationUser
@@ -379,3 +382,5 @@ public sealed class AdminLeadRoutesTests
         }
     }
 }
+
+

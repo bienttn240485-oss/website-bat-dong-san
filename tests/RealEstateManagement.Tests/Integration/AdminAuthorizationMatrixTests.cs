@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using RealEstateManagement.Application.Common.Security;
 using RealEstateManagement.Domain.Leads;
@@ -64,7 +65,7 @@ public sealed class AdminAuthorizationMatrixTests
     public async Task Staff_WhenManipulatingPropertyOrContractUrls_IsForbidden()
     {
         await using var factory = await AuthorizationFactory.CreateAsync();
-        var propertyId = await factory.FindPropertyIdAsync("OP-0101");
+        var propertyId = await factory.FindPropertyIdAsync("BS7-2508");
         var landlordContractId = await factory.FindLandlordContractIdAsync(propertyId);
         var tenantContractId = await factory.FindTenantContractIdAsync(propertyId);
         using var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
@@ -277,7 +278,11 @@ public sealed class AdminAuthorizationMatrixTests
         {
             await using var scope = Services.CreateAsyncScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            return await dbContext.TenantContracts.Where(contract => contract.PropertyId == propertyId).Select(contract => contract.Id).SingleAsync();
+            return await dbContext.TenantContracts
+                .Where(contract => contract.PropertyId == propertyId)
+                .OrderBy(contract => contract.SignedDate)
+                .Select(contract => contract.Id)
+                .FirstAsync();
         }
 
         public async Task<Guid> CreateLeadAsync(string name, string contact, Guid? assignedToUserId)
@@ -311,6 +316,8 @@ public sealed class AdminAuthorizationMatrixTests
             {
                 var keysPath = Path.Combine(Path.GetTempPath(), "RealEstateManagement.Tests.DataProtectionKeys");
                 Directory.CreateDirectory(keysPath);
+                services.RemoveAll<DbContextOptions<ApplicationDbContext>>();
+                services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite($"Data Source={databasePath};Pooling=False"));
                 services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo(keysPath));
             });
         }
@@ -347,7 +354,7 @@ public sealed class AdminAuthorizationMatrixTests
 
         private static async Task CreateUserAsync(UserManager<ApplicationUser> userManager, string email, string role)
         {
-            var user = await userManager.FindByEmailAsync(email);
+            var user = await userManager.FindByEmailAsync(email) ?? await userManager.FindByNameAsync(email);
             if (user is null)
             {
                 user = new ApplicationUser
@@ -372,3 +379,5 @@ public sealed class AdminAuthorizationMatrixTests
         }
     }
 }
+
+

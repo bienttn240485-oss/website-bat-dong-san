@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using RealEstateManagement.Application.Common.Security;
 using RealEstateManagement.Domain.Contracts;
@@ -45,9 +46,9 @@ public sealed class AdminContractRoutesTests
         var content = await ReadDecodedContentAsync(response);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Contains("Hợp đồng chủ nhà", content);
-        Assert.Contains("OP-0101", content);
-        Assert.Contains("Chưa bổ sung", content);
+        Assert.Contains("H\u1ee3p \u0111\u1ed3ng ch\u1ee7 nh\u00e0", content);
+        Assert.Contains("BS7-2508", content);
+        Assert.Contains("Ch\u01b0a b\u1ed5 sung", content);
     }
 
     [Fact]
@@ -61,9 +62,9 @@ public sealed class AdminContractRoutesTests
         var content = await ReadDecodedContentAsync(response);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Contains("Hợp đồng khách thuê", content);
-        Assert.Contains("OP-0101", content);
-        Assert.Contains("Đang hiệu lực", content);
+        Assert.Contains("H\u1ee3p \u0111\u1ed3ng kh\u00e1ch thu\u00ea", content);
+        Assert.Contains("BS7-2508", content);
+        Assert.Contains("\u0110ang hi\u1ec7u l\u1ef1c", content);
     }
 
     [Fact]
@@ -86,8 +87,8 @@ public sealed class AdminContractRoutesTests
         var content = await ReadDecodedContentAsync(response);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Contains("Vui lòng chọn căn hộ.", content);
-        Assert.Contains("Vui lòng nhập tên chủ nhà.", content);
+        Assert.Contains("Vui l\u00f2ng nh\u1eadp t\u00ean ch\u1ee7 nh\u00e0.", content);
+        Assert.Contains("Vui l\u00f2ng ch\u1ecdn c\u0103n h\u1ed9.", content);
     }
 
     [Fact]
@@ -114,14 +115,14 @@ public sealed class AdminContractRoutesTests
         await using var factory = await AdminContractFactory.CreateAsync();
         using var client = factory.CreateClient();
         await LoginAsync(client, "owner@example.test", AdminContractFactory.Password);
-        var propertyId = await factory.FindPropertyIdAsync("OP-0101");
+        var propertyId = await factory.FindPropertyIdAsync("BS7-2508");
 
         var token = await GetAntiforgeryTokenAsync(client, $"/admin/tenant-contracts/create?propertyId={propertyId}");
         var response = await client.PostAsync("/admin/tenant-contracts/create", TenantForm(token, propertyId, "Khach Trung Lich", 22_000_000));
         var content = await ReadDecodedContentAsync(response);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Contains("Căn hộ đã có hợp đồng khách thuê đang hiệu lực trong khoảng thời gian này.", content);
+        Assert.Contains("C\u0103n h\u1ed9 \u0111\u00e3 c\u00f3 h\u1ee3p \u0111\u1ed3ng kh\u00e1ch thu\u00ea \u0111ang hi\u1ec7u l\u1ef1c trong kho\u1ea3ng th\u1eddi gian n\u00e0y.", content);
     }
 
     [Fact]
@@ -130,8 +131,8 @@ public sealed class AdminContractRoutesTests
         await using var factory = await AdminContractFactory.CreateAsync();
         using var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
         await LoginAsync(client, "owner@example.test", AdminContractFactory.Password);
-        var contractId = await factory.FindTenantContractIdAsync("OP-0101");
-        var propertyId = await factory.FindPropertyIdAsync("OP-0101");
+        var contractId = await factory.FindTenantContractIdAsync("BS7-2508");
+        var propertyId = await factory.FindPropertyIdAsync("BS7-2508");
 
         var token = await GetAntiforgeryTokenAsync(client, $"/admin/tenant-contracts/{contractId}/edit");
         var response = await client.PostAsync($"/admin/tenant-contracts/{contractId}/edit", TenantForm(token, propertyId, "Khach Cap Nhat", 25_000_000));
@@ -161,7 +162,7 @@ public sealed class AdminContractRoutesTests
         await using var factory = await AdminContractFactory.CreateAsync();
         using var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
         await LoginAsync(client, "owner@example.test", AdminContractFactory.Password);
-        var contractId = await factory.FindTenantContractIdAsync("OP-0101");
+        var contractId = await factory.FindTenantContractIdAsync("BS7-2508");
 
         var response = await client.PostAsync($"/admin/tenant-contracts/{contractId}/delete", Form([]));
 
@@ -174,19 +175,19 @@ public sealed class AdminContractRoutesTests
         await using var factory = await AdminContractFactory.CreateAsync();
         using var client = factory.CreateClient();
         await LoginAsync(client, "owner@example.test", AdminContractFactory.Password);
-        var contractId = await factory.FindTenantContractIdAsync("OP-0101");
+        var contractId = await factory.FindTenantContractIdAsync("BS7-2508");
         var token = await GetAntiforgeryTokenAsync(client, $"/admin/tenant-contracts/{contractId}");
 
         var response = await client.PostAsync($"/admin/tenant-contracts/{contractId}/delete", Form([("__RequestVerificationToken", token)]));
         var content = await ReadDecodedContentAsync(response);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Contains("Không xóa hợp đồng khách thuê để giữ lịch sử quản lý.", content);
+        Assert.Contains("Kh\u00f4ng x\u00f3a h\u1ee3p \u0111\u1ed3ng kh\u00e1ch thu\u00ea \u0111\u1ec3 gi\u1eef l\u1ecbch s\u1eed qu\u1ea3n l\u00fd.", content);
 
         await using var scope = factory.Services.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         Assert.True(await dbContext.TenantContracts.AnyAsync(contract => contract.Id == contractId));
-        Assert.True(await dbContext.Properties.AnyAsync(property => property.Code == "OP-0101"));
+        Assert.True(await dbContext.Properties.AnyAsync(property => property.Code == "BS7-2508"));
     }
 
     [Fact]
@@ -195,7 +196,7 @@ public sealed class AdminContractRoutesTests
         await using var factory = await AdminContractFactory.CreateAsync();
         using var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
         await LoginAsync(client, "staff@example.test", AdminContractFactory.Password);
-        var contractId = await factory.FindTenantContractIdAsync("OP-0101");
+        var contractId = await factory.FindTenantContractIdAsync("BS7-2508");
         var token = await GetAntiforgeryTokenAsync(client, $"/admin/tenant-contracts/{contractId}");
 
         var response = await client.PostAsync($"/admin/tenant-contracts/{contractId}/status", Form([
@@ -212,15 +213,15 @@ public sealed class AdminContractRoutesTests
         await using var factory = await AdminContractFactory.CreateAsync();
         using var client = factory.CreateClient();
         await LoginAsync(client, "owner@example.test", AdminContractFactory.Password);
-        var propertyId = await factory.FindPropertyIdAsync("OP-0101");
+        var propertyId = await factory.FindPropertyIdAsync("BS7-2508");
 
         var response = await client.GetAsync($"/admin/properties/{propertyId}");
         var content = await ReadDecodedContentAsync(response);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Contains("Hợp đồng và tài chính", content);
-        Assert.Contains("Chênh lệch/tháng", content);
-        Assert.Contains("Chênh lệch dự kiến/năm", content);
+        Assert.Contains("H\u1ee3p \u0111\u1ed3ng v\u00e0 t\u00e0i ch\u00ednh", content);
+        Assert.Contains("Ch\u00eanh l\u1ec7ch/th\u00e1ng", content);
+        Assert.Contains("Ch\u00eanh l\u1ec7ch d\u1ef1 ki\u1ebfn/n\u0103m", content);
     }
 
     [Fact]
@@ -325,8 +326,9 @@ public sealed class AdminContractRoutesTests
             var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             return await dbContext.TenantContracts
                 .Where(contract => dbContext.Properties.Any(property => property.Id == contract.PropertyId && property.Code == propertyCode))
+                .OrderBy(contract => contract.SignedDate)
                 .Select(contract => contract.Id)
-                .SingleAsync();
+                .FirstAsync();
         }
 
         public async Task<Guid> CreateAvailablePropertyAsync()
@@ -345,11 +347,11 @@ public sealed class AdminContractRoutesTests
                 2,
                 20_000_000,
                 null,
-                "Đông Nam",
+                "\u0110\u00f4ng Nam",
                 null,
-                "Sổ hồng",
-                "Nội thất cơ bản",
-                "Căn hộ test hợp đồng khách thuê.",
+                "S\u1ed5 h\u1ed3ng",
+                "N\u1ed9i th\u1ea5t c\u01a1 b\u1ea3n",
+                "C\u0103n h\u1ed9 test h\u1ee3p \u0111\u1ed3ng kh\u00e1ch thu\u00ea.",
                 null,
                 PropertyStatus.Available,
                 null,
@@ -375,6 +377,8 @@ public sealed class AdminContractRoutesTests
             {
                 var keysPath = Path.Combine(Path.GetTempPath(), "RealEstateManagement.Tests.DataProtectionKeys");
                 Directory.CreateDirectory(keysPath);
+                services.RemoveAll<DbContextOptions<ApplicationDbContext>>();
+                services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite($"Data Source={databasePath};Pooling=False"));
                 services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo(keysPath));
             });
         }
@@ -411,7 +415,7 @@ public sealed class AdminContractRoutesTests
 
         private static async Task CreateUserAsync(UserManager<ApplicationUser> userManager, string email, string role)
         {
-            var user = await userManager.FindByEmailAsync(email);
+            var user = await userManager.FindByEmailAsync(email) ?? await userManager.FindByNameAsync(email);
             if (user is null)
             {
                 user = new ApplicationUser
@@ -436,3 +440,5 @@ public sealed class AdminContractRoutesTests
         }
     }
 }
+
+

@@ -1,6 +1,7 @@
 ﻿@model RealEstateManagement.Web.ViewModels.PublicPropertyListViewModel
 @using RealEstateManagement.Web.ViewModels
 @using RealEstateManagement.Web.ViewModels.Shared
+@using System.Text.Json
 @{
     ViewData["Title"] = Model.Title;
 }
@@ -22,17 +23,18 @@
     <aside class="h-max rounded-ui border border-line bg-white p-4 shadow-sm">
         <h2 class="text-base font-semibold text-ink">Bộ lọc</h2>
         <form class="mt-4 grid gap-4" method="get" action="@Model.FormAction">
+            <div asp-validation-summary="ModelOnly" class="rounded-ui border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800"></div>
             <div>
                 <label class="fb-label" asp-for="Filter.Keyword"></label>
-                <input class="fb-input" asp-for="Filter.Keyword" name="Keyword" type="search" />
+                <input class="fb-input" asp-for="Filter.Keyword" name="Keyword" type="search" placeholder="Tìm mã tham chiếu, phân khu, hướng căn…" />
             </div>
             <div>
                 <label class="fb-label" asp-for="Filter.Project"></label>
-                <select class="fb-input" asp-for="Filter.Project" name="Project" asp-items="Model.ProjectOptions"></select>
+                <select class="fb-input" asp-for="Filter.Project" name="Project" asp-items="Model.ProjectOptions" data-project-select></select>
             </div>
             <div>
                 <label class="fb-label" asp-for="Filter.Area"></label>
-                <input class="fb-input" asp-for="Filter.Area" name="Area" />
+                <select class="fb-input" asp-for="Filter.Area" name="Area" asp-items="Model.AreaOptions" data-area-select></select>
             </div>
             <div>
                 <label class="fb-label" asp-for="Filter.Type"></label>
@@ -47,12 +49,20 @@
             }
             <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
                 <div>
-                    <label class="fb-label" asp-for="Filter.MinPrice"></label>
-                    <input class="fb-input" asp-for="Filter.MinPrice" name="MinPrice" inputmode="numeric" />
+                    <label class="fb-label" asp-for="Filter.SalePriceFromBillion"></label>
+                    <div class="flex overflow-hidden rounded-ui border border-line bg-white focus-within:border-brand-600">
+                        <input class="fb-input border-0" asp-for="Filter.SalePriceFromBillion" name="SalePriceFromBillion" type="text" inputmode="decimal" placeholder="Từ 2,5 tỷ" />
+                        <span class="grid place-items-center border-l border-line px-3 text-xs text-muted">tỷ đồng</span>
+                    </div>
+                    <span asp-validation-for="Filter.SalePriceFromBillion" class="text-xs text-red-700"></span>
                 </div>
                 <div>
-                    <label class="fb-label" asp-for="Filter.MaxPrice"></label>
-                    <input class="fb-input" asp-for="Filter.MaxPrice" name="MaxPrice" inputmode="numeric" />
+                    <label class="fb-label" asp-for="Filter.SalePriceToBillion"></label>
+                    <div class="flex overflow-hidden rounded-ui border border-line bg-white focus-within:border-brand-600">
+                        <input class="fb-input border-0" asp-for="Filter.SalePriceToBillion" name="SalePriceToBillion" type="text" inputmode="decimal" placeholder="Đến 10 tỷ" />
+                        <span class="grid place-items-center border-l border-line px-3 text-xs text-muted">tỷ đồng</span>
+                    </div>
+                    <span asp-validation-for="Filter.SalePriceToBillion" class="text-xs text-red-700"></span>
                 </div>
             </div>
             <div>
@@ -64,12 +74,19 @@
                 <a class="fb-button fb-button-secondary justify-center" href="@Model.FormAction">Xóa lọc</a>
             </div>
         </form>
+        <script type="application/json" data-area-options-json>
+            @Html.Raw(JsonSerializer.Serialize(Model.AreaSuggestions))
+        </script>
     </aside>
 
     <div class="grid gap-4">
         <div class="flex items-center justify-between gap-3">
             <p class="text-sm text-muted">Tìm thấy <span class="font-semibold text-ink">@Model.Properties.Count</span> căn phù hợp</p>
         </div>
+        @if (!string.IsNullOrWhiteSpace(Model.Filter.SalePriceSummary()))
+        {
+            <p class="text-sm text-muted">@Model.Filter.SalePriceSummary()</p>
+        }
 
         @if (Model.Properties.Count == 0)
         {
@@ -85,7 +102,7 @@
                         <div class="grid gap-3 p-4">
                             <div class="flex items-start justify-between gap-3">
                                 <div>
-                                    <h2 class="font-semibold text-ink">@property.MaskedCode</h2>
+                                    <h2 class="font-semibold text-ink">Mã tham chiếu: @property.PublicReferenceCode</h2>
                                     <p class="text-sm text-muted">@property.ProjectLabel · @property.Area</p>
                                 </div>
                                 @if (!Model.IsSaleMode)

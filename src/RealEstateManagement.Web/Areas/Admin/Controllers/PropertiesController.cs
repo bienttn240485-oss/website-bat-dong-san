@@ -6,6 +6,7 @@ using RealEstateManagement.Application.Contracts;
 using RealEstateManagement.Application.Leads;
 using RealEstateManagement.Application.Properties;
 using RealEstateManagement.Domain.Contracts;
+using RealEstateManagement.Domain.Properties;
 using RealEstateManagement.Web.Areas.Admin.ViewModels;
 using RealEstateManagement.Web.ViewModels.Shared;
 
@@ -33,6 +34,7 @@ public sealed class PropertiesController(
         }
 
         var properties = await propertyService.ListPropertiesAsync(filter.ToQuery(), cancellationToken);
+        var filterOptions = await propertyService.GetAdminFilterOptionsAsync(cancellationToken);
         properties = filter.SortBy == PropertySortOptions.Code
             ? properties.OrderBy(property => property.Code).ToArray()
             : properties.OrderByDescending(property => property.CreatedAtUtc).ThenBy(property => property.Code).ToArray();
@@ -43,9 +45,10 @@ public sealed class PropertiesController(
             Properties = properties.Select(ToListItem).ToArray(),
             CanManage = CanManageProperties(),
             CanDelete = CanDeleteProperties(),
-            ProjectOptions = PropertyDisplay.ProjectOptions(filter.Project),
-            TypeOptions = PropertyDisplay.TypeOptions(filter.Type),
-            StatusOptions = PropertyDisplay.StatusOptions(filter.Status)
+            ProjectOptions = PropertyDisplay.ProjectOptions(filter.Project, filterOptions.Projects),
+            TypeOptions = PropertyDisplay.TypeOptions(filter.Type, filterOptions.Types),
+            StatusOptions = PropertyDisplay.StatusOptions(filter.Status, filterOptions.Statuses),
+            AreaOptions = PropertyDisplay.AreaOptions(VisibleAreas(filterOptions.Areas, filter.Project), filter.Area)
         };
 
         return View(model);
@@ -182,6 +185,7 @@ public sealed class PropertiesController(
         => new(
             property.Id,
             property.Code,
+            PropertyReferenceCode.FromInternalCode(property.Code),
             PropertyDisplay.ProjectLabel(property.Project),
             property.Area,
             PropertyDisplay.TypeLabel(property.Type),
@@ -233,6 +237,15 @@ public sealed class PropertiesController(
 
     private bool CanManageProperties()
         => User.IsInRole(ApplicationRoles.Owner);
+
+    private static IReadOnlyList<PropertyAreaOptionDto> VisibleAreas(
+        IReadOnlyList<PropertyAreaOptionDto> areas,
+        PropertyProject? selectedProject)
+        => selectedProject is null
+            ? areas
+            : areas
+                .Where(area => area.Project == selectedProject)
+                .ToArray();
 
     private DateOnly Today()
         => DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(clock.UtcNow, BusinessTimeZone()).DateTime);

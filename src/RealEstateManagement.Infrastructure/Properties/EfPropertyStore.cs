@@ -11,6 +11,7 @@ public sealed class EfPropertyStore(ApplicationDbContext dbContext) : IPropertyS
     {
         var properties = await ApplyFilter(dbContext.Properties.AsNoTracking(), query)
             .Include(property => property.Images)
+            .Include(property => property.Amenities)
             .OrderBy(property => property.Code)
             .ToListAsync(cancellationToken);
 
@@ -23,6 +24,32 @@ public sealed class EfPropertyStore(ApplicationDbContext dbContext) : IPropertyS
             .FirstOrDefaultAsync(property => property.Id == id, cancellationToken);
 
         return property is null ? null : ToDetailDto(property);
+    }
+
+    public async Task<PropertyFilterOptionsDto> GetFilterOptionsAsync(PropertyFilterQuery query, CancellationToken cancellationToken)
+    {
+        var properties = await ApplyFilter(dbContext.Properties.AsNoTracking(), query with
+            {
+                Project = null,
+                Area = null,
+                Type = null,
+                Status = null,
+                Keyword = null
+            })
+            .Select(property => new
+            {
+                property.Project,
+                property.Area,
+                property.Type,
+                property.Status
+            })
+            .ToListAsync(cancellationToken);
+
+        return new PropertyFilterOptionsDto(
+            properties.Select(property => property.Project).Where(project => project is not null).Select(project => project!.Value).Distinct().OrderBy(project => project).ToArray(),
+            properties.Where(property => !string.IsNullOrWhiteSpace(property.Area)).Select(property => new PropertyAreaOptionDto(property.Project, property.Area)).Distinct().OrderBy(area => area.Area).ToArray(),
+            properties.Select(property => property.Type).Distinct().OrderBy(type => type).ToArray(),
+            properties.Select(property => property.Status).Distinct().OrderBy(status => status).ToArray());
     }
 
     public Task<Property?> GetPropertyForUpdateAsync(Guid id, CancellationToken cancellationToken)
@@ -169,9 +196,12 @@ public sealed class EfPropertyStore(ApplicationDbContext dbContext) : IPropertyS
             property.Bathrooms,
             property.MonthlyPrice,
             property.SalePrice,
+            property.Direction,
+            property.FurniturePackage,
             property.Status,
             property.AvailableFromDate,
             primaryImage?.Url,
+            property.Amenities.OrderBy(amenity => amenity.Name).Select(amenity => amenity.Name).ToArray(),
             property.CreatedAtUtc);
     }
 

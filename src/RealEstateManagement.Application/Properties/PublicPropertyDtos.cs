@@ -12,6 +12,14 @@ public sealed record PublicPropertyFilterQuery(
     long? MaxPrice = null,
     string SortBy = PublicPropertySortOptions.Newest);
 
+public sealed record PropertyFilterOptionsDto(
+    IReadOnlyList<PropertyProject> Projects,
+    IReadOnlyList<PropertyAreaOptionDto> Areas,
+    IReadOnlyList<PropertyType> Types,
+    IReadOnlyList<PropertyStatus> Statuses);
+
+public sealed record PropertyAreaOptionDto(PropertyProject? Project, string Area);
+
 public static class PublicPropertySortOptions
 {
     public const string Newest = "newest";
@@ -22,7 +30,7 @@ public static class PublicPropertySortOptions
 
 public sealed record PublicPropertyCardDto(
     Guid Id,
-    string MaskedCode,
+    string PublicReferenceCode,
     PropertyProject? Project,
     string Area,
     PropertyType Type,
@@ -39,7 +47,7 @@ public sealed record PublicPropertyImageDto(string Url, string AltText, int Sort
 
 public sealed record PublicPropertyDetailDto(
     Guid Id,
-    string MaskedCode,
+    string PublicReferenceCode,
     PropertyProject? Project,
     string Area,
     PropertyType Type,

@@ -10,6 +10,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using RealEstateManagement.Application.Common.Security;
 using RealEstateManagement.Domain.Contracts;
@@ -45,13 +46,13 @@ public sealed class AdminPropertyRoutesTests
         var content = await ReadDecodedContentAsync(response);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Contains("Căn hộ", content);
-        Assert.Contains("OP-0101", content);
-        Assert.Contains("ORI-1808", content);
-        Assert.Contains("Đang trống", content);
-        Assert.Contains("Đã thuê", content);
-        Assert.Contains("Sắp trống", content);
-        Assert.Contains("5.600.000.000 ₫", content);
+        Assert.Contains("C\u0103n h\u1ed9", content);
+        Assert.Contains("OP-A-0901", content);
+        Assert.Contains("OR-S7-1002", content);
+        Assert.Contains("\u0110ang tr\u1ed1ng", content);
+        Assert.Contains("\u0110\u00e3 thu\u00ea", content);
+        Assert.Contains("S\u1eafp tr\u1ed1ng", content);
+        Assert.Contains("5.200.000.000 \u20ab", content);
         AssertNoMojibake(content);
     }
 
@@ -76,10 +77,10 @@ public sealed class AdminPropertyRoutesTests
         var content = await ReadDecodedContentAsync(response);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Contains("Vui lòng nhập mã căn hộ.", content);
-        Assert.Contains("Vui lòng nhập phân khu.", content);
-        Assert.Contains("Số WC không được âm.", content);
-        Assert.Contains("Giá thuê không được âm.", content);
+        Assert.Contains("Vui l\u00f2ng nh\u1eadp m\u00e3 c\u0103n h\u1ed9.", content);
+        Assert.Contains("Vui l\u00f2ng nh\u1eadp ph\u00e2n khu.", content);
+        Assert.Contains("S\u1ed1 WC kh\u00f4ng \u0111\u01b0\u1ee3c \u00e2m.", content);
+        Assert.Contains("Gi\u00e1 thu\u00ea kh\u00f4ng \u0111\u01b0\u1ee3c \u00e2m.", content);
     }
 
     [Fact]
@@ -108,11 +109,11 @@ public sealed class AdminPropertyRoutesTests
         await LoginAsync(client, "owner@example.test", AdminPropertyFactory.Password);
 
         var token = await GetAntiforgeryTokenAsync(client, "/admin/properties/create");
-        var response = await client.PostAsync("/admin/properties/create", ValidPropertyForm(token, "OP-0101", "S1"));
+        var response = await client.PostAsync("/admin/properties/create", ValidPropertyForm(token, "OP-A-0901", "S1"));
         var content = await ReadDecodedContentAsync(response);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Contains("Mã căn hộ đã tồn tại.", content);
+        Assert.Contains("M\u00e3 c\u0103n h\u1ed9 \u0111\u00e3 t\u1ed3n t\u1ea1i.", content);
     }
 
     [Fact]
@@ -121,10 +122,10 @@ public sealed class AdminPropertyRoutesTests
         await using var factory = await AdminPropertyFactory.CreateAsync();
         using var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
         await LoginAsync(client, "owner@example.test", AdminPropertyFactory.Password);
-        var propertyId = await factory.FindPropertyIdAsync("ORI-1808");
+        var propertyId = await factory.FindPropertyIdAsync("OR-S7-1002");
 
         var token = await GetAntiforgeryTokenAsync(client, $"/admin/properties/{propertyId}/edit");
-        var response = await client.PostAsync($"/admin/properties/{propertyId}/edit", ValidPropertyForm(token, "ORI-1808", "Origami S9"));
+        var response = await client.PostAsync($"/admin/properties/{propertyId}/edit", ValidPropertyForm(token, "OR-S7-1002", "Origami S9"));
 
         Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
 
@@ -151,7 +152,7 @@ public sealed class AdminPropertyRoutesTests
         await using var factory = await AdminPropertyFactory.CreateAsync();
         using var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
         await LoginAsync(client, "owner@example.test", AdminPropertyFactory.Password);
-        var propertyId = await factory.FindPropertyIdAsync("ORI-1808");
+        var propertyId = await factory.FindPropertyIdAsync("OR-S7-1002");
 
         var response = await client.PostAsync($"/admin/properties/{propertyId}/delete", Form([]));
 
@@ -164,7 +165,7 @@ public sealed class AdminPropertyRoutesTests
         await using var factory = await AdminPropertyFactory.CreateAsync();
         using var client = factory.CreateClient();
         await LoginAsync(client, "owner@example.test", AdminPropertyFactory.Password);
-        var propertyId = await factory.FindPropertyIdAsync("OP-0101");
+        var propertyId = await factory.FindPropertyIdAsync("OP-A-0901");
         var token = await GetAntiforgeryTokenAsync(client, $"/admin/properties/{propertyId}");
 
         var response = await client.PostAsync($"/admin/properties/{propertyId}/delete", Form([
@@ -173,7 +174,7 @@ public sealed class AdminPropertyRoutesTests
         var content = await ReadDecodedContentAsync(response);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Contains("Không thể xóa căn hộ đang có hợp đồng chủ nhà hoặc hợp đồng thuê.", content);
+        Assert.Contains("Kh\u00f4ng th\u1ec3 x\u00f3a c\u0103n h\u1ed9 \u0111ang c\u00f3 h\u1ee3p \u0111\u1ed3ng ch\u1ee7 nh\u00e0 ho\u1eb7c h\u1ee3p \u0111\u1ed3ng thu\u00ea.", content);
 
         await using var scope = factory.Services.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -186,7 +187,7 @@ public sealed class AdminPropertyRoutesTests
         await using var factory = await AdminPropertyFactory.CreateAsync();
         using var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
         await LoginAsync(client, "staff@example.test", AdminPropertyFactory.Password);
-        var propertyId = await factory.FindPropertyIdAsync("ORI-1808");
+        var propertyId = await factory.FindPropertyIdAsync("OR-S7-1002");
         var token = await GetAntiforgeryTokenAsync(client, $"/admin/properties/{propertyId}");
 
         var response = await client.PostAsync($"/admin/properties/{propertyId}/delete", Form([
@@ -220,18 +221,18 @@ public sealed class AdminPropertyRoutesTests
             ("Bathrooms", "2"),
             ("MonthlyPrice", "18000000"),
             ("SalePrice", "5200000000"),
-            ("Direction", "Đông Nam"),
-            ("LoanInfo", "Hỗ trợ vay ngân hàng"),
-            ("LegalStatus", "Sổ hồng"),
-            ("FurniturePackage", "Nội thất cơ bản"),
-            ("Description", "Căn hộ test cho Admin Property."),
+            ("Direction", "\u0110\u00f4ng Nam"),
+            ("LoanInfo", "H\u1ed7 tr\u1ee3 vay ng\u00e2n h\u00e0ng"),
+            ("LegalStatus", "S\u1ed5 h\u1ed3ng"),
+            ("FurniturePackage", "N\u1ed9i th\u1ea5t c\u01a1 b\u1ea3n"),
+            ("Description", "C\u0103n h\u1ed9 test cho Admin Property."),
             ("VideoUrl", "https://example.test/video"),
             ("Status", "Available"),
             ("AvailableFromDate", "2026-09-01"),
-            ("Notes", "Dữ liệu kiểm thử"),
+            ("Notes", "D\u1eef li\u1ec7u ki\u1ec3m th\u1eed"),
             ("ImagesText", "/images/properties/test.jpg"),
             ("FurnitureText", "Sofa | 1"),
-            ("AmenitiesText", "Hồ bơi")
+            ("AmenitiesText", "H\u1ed3 b\u01a1i")
         ]);
 
     private static FormUrlEncodedContent Form(IEnumerable<(string Key, string Value)> values)
@@ -316,6 +317,8 @@ public sealed class AdminPropertyRoutesTests
             {
                 var keysPath = Path.Combine(Path.GetTempPath(), "RealEstateManagement.Tests.DataProtectionKeys");
                 Directory.CreateDirectory(keysPath);
+                services.RemoveAll<DbContextOptions<ApplicationDbContext>>();
+                services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite($"Data Source={databasePath};Pooling=False"));
                 services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo(keysPath));
             });
         }
@@ -352,7 +355,7 @@ public sealed class AdminPropertyRoutesTests
 
         private static async Task CreateUserAsync(UserManager<ApplicationUser> userManager, string email, string role)
         {
-            var user = await userManager.FindByEmailAsync(email);
+            var user = await userManager.FindByEmailAsync(email) ?? await userManager.FindByNameAsync(email);
             if (user is null)
             {
                 user = new ApplicationUser
@@ -377,3 +380,5 @@ public sealed class AdminPropertyRoutesTests
         }
     }
 }
+
+

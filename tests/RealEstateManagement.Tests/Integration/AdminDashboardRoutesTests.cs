@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using RealEstateManagement.Application.Common.Security;
 using RealEstateManagement.Infrastructure.Data;
@@ -133,6 +134,8 @@ public sealed class AdminDashboardRoutesTests
             {
                 var keysPath = Path.Combine(Path.GetTempPath(), "RealEstateManagement.Tests.DataProtectionKeys");
                 Directory.CreateDirectory(keysPath);
+                services.RemoveAll<DbContextOptions<ApplicationDbContext>>();
+                services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite($"Data Source={databasePath};Pooling=False"));
                 services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo(keysPath));
             });
         }
@@ -169,7 +172,7 @@ public sealed class AdminDashboardRoutesTests
 
         private static async Task CreateUserAsync(UserManager<ApplicationUser> userManager, string email, string role)
         {
-            var user = await userManager.FindByEmailAsync(email);
+            var user = await userManager.FindByEmailAsync(email) ?? await userManager.FindByNameAsync(email);
             if (user is null)
             {
                 user = new ApplicationUser
@@ -194,3 +197,5 @@ public sealed class AdminDashboardRoutesTests
         }
     }
 }
+
+

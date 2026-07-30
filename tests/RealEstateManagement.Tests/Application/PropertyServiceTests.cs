@@ -42,7 +42,7 @@ public sealed class PropertyServiceTests
 
         var result = await service.ListPublicRentalsAsync(new PublicPropertyFilterQuery());
 
-        Assert.Equal(["GH-***03", "OP-***01", "OR-***02"], result.Select(property => property.MaskedCode));
+        Assert.Equal(["GH-0303", "OP-0101", "OR-0202"], result.Select(property => property.PublicReferenceCode));
     }
 
     [Fact]
@@ -56,7 +56,7 @@ public sealed class PropertyServiceTests
         var result = await service.ListPublicSalesAsync(new PublicPropertyFilterQuery());
 
         var property = Assert.Single(result);
-        Assert.Equal("OP-***01", property.MaskedCode);
+        Assert.Equal("OP-0101", property.PublicReferenceCode);
     }
 
     [Fact]
@@ -155,7 +155,7 @@ public sealed class PropertyServiceTests
 
         var result = await service.ListPublicSalesAsync(new PublicPropertyFilterQuery(SortBy: PublicPropertySortOptions.PriceAsc));
 
-        Assert.Equal(["OR-***02", "OP-***01"], result.Select(property => property.MaskedCode));
+        Assert.Equal(["OR-0202", "OP-0101"], result.Select(property => property.PublicReferenceCode));
     }
 
     [Fact]
@@ -193,6 +193,23 @@ public sealed class PropertyServiceTests
     }
 
     [Fact]
+    public void PublicPropertyFilterViewModel_ToVnd_ConvertsMillionAndBillionInputs()
+    {
+        Assert.Equal(18_000_000, RealEstateManagement.Web.ViewModels.PublicPropertyFilterViewModel.ToVnd("18", 1_000_000));
+        Assert.Equal(25_500_000, RealEstateManagement.Web.ViewModels.PublicPropertyFilterViewModel.ToVnd("25,5", 1_000_000));
+        Assert.Equal(5_200_000_000, RealEstateManagement.Web.ViewModels.PublicPropertyFilterViewModel.ToVnd("5,2", 1_000_000_000));
+    }
+
+    [Fact]
+    public void PropertyReferenceCode_FromInternalCode_IsStableAndUnmasked()
+    {
+        Assert.Equal("GH-1209", PropertyReferenceCode.FromInternalCode("GH-A1-1209"));
+        Assert.Equal("OR-1805", PropertyReferenceCode.FromInternalCode("OR-S8-1805"));
+        Assert.Equal("BS7-2508", PropertyReferenceCode.FromInternalCode("BS7-2508"));
+        Assert.DoesNotContain("***", PropertyReferenceCode.FromInternalCode("LBV-A-1702"));
+    }
+
+    [Fact]
     public async Task CreatePropertyAsync_WhenImageUrlUnsafe_ReturnsFailure()
     {
         var service = new PropertyService(new InMemoryPropertyStore(), new FixedClock());
@@ -217,7 +234,7 @@ public sealed class PropertyServiceTests
         var result = await service.GetPublicSaleDetailAsync(property.Id);
 
         Assert.NotNull(result);
-        Assert.Equal("OP-***01", result.MaskedCode);
+        Assert.Equal("OP-0101", result.PublicReferenceCode);
         var publicFields = typeof(PublicPropertyDetailDto).GetProperties().Select(info => info.Name).ToHashSet();
         Assert.DoesNotContain("Notes", publicFields);
         Assert.DoesNotContain("InputPrice", publicFields);
@@ -423,6 +440,16 @@ public sealed class PropertyServiceTests
             return Task.FromResult<IReadOnlyList<PropertySummaryDto>>(properties.Select(ToSummary).ToArray());
         }
 
+        public Task<PropertyFilterOptionsDto> GetFilterOptionsAsync(PropertyFilterQuery query, CancellationToken cancellationToken)
+        {
+            var summaries = Properties.Select(ToSummary).ToArray();
+            return Task.FromResult(new PropertyFilterOptionsDto(
+                summaries.Select(property => property.Project).Where(project => project is not null).Select(project => project!.Value).Distinct().ToArray(),
+                summaries.Select(property => new PropertyAreaOptionDto(property.Project, property.Area)).Distinct().ToArray(),
+                summaries.Select(property => property.Type).Distinct().ToArray(),
+                summaries.Select(property => property.Status).Distinct().ToArray()));
+        }
+
         public Task<PropertyDetailDto?> GetPropertyDetailAsync(Guid id, CancellationToken cancellationToken)
             => Task.FromResult(Properties.FirstOrDefault(property => property.Id == id) is { } property ? ToDetail(property) : null);
 
@@ -460,9 +487,12 @@ public sealed class PropertyServiceTests
                 property.Bathrooms,
                 property.MonthlyPrice,
                 property.SalePrice,
+                property.Direction,
+                property.FurniturePackage,
                 property.Status,
                 property.AvailableFromDate,
                 property.Images.OrderBy(image => image.SortOrder).FirstOrDefault()?.Url,
+                property.Amenities.Select(amenity => amenity.Name).ToArray(),
                 property.CreatedAtUtc);
 
         private static PropertyDetailDto ToDetail(Property property)

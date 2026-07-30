@@ -9,6 +9,7 @@ using RealEstateManagement.Infrastructure.Data;
 using RealEstateManagement.Infrastructure.Identity;
 using RealEstateManagement.Infrastructure.SeedData;
 using RealEstateManagement.Application.Common.Time;
+using RealEstateManagement.Application.Properties;
 
 namespace RealEstateManagement.Tests.Integration;
 
@@ -193,16 +194,16 @@ public sealed class RealEstatePersistenceTests
 
         await using var dbContext = new ApplicationDbContext(options);
         await dbContext.Database.EnsureCreatedAsync();
-        var seeder = new DevelopmentRealEstateSeeder(dbContext, new FixedClock());
+        var seeder = new DevelopmentRealEstateSeeder(dbContext);
 
         await seeder.SeedAsync();
         await seeder.SeedAsync();
 
-        Assert.Equal(4, await dbContext.Properties.CountAsync());
-        Assert.Equal(1, await dbContext.LandlordContracts.CountAsync());
-        Assert.Equal(1, await dbContext.TenantContracts.CountAsync());
-        Assert.Equal(2, await dbContext.Leads.CountAsync());
-        Assert.Equal(14, await dbContext.PropertyImages.CountAsync());
+        Assert.Equal(36, await dbContext.Properties.CountAsync());
+        Assert.Equal(30, await dbContext.LandlordContracts.CountAsync());
+        Assert.True(await dbContext.TenantContracts.CountAsync() >= 18);
+        Assert.Equal(30, await dbContext.Leads.CountAsync());
+        Assert.Equal(144, await dbContext.PropertyImages.CountAsync());
         Assert.All(
             await dbContext.Properties.Include(property => property.Images).ToListAsync(),
             property =>
@@ -218,6 +219,17 @@ public sealed class RealEstatePersistenceTests
         Assert.Contains(await dbContext.Properties.ToListAsync(), property => property.Status == PropertyStatus.Available && property.SalePrice is not null);
         Assert.Contains(await dbContext.Properties.ToListAsync(), property => property.Status == PropertyStatus.Occupied);
         Assert.Contains(await dbContext.Properties.ToListAsync(), property => property.Status == PropertyStatus.SoonAvailable);
+        Assert.Equal(12, await dbContext.Properties.CountAsync(property => property.Status == PropertyStatus.Available));
+        Assert.Equal(10, await dbContext.Properties.CountAsync(property => property.Status == PropertyStatus.Occupied));
+        Assert.Equal(8, await dbContext.Properties.CountAsync(property => property.Status == PropertyStatus.SoonAvailable));
+        Assert.Equal(6, await dbContext.Properties.CountAsync(property => property.Status == PropertyStatus.Reserved));
+        Assert.Equal(10, await dbContext.Properties.Select(property => property.Project).Distinct().CountAsync());
+        Assert.Equal(10, await dbContext.Properties.Select(property => property.Type).Distinct().CountAsync());
+        Assert.All(await dbContext.Properties.ToListAsync(), property =>
+        {
+            Assert.InRange(property.CreatedAtUtc, new DateTimeOffset(2026, 7, 20, 0, 0, 0, TimeSpan.Zero), new DateTimeOffset(2026, 7, 30, 23, 59, 59, TimeSpan.Zero));
+            Assert.DoesNotContain("***", PropertyReferenceCode.FromInternalCode(property.Code));
+        });
         Assert.DoesNotContain(await dbContext.PropertyImages.ToListAsync(), image => image.Url.Contains("/images/fields/", StringComparison.OrdinalIgnoreCase));
         Assert.DoesNotContain(await dbContext.PropertyImages.ToListAsync(), image => image.Url.Contains("san-", StringComparison.OrdinalIgnoreCase));
     }

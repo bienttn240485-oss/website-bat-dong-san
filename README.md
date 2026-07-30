@@ -64,10 +64,17 @@ Seed development data:
 dotnet run --project src/RealEstateManagement.Web -- --seed-development-data
 ```
 
-Development roles use the existing Identity role names:
+Development accounts are seeded only in `Development`:
 
-- `Owner` represents Admin.
-- `Staff` represents Sale.
+- Admin: `admin@anphurealestate.local`
+- Sale:
+  - `sale.tham@anphurealestate.local`
+  - `sale.thuy@anphurealestate.local`
+  - `sale.tuan@anphurealestate.local`
+  - `sale.linh@anphurealestate.local`
+  - `sale.huy@anphurealestate.local`
+
+The development password is configured in `appsettings.Development.json`.
 
 ## Notes
 

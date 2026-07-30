@@ -2,12 +2,14 @@
 
 public static class ApplicationRoles
 {
-    public const string Customer = nameof(Customer);
-    public const string Owner = nameof(Owner);
-    public const string Staff = nameof(Staff);
+    public const string Admin = nameof(Admin);
+    public const string Sale = nameof(Sale);
 
-    public static readonly string[] All = [Customer, Owner, Staff];
-    public static readonly string[] Internal = [Owner, Staff];
+    public const string Owner = Admin;
+    public const string Staff = Sale;
+
+    public static readonly string[] All = [Admin, Sale];
+    public static readonly string[] Internal = [Admin, Sale];
 }
 
 public static class AuthorizationPolicies

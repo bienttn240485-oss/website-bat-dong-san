@@ -6,6 +6,5 @@ public sealed class DevelopmentOwnerOptions
 
     public string? Password { get; set; }
 
-    public string FullName { get; set; } = "Chủ sân";
+    public string FullName { get; set; } = "Quản trị An Phú";
 }
-
