@@ -332,4 +332,4 @@ Các chức năng mở rộng chưa nằm trong MVP:
 
 ## License
 
-Chưa xác định giấy phép phát hành. Hãy bổ sung file `LICENSE` trước khi sử dụng hoặc phân phối dự án theo dạng mã nguồn mở.
+
