@@ -9,7 +9,7 @@
             <h2 class="text-2xl font-semibold text-ink">Cập nhật @Model.Code</h2>
             <p class="mt-1 text-sm text-muted">Điều chỉnh thông tin căn hộ, ảnh URL, nội thất và tiện ích.</p>
         </div>
-        <div class="flex gap-2">
+        <div class="flex flex-wrap gap-2">
             <a class="fb-button fb-button-secondary" href="@(Model.Id is Guid id ? $"/admin/properties/{id}" : "/admin/properties")">Hủy</a>
             <button class="fb-button fb-button-primary" type="submit">Lưu thay đổi</button>
         </div>

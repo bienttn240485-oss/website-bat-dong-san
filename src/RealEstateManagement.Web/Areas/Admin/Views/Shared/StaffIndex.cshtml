@@ -3,11 +3,11 @@
     ViewData["Title"] = "Nhân viên";
 }
 
-<section class="fb-card p-4">
+<section class="fb-surface p-4">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h1 class="text-xl font-semibold text-ink">Nhân viên</h1>
-            <p class="mt-1 text-sm text-muted">Owner quản lý tài khoản nội bộ của nhân viên vận hành sân.</p>
+            <p class="mt-1 text-sm text-muted">Admin quản lý tài khoản nội bộ của đội vận hành bất động sản.</p>
         </div>
         <a class="fb-button fb-button-primary justify-center" href="/admin/staff/create">Thêm nhân viên</a>
     </div>
@@ -15,40 +15,40 @@
     @if (Model.Count == 0)
     {
         <div class="mt-4">
-            <partial name="~/Views/Shared/Partials/_EmptyState.cshtml" model='new EmptyStateViewModel("Chưa có nhân viên", "Thêm tÃ i khoản nhân viên để phân quyá»n thao tác vận hÃ nh.", IconName: "users")' />
+            <partial name="~/Views/Shared/Partials/_EmptyState.cshtml" model='new EmptyStateViewModel("Chưa có nhân viên", "Thêm tài khoản nhân viên để phân quyền thao tác nội bộ.", IconName: "users")' />
         </div>
     }
     else
     {
-        <div class="mt-4 overflow-x-auto">
-            <table class="min-w-full text-left text-sm">
-                <thead class="border-b border-line text-xs uppercase text-muted">
+        <div class="fb-table-wrap mt-4">
+            <table class="fb-table min-w-[760px]">
+                <thead>
                     <tr>
-                        <th class="py-2 pr-3">Họ và tên</th>
-                        <th class="py-2 pr-3">Email</th>
-                        <th class="py-2 pr-3">Trạng thái</th>
-                        <th class="py-2 pr-3">Ngày tạo</th>
-                        <th class="py-2 text-right">Thao tác</th>
+                        <th>Họ và tên</th>
+                        <th>Email</th>
+                        <th>Trạng thái</th>
+                        <th>Ngày tạo</th>
+                        <th class="text-right">Thao tác</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-line">
+                <tbody class="divide-y divide-line bg-white">
                     @foreach (var staff in Model)
                     {
                         var isActive = staff.AccountStatus == RealEstateManagement.Domain.Users.AccountStatus.Active;
                         <tr>
-                            <td class="py-2 pr-3 font-medium text-ink">@staff.FullName</td>
-                            <td class="py-2 pr-3 text-muted">@staff.Email</td>
-                            <td class="py-2 pr-3">
+                            <td class="font-semibold text-ink">@staff.FullName</td>
+                            <td class="text-muted">@staff.Email</td>
+                            <td>
                                 <partial name="~/Views/Shared/Partials/_StatusBadge.cshtml" model='new StatusBadgeViewModel(staff.StatusLabel, staff.StatusTone)' />
                             </td>
-                            <td class="py-2 pr-3 text-muted">@staff.CreatedAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy")</td>
-                            <td class="py-2">
+                            <td class="text-muted">@staff.CreatedAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy")</td>
+                            <td class="text-right">
                                 <div class="flex justify-end gap-2">
-                                    <a class="fb-button fb-button-secondary px-3 py-1.5 text-xs" href="/admin/staff/@staff.Id/edit">Sửa</a>
+                                    <a class="fb-button fb-button-secondary min-h-9 px-3" href="/admin/staff/@staff.Id/edit">Sửa</a>
                                     <form method="post" action="/admin/staff/@staff.Id/toggle">
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="isActive" value="@(!isActive)" />
-                                        <button class="fb-button @(isActive ? "fb-button-danger" : "fb-button-secondary") px-3 py-1.5 text-xs" type="submit">
+                                        <button class="fb-button @(isActive ? "fb-button-danger" : "fb-button-secondary") min-h-9 px-3" type="submit">
                                             @(isActive ? "Khóa" : "Mở khóa")
                                         </button>
                                     </form>
@@ -61,4 +61,3 @@
         </div>
     }
 </section>
-

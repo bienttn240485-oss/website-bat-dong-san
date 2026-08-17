@@ -5,8 +5,8 @@
     var action = isEdit ? $"/admin/staff/{Model.Id}/edit" : "/admin/staff/create";
 }
 
-<section class="fb-card p-4">
-    <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+<section class="fb-surface p-5">
+    <div class="mb-4 flex flex-col gap-3 border-b border-line pb-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h1 class="text-xl font-semibold text-ink">@ViewData["Title"]</h1>
             <p class="mt-1 text-sm text-muted">Tài khoản nhân viên chỉ được dùng trong khu vực nội bộ.</p>
@@ -40,12 +40,12 @@
             <p class="mt-1 text-xs text-muted">Khi cập nhật, để trống nếu không đổi mật khẩu.</p>
         </div>
 
-        <label class="flex items-center gap-2 text-sm font-medium text-ink">
+        <label class="flex min-h-11 items-center gap-2 text-sm font-medium text-ink">
             <input class="rounded border-line text-brand-700 focus:ring-brand-700" asp-for="IsActive" />
             Tài khoản đang hoạt động
         </label>
 
-        <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
+        <div class="flex flex-col gap-2 border-t border-line pt-4 sm:flex-row sm:justify-end">
             <a class="fb-button fb-button-secondary justify-center" href="/admin/staff">Hủy</a>
             <button class="fb-button fb-button-primary justify-center" type="submit">Lưu nhân viên</button>
         </div>

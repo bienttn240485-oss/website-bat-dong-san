@@ -49,7 +49,7 @@
   }
 
   .fb-button {
-    @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-ui border px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60;
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-ui border px-4 py-2 text-sm font-semibold leading-none transition disabled:cursor-not-allowed disabled:opacity-60;
   }
 
   .fb-button-primary {
@@ -65,11 +65,11 @@
   }
 
   .fb-input {
-    @apply block w-full rounded-ui border-line bg-white text-sm text-ink shadow-none placeholder:text-slate-400 focus:border-brand-700 focus:ring-brand-700;
+    @apply block min-h-11 w-full rounded-ui border-line bg-white text-sm text-ink shadow-none placeholder:text-slate-400 focus:border-brand-700 focus:ring-brand-700;
   }
 
   .fb-label {
-    @apply mb-1.5 block text-sm font-medium text-ink;
+    @apply mb-1.5 block text-sm font-semibold text-ink;
   }
 
   .fb-muted {
@@ -80,16 +80,56 @@
     @apply text-xl font-semibold tracking-normal text-ink sm:text-2xl;
   }
 
+  .fb-surface {
+    @apply rounded-ui border border-line bg-white shadow-ui;
+  }
+
+  .fb-filter-panel {
+    @apply h-max rounded-ui border border-line bg-white p-4 shadow-ui lg:sticky lg:top-20;
+  }
+
+  .fb-property-card {
+    @apply flex h-full flex-col overflow-hidden rounded-ui border border-line bg-white shadow-ui transition hover:-translate-y-0.5 hover:border-brand-700 hover:shadow-md;
+  }
+
+  .fb-property-card-body {
+    @apply flex flex-1 flex-col gap-3 p-4;
+  }
+
+  .fb-price {
+    @apply text-lg font-bold leading-tight text-brand-800;
+  }
+
+  .fb-meta-grid {
+    @apply grid gap-3 sm:grid-cols-2 lg:grid-cols-3;
+  }
+
+  .fb-detail-section {
+    @apply rounded-ui border border-line bg-white p-5 shadow-ui;
+  }
+
+  .fb-table-wrap {
+    @apply overflow-x-auto rounded-ui border border-line bg-white shadow-ui;
+  }
+
   .fb-table {
     @apply min-w-full divide-y divide-line text-sm;
   }
 
   .fb-table th {
-    @apply bg-slate-50 px-3 py-2 text-left text-xs font-semibold uppercase tracking-normal text-muted;
+    @apply whitespace-nowrap bg-slate-50 px-3 py-3 text-left text-xs font-semibold uppercase tracking-normal text-muted;
   }
 
   .fb-table td {
-    @apply px-3 py-2 align-middle text-ink;
+    @apply px-3 py-3 align-middle text-ink;
+  }
+
+  .fb-table tbody tr {
+    @apply hover:bg-slate-50/70;
+  }
+
+  .fb-money-cell {
+    @apply whitespace-nowrap text-right font-semibold tabular-nums;
   }
 
   .fc {

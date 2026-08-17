@@ -1,0 +1,16 @@
+E:\Projects\RealEstateManagement\src\RealEstateManagement.Application\bin\Debug\net10.0\RealEstateManagement.Application.deps.json
+E:\Projects\RealEstateManagement\src\RealEstateManagement.Application\bin\Debug\net10.0\RealEstateManagement.Application.dll
+E:\Projects\RealEstateManagement\src\RealEstateManagement.Application\bin\Debug\net10.0\RealEstateManagement.Application.pdb
+E:\Projects\RealEstateManagement\src\RealEstateManagement.Application\bin\Debug\net10.0\RealEstateManagement.Domain.dll
+E:\Projects\RealEstateManagement\src\RealEstateManagement.Application\bin\Debug\net10.0\RealEstateManagement.Domain.pdb
+E:\Projects\RealEstateManagement\src\RealEstateManagement.Application\obj\Debug\net10.0\RealEstateManagement.Application.csproj.AssemblyReference.cache
+E:\Projects\RealEstateManagement\src\RealEstateManagement.Application\obj\Debug\net10.0\RealEstateManagement.Application.GeneratedMSBuildEditorConfig.editorconfig
+E:\Projects\RealEstateManagement\src\RealEstateManagement.Application\obj\Debug\net10.0\RealEstateManagement.Application.AssemblyInfoInputs.cache
+E:\Projects\RealEstateManagement\src\RealEstateManagement.Application\obj\Debug\net10.0\RealEstateManagement.Application.AssemblyInfo.cs
+E:\Projects\RealEstateManagement\src\RealEstateManagement.Application\obj\Debug\net10.0\RealEstateManagement.Application.csproj.CoreCompileInputs.cache
+E:\Projects\RealEstateManagement\src\RealEstateManagement.Application\obj\Debug\net10.0\RealEsta.59183D38.Up2Date
+E:\Projects\RealEstateManagement\src\RealEstateManagement.Application\obj\Debug\net10.0\RealEstateManagement.Application.dll
+E:\Projects\RealEstateManagement\src\RealEstateManagement.Application\obj\Debug\net10.0\refint\RealEstateManagement.Application.dll
+E:\Projects\RealEstateManagement\src\RealEstateManagement.Application\obj\Debug\net10.0\RealEstateManagement.Application.pdb
+E:\Projects\RealEstateManagement\src\RealEstateManagement.Application\obj\Debug\net10.0\ref\RealEstateManagement.Application.dll
+E:\Projects\RealEstateManagement\src\RealEstateManagement.Application\obj\Debug\net10.0\RealEstateManagement.Application.sourcelink.json

@@ -1,22 +1,22 @@
-﻿<header class="border-b border-line bg-white">
-    <nav class="fb-container flex min-h-16 items-center justify-between gap-4" aria-label="Điều hướng công khai">
+<header class="sticky top-0 z-40 border-b border-line bg-white/95 backdrop-blur">
+    <nav class="fb-container flex min-h-16 items-center justify-between gap-3" aria-label="Điều hướng công khai">
         <partial name="Partials/_BrandLogo" />
 
         <button type="button" class="fb-button fb-button-secondary px-3 lg:hidden" aria-label="Mở menu" data-hs-overlay="#public-mobile-menu">
             <partial name="Partials/_HeroIcon" model='new HeroIconViewModel("menu")' />
         </button>
 
-        <div class="hidden items-center gap-6 lg:flex">
-            <a class="text-sm font-medium text-ink hover:text-brand-800" href="/">Trang chủ</a>
-            <a class="text-sm font-medium text-ink hover:text-brand-800" href="/properties">Căn cho thuê</a>
-            <a class="text-sm font-medium text-ink hover:text-brand-800" href="/sales">Căn bán</a>
-            <a class="text-sm font-medium text-ink hover:text-brand-800" href="/contact">Liên hệ</a>
+        <div class="hidden items-center gap-1 lg:flex">
+            <a class="rounded-ui px-3 py-2 text-sm font-semibold text-ink hover:bg-slate-50 hover:text-brand-800" href="/">Trang chủ</a>
+            <a class="rounded-ui px-3 py-2 text-sm font-semibold text-ink hover:bg-slate-50 hover:text-brand-800" href="/properties">Căn cho thuê</a>
+            <a class="rounded-ui px-3 py-2 text-sm font-semibold text-ink hover:bg-slate-50 hover:text-brand-800" href="/sales">Căn bán</a>
+            <a class="rounded-ui px-3 py-2 text-sm font-semibold text-ink hover:bg-slate-50 hover:text-brand-800" href="/contact">Liên hệ</a>
         </div>
 
-        <div class="hidden items-center gap-2 lg:flex">
+        <div class="hidden shrink-0 items-center gap-2 lg:flex">
             @if (User.Identity?.IsAuthenticated == true && (User.IsInRole("Admin") || User.IsInRole("Sale")))
             {
-                <a class="fb-button fb-button-secondary" href="/admin/properties">Vào trang quản trị</a>
+                <a class="fb-button fb-button-secondary px-3" href="/admin/properties">Quản trị</a>
             }
             <a class="fb-button fb-button-primary" href="/contact">Nhận tư vấn</a>
         </div>

@@ -1,0 +1,12 @@
+E:\Projects\RealEstateManagement\src\RealEstateManagement.Domain\bin\Debug\net10.0\RealEstateManagement.Domain.deps.json
+E:\Projects\RealEstateManagement\src\RealEstateManagement.Domain\bin\Debug\net10.0\RealEstateManagement.Domain.dll
+E:\Projects\RealEstateManagement\src\RealEstateManagement.Domain\bin\Debug\net10.0\RealEstateManagement.Domain.pdb
+E:\Projects\RealEstateManagement\src\RealEstateManagement.Domain\obj\Debug\net10.0\RealEstateManagement.Domain.GeneratedMSBuildEditorConfig.editorconfig
+E:\Projects\RealEstateManagement\src\RealEstateManagement.Domain\obj\Debug\net10.0\RealEstateManagement.Domain.AssemblyInfoInputs.cache
+E:\Projects\RealEstateManagement\src\RealEstateManagement.Domain\obj\Debug\net10.0\RealEstateManagement.Domain.AssemblyInfo.cs
+E:\Projects\RealEstateManagement\src\RealEstateManagement.Domain\obj\Debug\net10.0\RealEstateManagement.Domain.csproj.CoreCompileInputs.cache
+E:\Projects\RealEstateManagement\src\RealEstateManagement.Domain\obj\Debug\net10.0\RealEstateManagement.Domain.dll
+E:\Projects\RealEstateManagement\src\RealEstateManagement.Domain\obj\Debug\net10.0\refint\RealEstateManagement.Domain.dll
+E:\Projects\RealEstateManagement\src\RealEstateManagement.Domain\obj\Debug\net10.0\RealEstateManagement.Domain.pdb
+E:\Projects\RealEstateManagement\src\RealEstateManagement.Domain\obj\Debug\net10.0\ref\RealEstateManagement.Domain.dll
+E:\Projects\RealEstateManagement\src\RealEstateManagement.Domain\obj\Debug\net10.0\RealEstateManagement.Domain.sourcelink.json

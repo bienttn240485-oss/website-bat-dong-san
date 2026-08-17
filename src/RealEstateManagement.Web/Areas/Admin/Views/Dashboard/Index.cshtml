@@ -22,10 +22,10 @@
         </div>
     </div>
 
-    <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+    <section class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         @foreach (var metric in Model.Metrics)
         {
-            <article class="fb-card min-w-0 p-4">
+            <article class="fb-surface min-w-0 p-4">
                 <div class="flex items-start justify-between gap-3">
                     <div>
                         <p class="text-sm font-medium text-muted">@metric.Label</p>
@@ -40,14 +40,14 @@
 
     @if (Model.CanViewFinancials)
     {
-        <section class="fb-card p-4">
+        <section class="fb-surface p-4">
             <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <h2 class="font-semibold text-ink">Tài chính vận hành</h2>
                     <p class="text-sm text-muted">Giá vào, giá ra và chênh lệch tính từ hợp đồng hiện có.</p>
                 </div>
             </div>
-            <div class="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            <div class="mt-4 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
                 <div class="rounded-ui border border-line bg-surface-muted p-3">
                     <p class="text-sm text-muted">Tổng giá vào/tháng</p>
                     <p class="mt-1 text-lg font-semibold text-ink">@Model.Financial.MonthlyInputTotal</p>
@@ -77,16 +77,16 @@
     }
     else
     {
-        <section class="fb-card p-4">
+        <section class="fb-surface p-4">
             <h2 class="font-semibold text-ink">Tài chính vận hành</h2>
             <p class="mt-1 text-sm text-muted">Tài khoản hiện tại không có quyền xem số liệu tài chính nhạy cảm.</p>
         </section>
     }
 
-    <section class="grid gap-5 xl:grid-cols-2">
+    <section class="grid gap-5 lg:grid-cols-2">
         @foreach (var chart in Model.Charts.Where(chart => Model.CanViewFinancials || !chart.IsFinancial))
         {
-            <article class="fb-card min-w-0 p-4">
+            <article class="fb-surface min-w-0 p-4">
                 <div>
                     <h2 class="font-semibold text-ink">@chart.Title</h2>
                     <p class="text-sm text-muted">@chart.Description</p>
@@ -99,8 +99,8 @@
         }
     </section>
 
-    <section class="grid gap-5 xl:grid-cols-[1.05fr_0.95fr]">
-        <article class="fb-card min-w-0 overflow-hidden">
+    <section class="grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
+        <article class="fb-surface min-w-0 overflow-hidden">
             <div class="border-b border-line px-4 py-3">
                 <h2 class="font-semibold text-ink">Cảnh báo cần xử lý</h2>
                 <p class="text-sm text-muted">Hợp đồng, trạng thái căn hộ và lead cần theo dõi.</p>
@@ -132,7 +132,7 @@
             }
         </article>
 
-        <article class="fb-card min-w-0 overflow-hidden">
+        <article class="fb-surface min-w-0 overflow-hidden">
             <div class="border-b border-line px-4 py-3">
                 <h2 class="font-semibold text-ink">Timeline 12 tháng tới</h2>
                 <p class="text-sm text-muted">Ngày hết hạn, ngày trống và hoàn cọc sắp tới.</p>

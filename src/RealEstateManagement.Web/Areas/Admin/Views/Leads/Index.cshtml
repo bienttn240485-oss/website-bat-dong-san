@@ -18,8 +18,8 @@
         <partial name="~/Views/Shared/Partials/_Alert.cshtml" model='new AlertViewModel("Không thể thực hiện", error, "danger")' />
     }
 
-    <form class="fb-card grid gap-4 p-4" method="get" action="/admin/leads">
-        <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+    <form class="fb-filter-panel grid gap-3 p-4" method="get" action="/admin/leads">
+        <div class="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
             <div>
                 <label class="fb-label" asp-for="Filter.Keyword"></label>
                 <input class="fb-input" asp-for="Filter.Keyword" name="Keyword" />
@@ -65,7 +65,7 @@
                 </div>
             </div>
         </div>
-        <label class="inline-flex items-center gap-2 text-sm text-ink">
+        <label class="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-ink">
             <input class="rounded border-line" asp-for="Filter.UnassignedOnly" name="UnassignedOnly" />
             <span>Chỉ xem Lead chưa phân công</span>
         </label>
@@ -75,7 +75,7 @@
         </div>
     </form>
 
-    <section class="fb-card p-4">
+    <section class="fb-surface overflow-hidden">
         @if (Model.Leads.Count == 0)
         {
             <div class="py-10 text-center">
@@ -85,39 +85,39 @@
         }
         else
         {
-            <div class="overflow-x-auto">
-                <table class="min-w-[980px] w-full text-left text-sm">
-                    <thead class="border-b border-line text-xs uppercase text-muted">
+            <div class="fb-table-wrap">
+                <table class="fb-table min-w-[1120px]">
+                    <thead>
                         <tr>
-                            <th class="py-2 pr-3">Tên khách</th>
-                            <th class="py-2 pr-3">Liên hệ</th>
-                            <th class="py-2 pr-3">Property</th>
-                            <th class="py-2 pr-3">Chủ đề</th>
-                            <th class="py-2 pr-3">Ngôn ngữ</th>
-                            <th class="py-2 pr-3">Trạng thái</th>
-                            <th class="py-2 pr-3">Sale phụ trách</th>
-                            <th class="py-2 pr-3">Ngày tạo</th>
-                            <th class="py-2 pr-3">Ngày cập nhật</th>
-                            <th class="py-2 pr-3">Thao tác</th>
+                            <th>Tên khách</th>
+                            <th>Liên hệ</th>
+                            <th>Property</th>
+                            <th>Chủ đề</th>
+                            <th>Ngôn ngữ</th>
+                            <th>Trạng thái</th>
+                            <th>Sale phụ trách</th>
+                            <th>Ngày tạo</th>
+                            <th>Ngày cập nhật</th>
+                            <th class="text-right">Thao tác</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-line">
+                    <tbody class="divide-y divide-line bg-white">
                         @foreach (var lead in Model.Leads)
                         {
                             <tr>
-                                <td class="py-3 pr-3 font-medium text-ink">@lead.Name</td>
-                                <td class="py-3 pr-3">@lead.Contact</td>
-                                <td class="py-3 pr-3">@(lead.PropertyCode is null ? "Chưa gắn" : $"{lead.PropertyCode} - {lead.PropertyArea}")</td>
-                                <td class="py-3 pr-3">@(lead.Subject ?? "Chưa có")</td>
-                                <td class="py-3 pr-3">@lead.Language</td>
-                                <td class="py-3 pr-3">
+                                <td class="font-semibold text-ink">@lead.Name</td>
+                                <td>@lead.Contact</td>
+                                <td>@(lead.PropertyCode is null ? "Chưa gắn" : $"{lead.PropertyCode} - {lead.PropertyArea}")</td>
+                                <td>@(lead.Subject ?? "Chưa có")</td>
+                                <td>@lead.Language</td>
+                                <td>
                                     <partial name="~/Views/Shared/Partials/_StatusBadge.cshtml" model='new StatusBadgeViewModel(lead.StatusLabel, lead.StatusTone)' />
                                 </td>
-                                <td class="py-3 pr-3">@(lead.AssignedToDisplayName ?? "Chưa phân công")</td>
-                                <td class="py-3 pr-3">@LeadDisplay.DateTimeText(lead.CreatedAtUtc)</td>
-                                <td class="py-3 pr-3">@LeadDisplay.DateTimeText(lead.UpdatedAtUtc)</td>
-                                <td class="py-3 pr-3">
-                                    <a class="font-semibold text-brand-700" href="/admin/leads/@lead.Id">Chi tiết</a>
+                                <td>@(lead.AssignedToDisplayName ?? "Chưa phân công")</td>
+                                <td>@LeadDisplay.DateTimeText(lead.CreatedAtUtc)</td>
+                                <td>@LeadDisplay.DateTimeText(lead.UpdatedAtUtc)</td>
+                                <td class="text-right">
+                                    <a class="fb-button fb-button-secondary min-h-9 px-3" href="/admin/leads/@lead.Id">Chi tiết</a>
                                 </td>
                             </tr>
                         }

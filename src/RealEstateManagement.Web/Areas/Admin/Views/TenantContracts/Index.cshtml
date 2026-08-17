@@ -12,7 +12,7 @@
         }
     </div>
 
-    <form class="fb-card grid gap-3 p-4 md:grid-cols-4" method="get">
+    <form class="fb-filter-panel grid gap-3 p-4 md:grid-cols-2 lg:grid-cols-4" method="get">
         <label class="grid gap-1 text-sm">
             <span class="fb-label">Từ khóa</span>
             <input class="fb-input" asp-for="Filter.Keyword" name="Keyword" />
@@ -31,11 +31,11 @@
                 <option value="">Tất cả</option>
             </select>
         </label>
-        <label class="flex items-center gap-2 text-sm">
+        <label class="flex min-h-11 items-center gap-2 text-sm font-medium text-ink">
             <input class="rounded border-line text-brand-700" asp-for="Filter.ExpiringSoon" name="ExpiringSoon" />
             <span>Hết hạn trong 30 ngày</span>
         </label>
-        <label class="flex items-center gap-2 text-sm">
+        <label class="flex min-h-11 items-center gap-2 text-sm font-medium text-ink">
             <input class="rounded border-line text-brand-700" asp-for="Filter.ExpiredOnly" name="ExpiredOnly" />
             <span>Đã hết hạn</span>
         </label>
@@ -54,66 +54,70 @@
 
     @if (Model.Contracts.Count == 0)
     {
-        <section class="fb-card p-6 text-center">
+        <section class="fb-surface p-6 text-center">
             <h3 class="font-semibold text-ink">Chưa có hợp đồng khách thuê</h3>
             <p class="mt-1 text-sm text-muted">Tạo hợp đồng để đồng bộ trạng thái căn hộ và theo dõi giá ra.</p>
         </section>
     }
     else
     {
-        <section class="fb-card overflow-x-auto">
-            <table class="min-w-[980px] w-full text-left text-sm">
-                <thead class="border-b border-line bg-slate-50 text-xs uppercase text-muted">
-                    <tr>
-                        <th class="px-4 py-3">Mã căn</th>
-                        <th class="px-4 py-3">Phân khu</th>
-                        <th class="px-4 py-3">Khách thuê</th>
-                        <th class="px-4 py-3">Phụ trách</th>
-                        <th class="px-4 py-3">Giá thuê</th>
-                        <th class="px-4 py-3">Tiền cọc</th>
-                        <th class="px-4 py-3">Ngày ký</th>
-                        <th class="px-4 py-3">Hết hạn</th>
-                        <th class="px-4 py-3">Thời hạn</th>
-                        <th class="px-4 py-3">Trạng thái</th>
-                        <th class="px-4 py-3">Mã PE</th>
-                        <th class="px-4 py-3">Cảnh báo</th>
-                        <th class="px-4 py-3">Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-line">
-                    @foreach (var contract in Model.Contracts)
-                    {
+        <section class="fb-surface overflow-hidden">
+            <div class="fb-table-wrap">
+                <table class="fb-table min-w-[1180px]">
+                    <thead>
                         <tr>
-                            <td class="px-4 py-3 font-semibold text-ink">@contract.PropertyCode</td>
-                            <td class="px-4 py-3">@contract.Area</td>
-                            <td class="px-4 py-3">@contract.TenantName</td>
-                            <td class="px-4 py-3">@(contract.ManagerName ?? "Chưa có")</td>
-                            <td class="px-4 py-3">@ContractDisplay.Money(contract.RentalPrice)</td>
-                            <td class="px-4 py-3">@ContractDisplay.Money(contract.DepositAmount)</td>
-                            <td class="px-4 py-3">@ContractDisplay.DateText(contract.SignedDate)</td>
-                            <td class="px-4 py-3">@ContractDisplay.DateText(contract.ExpiryDate)</td>
-                            <td class="px-4 py-3">@contract.TermMonths tháng</td>
-                            <td class="px-4 py-3">@ContractDisplay.ContractStatusLabel(contract.Status)</td>
-                            <td class="px-4 py-3">@(contract.PeCode ?? "Chưa có")</td>
-                            <td class="px-4 py-3">
-                                @foreach (var warning in contract.Warnings)
-                                {
-                                    <span class="rounded-ui bg-amber-50 px-2 py-1 text-xs text-amber-800">@warning.Message</span>
-                                }
-                            </td>
-                            <td class="px-4 py-3">
-                                <div class="flex flex-wrap gap-2">
-                                    <a class="fb-button fb-button-secondary px-3 py-1 text-xs" href="/admin/tenant-contracts/@contract.Id">Xem</a>
-                                    @if (Model.CanManage)
-                                    {
-                                        <a class="fb-button fb-button-secondary px-3 py-1 text-xs" href="/admin/tenant-contracts/@contract.Id/edit">Sửa</a>
-                                    }
-                                </div>
-                            </td>
+                            <th>Mã căn</th>
+                            <th>Phân khu</th>
+                            <th>Khách thuê</th>
+                            <th>Phụ trách</th>
+                            <th class="text-right">Giá thuê</th>
+                            <th class="text-right">Tiền cọc</th>
+                            <th>Ngày ký</th>
+                            <th>Hết hạn</th>
+                            <th>Thời hạn</th>
+                            <th>Trạng thái</th>
+                            <th>Mã PE</th>
+                            <th>Cảnh báo</th>
+                            <th class="text-right">Thao tác</th>
                         </tr>
-                    }
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody class="divide-y divide-line bg-white">
+                        @foreach (var contract in Model.Contracts)
+                        {
+                            <tr>
+                                <td class="font-semibold text-ink">@contract.PropertyCode</td>
+                                <td>@contract.Area</td>
+                                <td>@contract.TenantName</td>
+                                <td>@(contract.ManagerName ?? "Chưa có")</td>
+                                <td class="fb-money-cell">@ContractDisplay.Money(contract.RentalPrice)</td>
+                                <td class="fb-money-cell">@ContractDisplay.Money(contract.DepositAmount)</td>
+                                <td>@ContractDisplay.DateText(contract.SignedDate)</td>
+                                <td>@ContractDisplay.DateText(contract.ExpiryDate)</td>
+                                <td>@contract.TermMonths tháng</td>
+                                <td>@ContractDisplay.ContractStatusLabel(contract.Status)</td>
+                                <td>@(contract.PeCode ?? "Chưa có")</td>
+                                <td>
+                                    <div class="flex flex-wrap gap-1">
+                                        @foreach (var warning in contract.Warnings)
+                                        {
+                                            <span class="rounded-ui bg-amber-50 px-2 py-1 text-xs font-medium text-amber-800">@warning.Message</span>
+                                        }
+                                    </div>
+                                </td>
+                                <td class="text-right">
+                                    <div class="flex justify-end gap-2">
+                                        <a class="fb-button fb-button-secondary min-h-9 px-3" href="/admin/tenant-contracts/@contract.Id">Xem</a>
+                                        @if (Model.CanManage)
+                                        {
+                                            <a class="fb-button fb-button-secondary min-h-9 px-3" href="/admin/tenant-contracts/@contract.Id/edit">Sửa</a>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         </section>
     }
 </div>

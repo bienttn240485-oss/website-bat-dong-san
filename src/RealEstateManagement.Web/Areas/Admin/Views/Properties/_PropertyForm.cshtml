@@ -2,8 +2,11 @@
 
 <div asp-validation-summary="ModelOnly" class="rounded-ui border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800"></div>
 
-<section class="fb-card p-4">
-    <h3 class="font-semibold text-ink">Thông tin căn hộ</h3>
+<section class="fb-surface p-5">
+    <div class="border-b border-line pb-3">
+        <h3 class="font-semibold text-ink">Thông tin căn hộ</h3>
+        <p class="mt-1 text-sm text-muted">Nhập thông tin vận hành và dữ liệu hiển thị chính cho căn hộ.</p>
+    </div>
     <div class="mt-4 grid gap-4 md:grid-cols-2">
         <div>
             <label asp-for="Code" class="fb-label"></label>
@@ -95,8 +98,11 @@
     </div>
 </section>
 
-<section class="fb-card p-4">
-    <h3 class="font-semibold text-ink">Ảnh, nội thất và tiện ích</h3>
+<section class="fb-surface p-5">
+    <div class="border-b border-line pb-3">
+        <h3 class="font-semibold text-ink">Ảnh, nội thất và tiện ích</h3>
+        <p class="mt-1 text-sm text-muted">Mỗi nhóm nhập theo từng dòng để giữ form gọn và dễ kiểm tra.</p>
+    </div>
     <div class="mt-4 grid gap-4 lg:grid-cols-3">
         <div>
             <label asp-for="ImagesText" class="fb-label"></label>

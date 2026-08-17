@@ -7,7 +7,7 @@
 }
 
 <section class="border-b border-line bg-white">
-    <div class="fb-container py-8">
+    <div class="fb-container py-6">
         <p class="text-sm font-semibold uppercase text-brand-700">An Phú Real Estate</p>
         <div class="mt-2 grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
             <div>
@@ -19,10 +19,10 @@
     </div>
 </section>
 
-<section class="fb-container grid gap-5 py-6 lg:grid-cols-[320px_1fr]">
-    <aside class="h-max rounded-ui border border-line bg-white p-4 shadow-sm">
+<section class="fb-container grid gap-5 py-6 lg:grid-cols-[300px_1fr] xl:grid-cols-[320px_1fr]">
+    <aside class="fb-filter-panel">
         <h2 class="text-base font-semibold text-ink">Bộ lọc</h2>
-        <form class="mt-4 grid gap-4" method="get" action="@Model.FormAction">
+        <form class="mt-4 grid gap-3" method="get" action="@Model.FormAction">
             <div asp-validation-summary="ModelOnly" class="rounded-ui border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800"></div>
             <div>
                 <label class="fb-label" asp-for="Filter.Keyword"></label>
@@ -94,12 +94,12 @@
         }
         else
         {
-            <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 @foreach (var property in Model.Properties)
                 {
-                    <article class="fb-card overflow-hidden">
+                    <article class="fb-property-card">
                         <partial name="~/Views/Shared/Partials/_PublicPropertyImage.cshtml" model='new PublicPropertyImageViewModel(property.ImageUrl, property.ImageAltText, "aspect-[16/10] w-full object-cover")' />
-                        <div class="grid gap-3 p-4">
+                        <div class="fb-property-card-body">
                             <div class="flex items-start justify-between gap-3">
                                 <div>
                                     <h2 class="font-semibold text-ink">Mã tham chiếu: @property.PublicReferenceCode</h2>
@@ -117,13 +117,13 @@
                             }
                             <div class="flex items-center justify-between gap-3">
                                 <div>
-                                    <p class="font-semibold text-brand-800">@property.PriceText</p>
+                                    <p class="fb-price">@property.PriceText</p>
                                     @if (!string.IsNullOrWhiteSpace(property.SecondaryPriceText))
                                     {
                                         <p class="text-xs text-muted">@property.SecondaryPriceText</p>
                                     }
                                 </div>
-                                <a class="fb-button fb-button-secondary" href="@property.DetailUrl">Xem chi tiết</a>
+                                <a class="fb-button fb-button-secondary shrink-0 px-3" href="@property.DetailUrl">Xem chi tiết</a>
                             </div>
                         </div>
                     </article>

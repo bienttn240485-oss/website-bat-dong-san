@@ -1,0 +1,6 @@
+{
+  "RealEstateManagement.Application, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "E:\\Projects\\RealEstateManagement\\src\\RealEstateManagement.Application",
+  "RealEstateManagement.Domain, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "E:\\Projects\\RealEstateManagement\\src\\RealEstateManagement.Domain",
+  "RealEstateManagement.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "E:\\Projects\\RealEstateManagement\\src\\RealEstateManagement.Infrastructure",
+  "RealEstateManagement.Web, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "E:\\Projects\\RealEstateManagement\\src\\RealEstateManagement.Web"
+}

@@ -6,12 +6,12 @@
 <section class="relative overflow-hidden bg-white">
     <img class="absolute inset-0 h-full w-full object-cover" src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1800&q=80" alt="Không gian căn hộ hiện đại" />
     <div class="absolute inset-0 bg-slate-950/55"></div>
-    <div class="fb-container relative grid min-h-[560px] items-center py-10 text-white lg:grid-cols-[0.95fr_1.05fr]">
+    <div class="fb-container relative grid min-h-[500px] items-center py-8 text-white lg:grid-cols-[0.95fr_1.05fr]">
         <div class="max-w-3xl">
             <p class="text-sm font-semibold uppercase">An Phú Real Estate</p>
             <h1 class="mt-3 text-4xl font-semibold leading-tight sm:text-5xl">Thuê và mua căn hộ tại Vinhomes Grand Park</h1>
             <p class="mt-4 max-w-2xl text-base text-white/85">Lọc nhanh theo phân khu, loại căn và ngân sách. Đội ngũ tư vấn hỗ trợ xem căn, thương lượng giá và chuẩn bị thông tin giao dịch rõ ràng.</p>
-            <form class="mt-6 grid gap-3 rounded-ui border border-white/20 bg-white/95 p-4 text-ink shadow-sm sm:grid-cols-[1.2fr_1fr_auto]" action="/properties" method="get">
+            <form class="mt-6 grid gap-3 rounded-ui border border-white/20 bg-white/95 p-4 text-ink shadow-sm md:grid-cols-[1.2fr_1fr_auto]" action="/properties" method="get">
                 <div>
                     <label class="fb-label" for="home-keyword">Từ khóa</label>
                     <input class="fb-input" id="home-keyword" name="Keyword" type="search" placeholder="" />
@@ -61,9 +61,9 @@
         <div class="grid gap-4 md:grid-cols-3">
             @foreach (var property in Model.FeaturedRentals)
             {
-                <article class="fb-card overflow-hidden">
+                <article class="fb-property-card">
                     <partial name="~/Views/Shared/Partials/_PublicPropertyImage.cshtml" model='new RealEstateManagement.Web.ViewModels.PublicPropertyImageViewModel(property.ImageUrl, property.ImageAltText, "aspect-[16/10] w-full object-cover")' />
-                    <div class="grid gap-3 p-4">
+                    <div class="fb-property-card-body">
                         <div class="flex items-start justify-between gap-3">
                             <div>
                                 <h3 class="font-semibold text-ink">Mã tham chiếu: @property.PublicReferenceCode</h3>
@@ -73,8 +73,8 @@
                         </div>
                         <p class="text-sm text-muted">@property.TypeLabel · @property.AreaText · @property.BathroomText</p>
                         <div class="flex items-center justify-between gap-3">
-                            <span class="font-semibold text-brand-800">@property.PriceText</span>
-                            <a class="text-sm font-semibold text-brand-800 hover:text-brand-900" href="@property.DetailUrl">Chi tiết</a>
+                            <span class="fb-price">@property.PriceText</span>
+                            <a class="fb-button fb-button-secondary px-3" href="@property.DetailUrl">Xem chi tiết</a>
                         </div>
                     </div>
                 </article>
@@ -115,14 +115,14 @@
         <div class="grid gap-4 md:grid-cols-3">
             @foreach (var property in Model.FeaturedSales)
             {
-                <article class="fb-card overflow-hidden">
+                <article class="fb-property-card">
                     <partial name="~/Views/Shared/Partials/_PublicPropertyImage.cshtml" model='new RealEstateManagement.Web.ViewModels.PublicPropertyImageViewModel(property.ImageUrl, property.ImageAltText, "aspect-[16/10] w-full object-cover")' />
-                    <div class="grid gap-3 p-4">
+                    <div class="fb-property-card-body">
                         <h3 class="font-semibold text-ink">Mã tham chiếu: @property.PublicReferenceCode</h3>
                         <p class="text-sm text-muted">@property.ProjectLabel · @property.Area · @property.TypeLabel</p>
                         <div class="flex items-center justify-between gap-3">
-                            <span class="font-semibold text-brand-800">@property.PriceText</span>
-                            <a class="text-sm font-semibold text-brand-800 hover:text-brand-900" href="@property.DetailUrl">Chi tiết</a>
+                            <span class="fb-price">@property.PriceText</span>
+                            <a class="fb-button fb-button-secondary px-3" href="@property.DetailUrl">Xem chi tiết</a>
                         </div>
                     </div>
                 </article>

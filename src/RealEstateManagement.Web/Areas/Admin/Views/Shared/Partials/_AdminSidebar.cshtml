@@ -22,7 +22,7 @@
     var items = isOwner ? adminItems : saleItems;
 }
 
-<aside class="hidden h-screen w-64 shrink-0 border-r border-line bg-white lg:sticky lg:top-0 lg:block">
+<aside class="hidden h-screen w-64 shrink-0 border-r border-line bg-white shadow-sm lg:sticky lg:top-0 lg:block">
     <div class="flex h-16 items-center border-b border-line px-4">
         <partial name="~/Views/Shared/Partials/_BrandLogo.cshtml" />
     </div>
@@ -30,7 +30,7 @@
         @foreach (var item in items)
         {
             var isActive = Context.Request.Path.Value?.StartsWith(item.Url, StringComparison.OrdinalIgnoreCase) == true;
-            <a class="flex items-center gap-3 rounded-ui px-3 py-2 font-medium transition @(isActive ? "bg-brand-50 text-brand-800" : "text-muted hover:bg-slate-50 hover:text-ink")" href="@item.Url">
+            <a class="relative flex min-h-11 items-center gap-3 rounded-ui px-3 py-2 font-semibold transition @(isActive ? "bg-brand-50 text-brand-800 shadow-ui before:absolute before:left-0 before:top-2 before:h-7 before:w-1 before:rounded-full before:bg-brand-700" : "text-muted hover:bg-slate-50 hover:text-ink")" href="@item.Url">
                 <partial name="~/Views/Shared/Partials/_HeroIcon.cshtml" model="new HeroIconViewModel(item.Icon)" />
                 <span>@item.Label</span>
             </a>
@@ -49,7 +49,8 @@
         <nav class="grid gap-1 p-3 text-sm" aria-label="Điều hướng quản trị trên di động">
             @foreach (var item in items)
             {
-                <a class="flex items-center gap-3 rounded-ui px-3 py-2 font-medium text-muted hover:bg-slate-50 hover:text-ink" href="@item.Url">
+                var isActive = Context.Request.Path.Value?.StartsWith(item.Url, StringComparison.OrdinalIgnoreCase) == true;
+                <a class="relative flex min-h-11 items-center gap-3 rounded-ui px-3 py-2 font-semibold transition @(isActive ? "bg-brand-50 text-brand-800 shadow-ui before:absolute before:left-0 before:top-2 before:h-7 before:w-1 before:rounded-full before:bg-brand-700" : "text-muted hover:bg-slate-50 hover:text-ink")" href="@item.Url">
                     <partial name="~/Views/Shared/Partials/_HeroIcon.cshtml" model="new HeroIconViewModel(item.Icon)" />
                     <span>@item.Label</span>
                 </a>
